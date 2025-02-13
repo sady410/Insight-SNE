@@ -33,4 +33,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    test.py
+    gradients.py \
+    test.py \
+    tsne.py

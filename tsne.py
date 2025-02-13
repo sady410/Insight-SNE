@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import argparse
 
 def _Hbeta(D = np.array([]), beta = 1.0):
         """Compute the perplexity and the P-row for a specific value of the precision of a Gaussian distribution."""
@@ -140,3 +139,26 @@ def compute_tsne(X, no_dims = 2, perplexity = 30.0, max_iter = 400, Y_init = Non
             P = P / 4
 
     return Y, P, Q, sigma
+
+if __name__ == "__main__":
+    # Read the list from the command line argument (it will be a string representation of a Python list)
+    try:
+        input_data = sys.argv[1]
+    except:
+        print("error")
+        print(input_data)
+    # Convert the string back to a Python list
+    # X = eval(input_data)
+
+    # # Perform t-SNE
+    # Y, P, Q, sigma = compute_tsne(np.array(X), no_dims=2, perplexity=30.0, max_iter=400)
+
+    # # Output the result directly to stdout (as a string)
+    # result = {
+    #     "Y": Y.tolist(),
+    #     "P": P.tolist(),
+    #     "Q": Q.tolist(),
+    #     "sigma": sigma.tolist(),
+    # }
+
+    # print(result)

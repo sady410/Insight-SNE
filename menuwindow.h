@@ -22,7 +22,8 @@ public:
 
 private:
     void readCsvFile(const QString &filePath);
-    QStringList constructArgsString(); // TODO
+    QStringList constructArgsString();
+    QString list2String(const QList<QString> &list);
 
 private slots:
     void updatePerplexityLabel(int value);
@@ -42,6 +43,7 @@ private:
 
     QMap<int, int> iterationsMap;
     QString csvFile;
+    QList<QList<QString>> data;
 
     PythonExecutor *PythonExecutor;
 };

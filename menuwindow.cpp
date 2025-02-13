@@ -64,12 +64,9 @@ void MenuWindow::onRunAppButtonClicked()
     int iterationsIndex = ui->iterationsSlider->value();
     int iterations = iterationsMap[iterationsIndex];
 
-    if (csvFile != nullptr) {
-        readCsvFile(csvFile);
-    } else {
+    if (csvFile == nullptr) {
         qDebug() << "No CSV file selected!";
     }
-
 
     qInfo() << "Perplexity:" << perplexity;
     qInfo() << "Iterations:" << iterations;
@@ -82,7 +79,8 @@ void MenuWindow::onRunAppButtonClicked()
     }
 
     QStringList args = constructArgsString(); // TODO
-    PythonExecutor->executeScript(QDir(projectRoot).filePath("test.py"), args);
+    qDebug() << args;
+    PythonExecutor->executeScript(QDir(projectRoot).filePath("tsne.py"), args);
 }
 
 void MenuWindow::onOutputReceived(const QString &output)
@@ -112,6 +110,7 @@ void MenuWindow::selectCsvFile() {
         ui->fileLabel->setText("Selected File: " + fileName);
         csvFile = fileName;
         qDebug() << "Selected CSV file: " << fileName;
+        readCsvFile(csvFile);
     } else {
         ui->fileLabel->setText("No file selected");
     }
@@ -132,7 +131,6 @@ void MenuWindow::readCsvFile(const QString &filePath) {
     QStringList featureNames = firstLine.split(";");
     qDebug() << "Feature Names: " << featureNames;
 
-    QList<QList<QString>> data;
     QStringList labels;
 
     // Read the rest of the lines
@@ -158,13 +156,24 @@ void MenuWindow::readCsvFile(const QString &filePath) {
 
     file.close();
 
-    // TODO: store featureNames and data globally for further use
-    qDebug() << "Labels : " << labels;
-    qDebug() << "Data (features without labels): " << data;
+    // TODO: store featureNames and data as attributes for further use
+    // qDebug() << "Labels : " << labels;
+    // qDebug() << "Data (features without labels): " << data;
 }
+
 
 QStringList MenuWindow::constructArgsString() {
-    return QStringList("TODO");
+    QStringList args;
+    args.append(csvFile);
+
+    for (const QList<QString> &row : data) {
+        args.append(list2String(row));
+    }
+
+    return args;
 }
 
-
+QString MenuWindow::list2String(const QList<QString> &list)
+{
+    return QStringLiteral("{%1}").arg(list.join(','));
+}
