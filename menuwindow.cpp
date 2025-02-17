@@ -4,6 +4,8 @@
 
 #include <QDebug>
 #include <QFileDialog>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 MenuWindow::MenuWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -58,19 +60,6 @@ void MenuWindow::updateIterationsLabel(int value) {
 
 void MenuWindow::onRunAppButtonClicked()
 {
-    // Get settings values
-    int perplexity = ui->perplexitySlider->value();
-
-    int iterationsIndex = ui->iterationsSlider->value();
-    int iterations = iterationsMap[iterationsIndex];
-
-    if (csvFile == nullptr) {
-        qDebug() << "No CSV file selected!";
-    }
-
-    qInfo() << "Perplexity:" << perplexity;
-    qInfo() << "Iterations:" << iterations;
-
     // Execute python script
     qDebug() << "Executing Python script...";
     QString projectRoot = QDir(QCoreApplication::applicationDirPath()).absolutePath();
@@ -78,14 +67,24 @@ void MenuWindow::onRunAppButtonClicked()
         projectRoot = QDir(projectRoot).filePath("../../..");
     }
 
-    QStringList args = constructArgsString(); // TODO
-    qDebug() << args;
+    QStringList args = constructArgsString();
+    // qDebug() << args;
     PythonExecutor->executeScript(QDir(projectRoot).filePath("tsne.py"), args);
 }
 
 void MenuWindow::onOutputReceived(const QString &output)
 {
-    qDebug() << "Python Output: " + output;
+    // qDebug() << "Python Output: " + output;
+    QJsonDocument json = QJsonDocument::fromJson(output.trimmed().toUtf8());
+    if (json.isObject()) {
+        QJsonObject jsonObject = json.object();
+        // qDebug() << "Parsed JSON object:" << jsonObject;
+        AppWindow *appWindow = new AppWindow(&jsonObject);
+        appWindow->show();
+    } else {
+        qDebug() << "Invalid JSON string!";
+    }
+    this->close();
 }
 
 void MenuWindow::onScriptFinished(bool success, const QString &error)
@@ -97,20 +96,15 @@ void MenuWindow::onScriptFinished(bool success, const QString &error)
     }
 }
 
-void MenuWindow::openAppWindow() {
-    AppWindow *appWindow = new AppWindow();
-    appWindow->show();
-    this->close();
-}
-
 void MenuWindow::selectCsvFile() {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open CSV File"), "", tr("CSV Files (*.csv);;All Files (*)"));
 
     if (!fileName.isEmpty()) {
         ui->fileLabel->setText("Selected File: " + fileName);
         csvFile = fileName;
-        qDebug() << "Selected CSV file: " << fileName;
+        // qDebug() << "Selected CSV file: " << fileName;
         readCsvFile(csvFile);
+        // qDebug() << data;
     } else {
         ui->fileLabel->setText("No file selected");
     }
@@ -129,7 +123,7 @@ void MenuWindow::readCsvFile(const QString &filePath) {
     // Read the first line for feature names
     QString firstLine = in.readLine();
     QStringList featureNames = firstLine.split(";");
-    qDebug() << "Feature Names: " << featureNames;
+    // qDebug() << "Feature Names: " << featureNames;
 
     QStringList labels;
 
@@ -161,15 +155,24 @@ void MenuWindow::readCsvFile(const QString &filePath) {
     // qDebug() << "Data (features without labels): " << data;
 }
 
-
 QStringList MenuWindow::constructArgsString() {
-    QStringList args;
-    args.append(csvFile);
+    QStringList formattedRows;
 
-    for (const QList<QString> &row : data) {
-        args.append(list2String(row));
+    for (const QList<QString>& row : data) {
+        QString formattedRow = "[" + row.join(",") + "]";
+        formattedRows.append(formattedRow);
     }
 
+    int perplexity = ui->perplexitySlider->value();
+
+    int iterationsIndex = ui->iterationsSlider->value();
+    int iterations = iterationsMap[iterationsIndex];
+
+    QList<QString> args;
+
+    args.append("[" +  formattedRows.join(", ") + "]");
+    args.append(QString::number(perplexity));
+    args.append(QString::number(iterations));
     return args;
 }
 

@@ -10,22 +10,26 @@ CONFIG += c++17
 
 SOURCES += \
     appwindow.cpp \
-    # explanationplot.cpp \
+    explanationform.cpp \
     main.cpp \
     menuwindow.cpp \
     pythonexecutor.cpp \
+    tsneform.cpp \
     tsneplot.cpp
 
 HEADERS += \
     appwindow.h \
-    # explanationplot.h \
+    explanationform.h \
     menuwindow.h \
     pythonexecutor.h \
+    tsneform.h \
     tsneplot.h
 
 FORMS += \
     appwindow.ui \
-    menuwindow.ui
+    explanationform.ui \
+    menuwindow.ui \
+    tsneform.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -34,5 +38,4 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 DISTFILES += \
     gradients.py \
-    test.py \
     tsne.py

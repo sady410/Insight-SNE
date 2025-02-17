@@ -34,8 +34,6 @@ private slots:
     void onOutputReceived(const QString &output);
     void onScriptFinished(bool success, const QString &error);
 
-    void openAppWindow();
-
     void onRunAppButtonClicked();
 
 private:
