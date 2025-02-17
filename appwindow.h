@@ -20,7 +20,8 @@ public:
 private:
     Ui::AppWindow *ui;
     TsnePlot *tsneplot;
-    QScatterSeries *data;
+
+    QList<QList<qreal>> convertJsonArrayToQList(const QJsonArray &jsonArray);
 };
 
 #endif // APPWINDOW_H

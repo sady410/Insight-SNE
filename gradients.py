@@ -29,7 +29,7 @@ def compute_gradients(X, Y, P, Q, sigma, i):
     
     yx_derivative = _compute_xy_derivative(i, X, Y, sigma)
     
-    derivative = (-np.linalg.inv(y2 _derivative)) @ (yx_derivative.T)
+    derivative = (-np.linalg.inv(y2_derivative)) @ (yx_derivative.T)
 
     return derivative
 

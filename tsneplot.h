@@ -8,8 +8,6 @@
 #include <QPainterPath>
 #include <QPen>
 
-// QT_FORWARD_DECLARE_CLASS(QChart);
-
 class TsnePlot : public QChartView {
     Q_OBJECT
 

@@ -1,5 +1,6 @@
 #include "menuwindow.h"
 #include "appwindow.h"
+#include "qjsonarray.h"
 #include "ui_menuwindow.h"
 
 #include <QDebug>
@@ -69,7 +70,7 @@ void MenuWindow::onRunAppButtonClicked()
 
     QStringList args = constructArgsString();
     // qDebug() << args;
-    PythonExecutor->executeScript(QDir(projectRoot).filePath("tsne.py"), args);
+    PythonExecutor->executeScript(QDir(projectRoot).filePath("main.py"), args);
 }
 
 void MenuWindow::onOutputReceived(const QString &output)
@@ -78,7 +79,20 @@ void MenuWindow::onOutputReceived(const QString &output)
     QJsonDocument json = QJsonDocument::fromJson(output.trimmed().toUtf8());
     if (json.isObject()) {
         QJsonObject jsonObject = json.object();
-        // qDebug() << "Parsed JSON object:" << jsonObject;
+
+        QJsonArray featureNamesArray;
+        for (const QString &feature : std::as_const(featureNames)) {
+            featureNamesArray.append(feature);
+        }
+        jsonObject["featureNames"] = featureNamesArray;
+
+        QJsonArray labelsArray;
+        for (const QString &label : std::as_const(labels)) {
+            labelsArray.append(label);
+        }
+        jsonObject["labels"] = labelsArray;
+
+        // qDebug() << "Updated JSON object:" << jsonObject;
         AppWindow *appWindow = new AppWindow(&jsonObject);
         appWindow->show();
     } else {
@@ -110,6 +124,7 @@ void MenuWindow::selectCsvFile() {
     }
 }
 
+// TODO Modify to handle CSV with labels or id etc...
 void MenuWindow::readCsvFile(const QString &filePath) {
     QFile file(filePath);
 
@@ -122,10 +137,10 @@ void MenuWindow::readCsvFile(const QString &filePath) {
 
     // Read the first line for feature names
     QString firstLine = in.readLine();
-    QStringList featureNames = firstLine.split(";");
-    // qDebug() << "Feature Names: " << featureNames;
+    featureNames = firstLine.split(";");
+    featureNames.removeLast();
 
-    QStringList labels;
+    qDebug() << "Feature Names: " << featureNames;
 
     // Read the rest of the lines
     while (!in.atEnd()) {
@@ -150,15 +165,14 @@ void MenuWindow::readCsvFile(const QString &filePath) {
 
     file.close();
 
-    // TODO: store featureNames and data as attributes for further use
-    // qDebug() << "Labels : " << labels;
+    qDebug() << "Labels : " << labels;
     // qDebug() << "Data (features without labels): " << data;
 }
 
 QStringList MenuWindow::constructArgsString() {
     QStringList formattedRows;
 
-    for (const QList<QString>& row : data) {
+    for (const QList<QString>& row : std::as_const(data)) {
         QString formattedRow = "[" + row.join(",") + "]";
         formattedRows.append(formattedRow);
     }

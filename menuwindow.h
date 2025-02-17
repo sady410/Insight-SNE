@@ -41,7 +41,10 @@ private:
 
     QMap<int, int> iterationsMap;
     QString csvFile;
+
     QList<QList<QString>> data;
+    QStringList featureNames;
+    QStringList labels;
 
     PythonExecutor *PythonExecutor;
 };

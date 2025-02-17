@@ -1,8 +1,4 @@
 import numpy as np
-import pandas as pd
-import sys
-import ast
-import json
 
 def _Hbeta(D = np.array([]), beta = 1.0):
         """Compute the perplexity and the P-row for a specific value of the precision of a Gaussian distribution."""
@@ -142,25 +138,3 @@ def compute_tsne(X, no_dims = 2, perplexity = 30.0, max_iter = 400, Y_init = Non
             P = P / 4
 
     return Y, P, Q, sigma
-
-if __name__ == "__main__":
-
-    input_data, perplexity, iterations = sys.argv[1], float(sys.argv[2]), int(sys.argv[3])
-
-    X = ast.literal_eval(input_data)
-    X = np.array(X, dtype=np.float64)
-
-    # Perform t-SNE
-    Y, P, Q, sigma = compute_tsne(X, no_dims=2, perplexity=perplexity, max_iter=iterations)
-
-    # Output the result as a JSON-like string
-    result = {
-        "Y": Y.tolist(),
-        "P": P.tolist(),
-        "Q": Q.tolist(),
-        "sigma": sigma.tolist(),
-    }
-
-    json_str = json.dumps(result)
-
-    print(json_str)

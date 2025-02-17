@@ -11,6 +11,7 @@ CONFIG += c++17
 SOURCES += \
     appwindow.cpp \
     explanationform.cpp \
+    explanationplot.cpp \
     main.cpp \
     menuwindow.cpp \
     pythonexecutor.cpp \
@@ -20,6 +21,7 @@ SOURCES += \
 HEADERS += \
     appwindow.h \
     explanationform.h \
+    explanationplot.h \
     menuwindow.h \
     pythonexecutor.h \
     tsneform.h \
@@ -38,4 +40,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 DISTFILES += \
     gradients.py \
+    main.py \
     tsne.py

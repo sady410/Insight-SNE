@@ -14,7 +14,7 @@ TsneForm::TsneForm(QWidget *parent)
     ui->setupUi(this);
 
     QChart *tsneChart = new QChart();
-    tsneChart->setTitle("Scatter Plot");
+    tsneChart->setTitle("Tsne Plot");
 
     tsnePlot = new TsnePlot(tsneChart, nullptr);
 
@@ -51,7 +51,7 @@ void TsneForm::setScatterSeries(QScatterSeries *scatterSeries)
     QValueAxis *axisX = new QValueAxis();
     QValueAxis *axisY = new QValueAxis();
     axisX->setRange(minX - 1, maxX + 1);  // Adding some margin around the data
-    axisY->setRange(minY - 1, maxY + 1);  // Adding some margin around the data
+    axisY->setRange(minY - 1, maxY + 1);
 
     tsneChart->addAxis(axisX, Qt::AlignBottom);
     tsneChart->addAxis(axisY, Qt::AlignLeft);
