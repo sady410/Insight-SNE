@@ -14,6 +14,7 @@ SOURCES += \
     explanationplot.cpp \
     main.cpp \
     menuwindow.cpp \
+    overviewform.cpp \
     pythonexecutor.cpp \
     tsneform.cpp \
     tsneplot.cpp
@@ -23,6 +24,7 @@ HEADERS += \
     explanationform.h \
     explanationplot.h \
     menuwindow.h \
+    overviewform.h \
     pythonexecutor.h \
     tsneform.h \
     tsneplot.h
@@ -31,6 +33,7 @@ FORMS += \
     appwindow.ui \
     explanationform.ui \
     menuwindow.ui \
+    overviewform.ui \
     tsneform.ui
 
 # Default rules for deployment.

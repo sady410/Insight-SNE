@@ -20,17 +20,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QWidget" name="widget" native="true">
-          <layout class="QHBoxLayout" name="horizontalLayout_5">
-           <item>
-            <widget class="QLabel" name="label">
-             <property name="text">
-              <string>TextLabel</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
+         <widget class="OverviewForm" name="widget" native="true"/>
         </item>
         <item>
          <widget class="QWidget" name="widget_2" native="true">
@@ -82,6 +72,12 @@
    <class>TsneForm</class>
    <extends>QWidget</extends>
    <header>tsneform.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>OverviewForm</class>
+   <extends>QWidget</extends>
+   <header>overviewform.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
