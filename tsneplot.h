@@ -12,7 +12,10 @@ class TsnePlot : public QChartView {
     Q_OBJECT
 
 public:
-    explicit TsnePlot(QChart *chart, QScatterSeries *series, QWidget *parent = nullptr);
+    explicit TsnePlot(QChart *chart, QWidget *parent = nullptr);
+
+    void setScatterSeries(QScatterSeries *series);
+    void setLabels(const QStringList &labels);
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -25,6 +28,7 @@ private:
     QGraphicsPathItem *pathItem;
     QScatterSeries *scatterSeries;
     QPointF firstPoint;
+    QStringList labels;
 
     void selectPointsInsideLasso();
 };

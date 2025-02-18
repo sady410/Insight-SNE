@@ -21,7 +21,8 @@ private:
     Ui::AppWindow *ui;
     TsnePlot *tsneplot;
 
-    QList<QList<qreal>> convertJsonArrayToQList(const QJsonArray &jsonArray);
+    QList<qreal> jsonArrayToQList(const QJsonArray &jsonArray);
+    QList<QList<QList<qreal>>> convertJsonArrayToQList3D(const QJsonArray &jsonArray);
 };
 
 #endif // APPWINDOW_H

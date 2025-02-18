@@ -61,7 +61,6 @@ void MenuWindow::updateIterationsLabel(int value) {
 
 void MenuWindow::onRunAppButtonClicked()
 {
-    // Execute python script
     qDebug() << "Executing Python script...";
     QString projectRoot = QDir(QCoreApplication::applicationDirPath()).absolutePath();
     if (projectRoot.contains("build")) {
@@ -69,13 +68,11 @@ void MenuWindow::onRunAppButtonClicked()
     }
 
     QStringList args = constructArgsString();
-    // qDebug() << args;
     PythonExecutor->executeScript(QDir(projectRoot).filePath("main.py"), args);
 }
 
 void MenuWindow::onOutputReceived(const QString &output)
 {
-    // qDebug() << "Python Output: " + output;
     QJsonDocument json = QJsonDocument::fromJson(output.trimmed().toUtf8());
     if (json.isObject()) {
         QJsonObject jsonObject = json.object();
@@ -91,7 +88,6 @@ void MenuWindow::onOutputReceived(const QString &output)
             labelsArray.append(label);
         }
         jsonObject["labels"] = labelsArray;
-
         // qDebug() << "Updated JSON object:" << jsonObject;
         AppWindow *appWindow = new AppWindow(&jsonObject);
         appWindow->show();
@@ -138,9 +134,9 @@ void MenuWindow::readCsvFile(const QString &filePath) {
     // Read the first line for feature names
     QString firstLine = in.readLine();
     featureNames = firstLine.split(";");
-    featureNames.removeLast();
+    featureNames.removeLast(); // TODO MAYBE DO IT SMARTER
 
-    qDebug() << "Feature Names: " << featureNames;
+    // qDebug() << "Feature Names: " << featureNames;
 
     // Read the rest of the lines
     while (!in.atEnd()) {
@@ -165,7 +161,7 @@ void MenuWindow::readCsvFile(const QString &filePath) {
 
     file.close();
 
-    qDebug() << "Labels : " << labels;
+    // qDebug() << "Labels : " << labels;
     // qDebug() << "Data (features without labels): " << data;
 }
 

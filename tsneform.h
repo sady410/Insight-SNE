@@ -18,12 +18,11 @@ public:
     explicit TsneForm(QWidget *parent = nullptr);
     ~TsneForm();
 
-    void setScatterSeries(QScatterSeries *scatterSeries);
+public:
+    TsnePlot *tsnePlot; // TODO MAYBE CREATE GETTER AND PUT MEMBER PRIVATE
 
 private:
     Ui::TsneForm *ui;
-    TsnePlot *tsnePlot;
-    QScatterSeries *data;
 };
 
 #endif // TSNEFORM_H

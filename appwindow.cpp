@@ -5,6 +5,7 @@
 #include <QJsonArray>
 #include <QScatterSeries>
 #include <QHorizontalBarSeries>
+#include <QBarSet>
 
 AppWindow::AppWindow(QJsonObject *json, QWidget *parent)
     : QMainWindow(parent)
@@ -12,9 +13,15 @@ AppWindow::AppWindow(QJsonObject *json, QWidget *parent)
 {
     ui->setupUi(this);
 
+    // Tsne Plot
+    QJsonArray labels = json->take("labels").toArray();
+    QStringList labelsList;
+    std::transform(labels.begin(), labels.end(), std::back_inserter(labelsList),
+                   [](const QJsonValue &value) { return value.toString(); });
+    ui->tsneForm->tsnePlot->setLabels(labelsList);
+
     QJsonArray embedding = json->take("Y").toArray();
     QScatterSeries *scatterSeries = new QScatterSeries();
-
     for (const QJsonValue &val : std::as_const(embedding)) {
         QJsonArray point = val.toArray();
         if (point.size() == 2) {
@@ -23,36 +30,71 @@ AppWindow::AppWindow(QJsonObject *json, QWidget *parent)
             scatterSeries->append(x, y);
         }
     }
-
     scatterSeries->setMarkerSize(8.0);
-    ui->tsneForm->setScatterSeries(scatterSeries);
+    ui->tsneForm->tsnePlot->setScatterSeries(scatterSeries);
 
-    QJsonArray gradients = json->take("gradients").toArray();
-    QList<QList<qreal>> *gradientsList = new QList<QList<qreal>>(convertJsonArrayToQList(gradients));
+    // Explanation Plot
+    QJsonArray featureNames = json->take("featureNames").toArray();
+    QStringList featureNamesList;
+    std::transform(featureNames.begin(), featureNames.end(), std::back_inserter(featureNamesList),
+                   [](const QJsonValue &value) { return value.toString(); });
+    ui->explanationForm->explanationPlot->setFeatureNames(featureNamesList);
 
-    ui->explanationForm->setGradients(gradientsList);
+    QJsonArray gradients = json->value("gradients").toArray();
+    QList<QList<QList<qreal>>> *gradientsList = new QList<QList<QList<qreal>>>(convertJsonArrayToQList3D(gradients));
+    ui->explanationForm->setGradients(gradientsList); // TODO MAYBE USELESS SO REMOVE ?
+
+    QJsonArray meanGradients = json->value("mean_gradients").toArray();
+    QList<qreal> meanGradientsList = jsonArrayToQList(meanGradients);
+    // qDebug() << meanGradientsList;
+    QHorizontalBarSeries *series = new QHorizontalBarSeries();
+    QBarSet *set = new QBarSet("Mean Values");
+    for (auto& value : meanGradientsList) {
+        *set << value;
+    }
+    series->append(set);
+    ui->explanationForm->explanationPlot->setHorizontalBarSeries(series);
 }
 
-QList<QList<qreal>> AppWindow::convertJsonArrayToQList(const QJsonArray &jsonArray) {
-    QList<QList<qreal>> listOfLists;
+QList<qreal> AppWindow::jsonArrayToQList(const QJsonArray &jsonArray) {
+    QList<qreal> list;
+    for (const auto &value : jsonArray) {
+        if (value.isDouble()) {  // Ensure it's a number
+            list.append(value.toDouble());
+        }
+    }
+    return list;
+}
 
-    for (const QJsonValue &value : jsonArray) {
-        if (value.isArray()) {
-            QList<qreal> innerList;
-            QJsonArray innerArray = value.toArray();
+QList<QList<QList<qreal>>> AppWindow::convertJsonArrayToQList3D(const QJsonArray &jsonArray) {
+    QList<QList<QList<qreal>>> listOfLists3D;
 
-            for (const QJsonValue &innerValue : std::as_const(innerArray)) {
-                if (innerValue.isDouble()) {
-                    innerList.append(innerValue.toDouble());
+    for (const QJsonValue &outerValue : jsonArray) {
+        if (outerValue.isArray()) {
+            QJsonArray outerArray = outerValue.toArray();
+            QList<QList<qreal>> listOfLists2D;
+
+            for (const QJsonValue &innerValue : outerArray) {
+                if (innerValue.isArray()) {
+                    QJsonArray innerArray = innerValue.toArray();
+                    QList<qreal> innerList;
+
+                    for (const QJsonValue &value : innerArray) {
+                        if (value.isDouble()) {
+                            innerList.append(value.toDouble());
+                        }
+                    }
+
+                    listOfLists2D.append(innerList);
                 }
             }
-            listOfLists.append(innerList);
+
+            listOfLists3D.append(listOfLists2D);
         }
     }
 
-    return listOfLists;
+    return listOfLists3D;
 }
-
 
 AppWindow::~AppWindow()
 {
