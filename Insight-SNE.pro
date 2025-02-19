@@ -15,6 +15,7 @@ SOURCES += \
     main.cpp \
     menuwindow.cpp \
     overviewform.cpp \
+    overviewplot.cpp \
     pythonexecutor.cpp \
     tsneform.cpp \
     tsneplot.cpp
@@ -25,6 +26,7 @@ HEADERS += \
     explanationplot.h \
     menuwindow.h \
     overviewform.h \
+    overviewplot.h \
     pythonexecutor.h \
     tsneform.h \
     tsneplot.h

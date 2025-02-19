@@ -18,7 +18,6 @@ public:
     explicit TsneForm(QWidget *parent = nullptr);
     ~TsneForm();
 
-public:
     TsnePlot *tsnePlot; // TODO MAYBE CREATE GETTER AND PUT MEMBER PRIVATE
 
 private:

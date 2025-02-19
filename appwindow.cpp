@@ -21,17 +21,28 @@ AppWindow::AppWindow(QJsonObject *json, QWidget *parent)
     ui->tsneForm->tsnePlot->setLabels(labelsList);
 
     QJsonArray embedding = json->take("Y").toArray();
-    QScatterSeries *scatterSeries = new QScatterSeries();
+    QScatterSeries *tsneSeries = new QScatterSeries();
     for (const QJsonValue &val : std::as_const(embedding)) {
         QJsonArray point = val.toArray();
         if (point.size() == 2) {
             qreal x = point[0].toDouble();
             qreal y = point[1].toDouble();
-            scatterSeries->append(x, y);
+            tsneSeries->append(x, y);
         }
     }
-    scatterSeries->setMarkerSize(8.0);
-    ui->tsneForm->tsnePlot->setScatterSeries(scatterSeries);
+    tsneSeries->setMarkerSize(8.0);
+    ui->tsneForm->tsnePlot->setScatterSeries(tsneSeries);
+
+    // Overview Plot
+    QScatterSeries *overviewSeries = new QScatterSeries();
+    for (const QPointF &point : tsneSeries->points()) {
+        overviewSeries->append(point);
+    }
+    overviewSeries->setMarkerSize(tsneSeries->markerSize());
+    // overviewSeries->setColor(tsneSeries->color());  // To keep the same style
+
+    ui->overviewForm->overviewPlot->setScatterSeries(overviewSeries);
+
 
     // Explanation Plot
     QJsonArray featureNames = json->take("featureNames").toArray();

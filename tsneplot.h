@@ -26,7 +26,7 @@ private:
     bool isDrawing;
     QPainterPath path;
     QGraphicsPathItem *pathItem;
-    QScatterSeries *scatterSeries;
+    QMap<QString, QScatterSeries *> scatterSeriesMap;
     QPointF firstPoint;
     QStringList labels;
 

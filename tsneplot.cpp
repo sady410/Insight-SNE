@@ -18,16 +18,16 @@ void TsnePlot::setScatterSeries(QScatterSeries *series) {
     if (!series)
         return;
 
-    // Remove the previous scatter series if it exists
-    if (scatterSeries && chart()->series().contains(scatterSeries)) {
-        chart()->removeSeries(scatterSeries);
+    // Clear previous scatter series
+    for (QScatterSeries *s : scatterSeriesMap) {
+        if (chart()->series().contains(s)) {
+            chart()->removeSeries(s);
+            delete s;
+        }
     }
+    scatterSeriesMap.clear();
 
     // Map to store label-wise scatter series
-    QMap<QString, QScatterSeries *> labelSeriesMap;
-    scatterSeries = nullptr;  // Not needed anymore since we have multiple series
-
-    // Define colors for different labels
     QStringList colorList = {"red", "blue", "green", "purple", "orange", "pink"};
     QMap<QString, QColor> labelColors;
     int colorIndex = 0;
@@ -41,7 +41,7 @@ void TsnePlot::setScatterSeries(QScatterSeries *series) {
     // Iterate over points and create series per label
     for (int i = 0; i < series->count(); ++i) {
         QPointF point = series->at(i);
-        QString label = labels[i];  // Assuming Labels is a QVector<QString>
+        QString label = labels[i];
 
         // Assign a unique color to each label
         if (!labelColors.contains(label)) {
@@ -50,17 +50,17 @@ void TsnePlot::setScatterSeries(QScatterSeries *series) {
         }
 
         // Create a new series if label does not exist
-        if (!labelSeriesMap.contains(label)) {
+        if (!scatterSeriesMap.contains(label)) {
             QScatterSeries *newSeries = new QScatterSeries();
-            newSeries->setName(label);  // Legend entry
+            newSeries->setName(label);
             newSeries->setMarkerSize(8.0);
             newSeries->setColor(labelColors[label]);
             chart()->addSeries(newSeries);
-            labelSeriesMap[label] = newSeries;
+            scatterSeriesMap[label] = newSeries;
         }
 
         // Add point to respective series
-        labelSeriesMap[label]->append(point);
+        scatterSeriesMap[label]->append(point);
 
         // Update min/max values
         minX = std::min(minX, point.x());
@@ -72,7 +72,7 @@ void TsnePlot::setScatterSeries(QScatterSeries *series) {
     // Create and configure new axes
     QValueAxis *axisX = new QValueAxis();
     QValueAxis *axisY = new QValueAxis();
-    axisX->setRange(minX - 1, maxX + 1);  // Adding margins
+    axisX->setRange(minX - 1, maxX + 1);
     axisY->setRange(minY - 1, maxY + 1);
 
     // Remove existing axes if they exist
@@ -86,7 +86,7 @@ void TsnePlot::setScatterSeries(QScatterSeries *series) {
     chart()->addAxis(axisY, Qt::AlignLeft);
 
     // Attach each series to the new axes
-    for (QScatterSeries *labelSeries : std::as_const(labelSeriesMap)) {
+    for (QScatterSeries *labelSeries : std::as_const(scatterSeriesMap)) {
         labelSeries->attachAxis(axisX);
         labelSeries->attachAxis(axisY);
     }
@@ -94,23 +94,6 @@ void TsnePlot::setScatterSeries(QScatterSeries *series) {
     // Enable legend
     chart()->legend()->setVisible(true);
     chart()->legend()->setAlignment(Qt::AlignRight);
-
-    // QLinearGradient backgroundGradient;
-    // backgroundGradient.setStart(QPointF(0, 0));
-    // backgroundGradient.setFinalStop(QPointF(0, 1));
-    // backgroundGradient.setColorAt(0.0, QRgb(0xd2d0d1));
-    // backgroundGradient.setColorAt(1.0, QRgb(0x4c4547));
-    // backgroundGradient.setCoordinateMode(QGradient::ObjectBoundingMode);
-    // chart()->setBackgroundBrush(backgroundGradient);
-
-    // QLinearGradient plotAreaGradient;
-    // plotAreaGradient.setStart(QPointF(0, 1));
-    // plotAreaGradient.setFinalStop(QPointF(1, 0));
-    // plotAreaGradient.setColorAt(0.0, QRgb(0x555555));
-    // plotAreaGradient.setColorAt(1.0, QRgb(0x55aa55));
-    // plotAreaGradient.setCoordinateMode(QGradient::ObjectBoundingMode);
-    // chart()->setPlotAreaBackgroundBrush(plotAreaGradient);
-    // chart()->setPlotAreaBackgroundVisible(true);
 }
 
 
@@ -156,13 +139,16 @@ void TsnePlot::mouseReleaseEvent(QMouseEvent *event) {
 void TsnePlot::selectPointsInsideLasso() {
     qDebug() << "Checking points inside lasso...";
 
-    for (int i = 0; i < scatterSeries->count(); ++i) {
-        QPointF point = scatterSeries->at(i);
-        QPointF screenPos = chart()->mapToPosition(point);
+    for (auto it = scatterSeriesMap.begin(); it != scatterSeriesMap.end(); ++it) {
+        QScatterSeries *series = it.value();
+        for (int i = 0; i < series->count(); ++i) {
+            QPointF point = series->at(i);
+            QPointF screenPos = chart()->mapToPosition(point);
 
-        if (path.contains(screenPos)) {
-            qDebug() << "Point inside lasso:" << point;
-            scatterSeries->replace(i, QPointF(point.x(), point.y() + 2));
+            if (path.contains(screenPos)) {
+                qDebug() << "Point inside lasso:" << point;
+                series->replace(i, QPointF(point.x(), point.y() + 2));
+            }
         }
     }
 }

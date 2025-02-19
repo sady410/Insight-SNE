@@ -1,8 +1,6 @@
 #ifndef APPWINDOW_H
 #define APPWINDOW_H
 
-#include "tsneplot.h"
-
 #include <QMainWindow>
 
 namespace Ui {
@@ -19,7 +17,6 @@ public:
 
 private:
     Ui::AppWindow *ui;
-    TsnePlot *tsneplot;
 
     QList<qreal> jsonArrayToQList(const QJsonArray &jsonArray);
     QList<QList<QList<qreal>>> convertJsonArrayToQList3D(const QJsonArray &jsonArray);
