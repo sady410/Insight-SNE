@@ -37,10 +37,10 @@ MenuWindow::MenuWindow(QWidget *parent)
     connect(ui->runAppButton, &QPushButton::clicked, this, &MenuWindow::onRunAppButtonClicked);
 
     // Python Executor Instance
-    PythonExecutor = new class PythonExecutor(this);
+    pythonExecutor = new class PythonExecutor(this);
 
-    connect(PythonExecutor, &PythonExecutor::outputReceived, this, &MenuWindow::onOutputReceived);
-    connect(PythonExecutor, &PythonExecutor::finished, this, &MenuWindow::onScriptFinished);
+    connect(pythonExecutor, &PythonExecutor::outputReceived, this, &MenuWindow::onOutputReceived);
+    connect(pythonExecutor, &PythonExecutor::finished, this, &MenuWindow::onScriptFinished);
 }
 
 MenuWindow::~MenuWindow()
@@ -68,7 +68,7 @@ void MenuWindow::onRunAppButtonClicked()
     }
 
     QStringList args = constructArgsString();
-    PythonExecutor->executeScript(QDir(projectRoot).filePath("main.py"), args);
+    pythonExecutor->executeScript(QDir(projectRoot).filePath("main.py"), args);
 }
 
 void MenuWindow::onOutputReceived(const QString &output)

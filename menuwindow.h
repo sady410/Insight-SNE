@@ -46,6 +46,6 @@ private:
     QStringList featureNames;
     QStringList labels;
 
-    PythonExecutor *PythonExecutor;
+    PythonExecutor *pythonExecutor;
 };
 #endif // MENUWINDOW_H

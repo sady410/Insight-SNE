@@ -1,4 +1,4 @@
-#include "PythonExecutor.h"
+#include "pythonexecutor.h"
 
 #include <QDebug>
 #include <QFile>

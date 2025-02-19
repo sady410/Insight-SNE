@@ -1,4 +1,4 @@
-#include "TsnePlot.h"
+#include "tsneplot.h"
 
 #include <QGraphicsScene>
 #include <QGraphicsItem>
@@ -19,7 +19,7 @@ void TsnePlot::setScatterSeries(QScatterSeries *series) {
         return;
 
     // Clear previous scatter series
-    for (QScatterSeries *s : scatterSeriesMap) {
+    for (QScatterSeries *s : std::as_const(scatterSeriesMap)) {
         if (chart()->series().contains(s)) {
             chart()->removeSeries(s);
             delete s;
