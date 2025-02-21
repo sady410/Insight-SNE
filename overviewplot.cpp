@@ -60,3 +60,19 @@ void OverviewPlot::setScatterSeries(QScatterSeries *series) {
     chart()->legend()->hide();
 }
 
+void OverviewPlot::updateZoomRectangle(qreal minX, qreal maxX, qreal minY, qreal maxY) {
+    if (!zoomRectItem) {
+        zoomRectItem = new QGraphicsRectItem();
+        QPen pen(Qt::red);
+        pen.setWidth(2);
+        zoomRectItem->setPen(pen);
+        chart()->scene()->addItem(zoomRectItem);
+    }
+
+    // Convert data coordinates to scene coordinates
+    QPointF topLeft = chart()->mapToPosition(QPointF(minX, maxY));
+    QPointF bottomRight = chart()->mapToPosition(QPointF(maxX, minY));
+
+    QRectF visibleArea(topLeft, bottomRight);
+    zoomRectItem->setRect(visibleArea);
+}

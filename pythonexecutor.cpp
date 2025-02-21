@@ -26,13 +26,20 @@ void PythonExecutor::executeScript(const QString &scriptPath, const QStringList 
 {
     QString projectRoot = QDir(QCoreApplication::applicationDirPath()).absolutePath();
     if (projectRoot.contains("build")) {
-        projectRoot = QDir(projectRoot).filePath("../../..");
+        projectRoot = QDir(projectRoot).filePath("../../"); // Maybe different on windows
     }
-    QString pythonExecutable = QDir(projectRoot).filePath("venv/Scripts/python.exe");
+
+    QString pythonExecutable;
+    // Check OS type and set the correct path
+    if (QSysInfo::productType() == "windows") {
+        pythonExecutable = QDir(projectRoot).filePath("venv/Scripts/python.exe");
+    } else { // Linux & Mac
+        pythonExecutable = QDir(projectRoot).filePath("venv/bin/python");
+    }
 
     QStringList params;
     params << scriptPath << arguments;
-
+    // qDebug() << pythonExecutable << params;
     process->start(pythonExecutable, params);
 
     // Check if the process started successfully

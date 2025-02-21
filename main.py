@@ -31,6 +31,4 @@ if __name__ == "__main__":
         "magnitudes": magnitudes.tolist()
     }
 
-    json_str = json.dumps(result)
-
-    print(json_str)
+    print(json.dumps(result), flush=True) # flush is usefull ?

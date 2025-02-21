@@ -15,6 +15,9 @@ public:
     explicit AppWindow(QJsonObject *data, QWidget *parent = nullptr);
     ~AppWindow();
 
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+
 private:
     Ui::AppWindow *ui;
 

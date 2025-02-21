@@ -118,6 +118,88 @@ void TsnePlot::mousePressEvent(QMouseEvent *event) {
     }
 }
 
+void TsnePlot::wheelEvent(QWheelEvent *event) {
+    if (!chart()) {
+        qDebug() << "Error: chart() is null!";
+        return;
+    }
+
+    // Get the bounding rectangle of the actual plot area
+    QRectF plotArea = chart()->plotArea();
+
+    // Convert mouse position to local coordinates
+    QPointF mousePos = event->position();  // Using position() for Qt 6, use pos() for Qt 5
+
+    // Check if mouse is inside the plot area
+    if (!plotArea.contains(mousePos)) {
+        return;  // Ignore zooming if the mouse is outside the plot
+    }
+
+    // Zoom factor
+    const double zoomFactor = 1.2;
+    double factor = (event->angleDelta().y() > 0) ? zoomFactor : (1.0 / zoomFactor);
+
+    // Convert to chart coordinates
+    QPointF mouseChartPos = chart()->mapToValue(mousePos);
+
+    // Get current axis ranges
+    QValueAxis *axisX = qobject_cast<QValueAxis *>(chart()->axes(Qt::Horizontal).first());
+    QValueAxis *axisY = qobject_cast<QValueAxis *>(chart()->axes(Qt::Vertical).first());
+
+    if (!axisX || !axisY) {
+        qDebug() << "Error: Axes are null!";
+        return;
+    }
+
+    qreal minX = axisX->min();
+    qreal maxX = axisX->max();
+    qreal minY = axisY->min();
+    qreal maxY = axisY->max();
+
+    // Compute new zoomed ranges centered on the mouse position
+    qreal newMinX = mouseChartPos.x() - (mouseChartPos.x() - minX) * factor;
+    qreal newMaxX = mouseChartPos.x() + (maxX - mouseChartPos.x()) * factor;
+    qreal newMinY = mouseChartPos.y() - (mouseChartPos.y() - minY) * factor;
+    qreal newMaxY = mouseChartPos.y() + (maxY - mouseChartPos.y()) * factor;
+
+    // Apply the new axis ranges
+    axisX->setRange(newMinX, newMaxX);
+    axisY->setRange(newMinY, newMaxY);
+
+    qDebug() << "Zooming to mouse position: " << mouseChartPos
+             << " New X range: [" << newMinX << ", " << newMaxX << "]"
+             << " New Y range: [" << newMinY << ", " << newMaxY << "]";
+
+    updateOverviewRectangle();
+}
+
+
+void TsnePlot::updateOverviewRectangle() {
+    if (!chart() || !chart()->scene()) {
+        qDebug() << "Error: chart() or chart()->scene() is null!";
+        return;
+    }
+
+    QList<QAbstractAxis *> axes = chart()->axes();
+    if (axes.isEmpty()) {
+        qDebug() << "Error: No axes found!";
+        return;
+    }
+
+    QValueAxis *axisX = qobject_cast<QValueAxis *>(chart()->axes(Qt::Horizontal).first());
+    QValueAxis *axisY = qobject_cast<QValueAxis *>(chart()->axes(Qt::Vertical).first());
+
+    if (!axisX || !axisY) {
+        qDebug() << "Error: One or both axes are null!";
+        return;
+    }
+
+    emit zoomChanged(axisX->min(), axisX->max(), axisY->min(), axisY->max());
+    qDebug() << "zoomChanged emitted: X(" << axisX->min() << "," << axisX->max()
+             << ") Y(" << axisY->min() << "," << axisY->max() << ")";
+}
+
+
 void TsnePlot::mouseMoveEvent(QMouseEvent *event) {
     if (isDrawing) {
         QPointF scenePos = event->pos();

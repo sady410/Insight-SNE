@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>200</width>
+    <width>243</width>
     <height>400</height>
    </rect>
   </property>
@@ -108,7 +108,7 @@
     <item>
      <widget class="QCheckBox" name="checkBox">
       <property name="text">
-       <string>Labels</string>
+       <string>Labels (not implemented yet)</string>
       </property>
       <property name="checked">
        <bool>true</bool>
@@ -143,8 +143,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>200</width>
-     <height>21</height>
+     <width>243</width>
+     <height>23</height>
     </rect>
    </property>
   </widget>

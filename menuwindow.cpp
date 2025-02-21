@@ -16,6 +16,8 @@ MenuWindow::MenuWindow(QWidget *parent)
 
     connect(ui->uploadCsvButton, &QPushButton::clicked, this, &MenuWindow::selectCsvFile);
 
+    ui->perplexityLabel->setText("Perplexity: " + QString::number(15));
+
     ui->perplexitySlider->setRange(1, 50);
     ui->perplexitySlider->setTickInterval(1);
     ui->perplexitySlider->setSingleStep(1);
@@ -27,12 +29,16 @@ MenuWindow::MenuWindow(QWidget *parent)
         {0, 100}, {1, 200}, {2, 300}, {3, 400}, {4, 500},
         {5, 600}, {6, 700}, {7, 800}, {8, 900}, {9, 1000}
     };
+    ui->iterationsLabel->setText("Perplexity: " + QString::number(iterationsMap[3]));
+
     ui->iterationsSlider->setRange(0, 9);
     ui->iterationsSlider->setTickInterval(1);
     ui->iterationsSlider->setSingleStep(1);
     ui->iterationsSlider->setPageStep(1);
     ui->iterationsSlider->setValue(3);
     connect(ui->iterationsSlider, &QSlider::valueChanged, this, &MenuWindow::updateIterationsLabel);
+
+    ui->runAppButton->setEnabled(false);
 
     connect(ui->runAppButton, &QPushButton::clicked, this, &MenuWindow::onRunAppButtonClicked);
 
@@ -64,19 +70,26 @@ void MenuWindow::onRunAppButtonClicked()
     qDebug() << "Executing Python script...";
     QString projectRoot = QDir(QCoreApplication::applicationDirPath()).absolutePath();
     if (projectRoot.contains("build")) {
-        projectRoot = QDir(projectRoot).filePath("../../..");
+        projectRoot = QDir(projectRoot).filePath("../../"); // Maybe different on windows
     }
 
     QStringList args = constructArgsString();
     pythonExecutor->executeScript(QDir(projectRoot).filePath("main.py"), args);
 }
 
+QString partialOutput;
+
 void MenuWindow::onOutputReceived(const QString &output)
 {
-    QJsonDocument json = QJsonDocument::fromJson(output.trimmed().toUtf8());
-    if (json.isObject()) {
+    partialOutput += output.trimmed();  // Append new output
+
+    // Try to parse JSON
+    QJsonDocument json = QJsonDocument::fromJson(partialOutput.toUtf8());
+
+    if (!json.isNull() && json.isObject()) {
         QJsonObject jsonObject = json.object();
 
+        // Add feature names and labels
         QJsonArray featureNamesArray;
         for (const QString &feature : std::as_const(featureNames)) {
             featureNamesArray.append(feature);
@@ -88,14 +101,17 @@ void MenuWindow::onOutputReceived(const QString &output)
             labelsArray.append(label);
         }
         jsonObject["labels"] = labelsArray;
-        // qDebug() << "Updated JSON object:" << jsonObject;
+
         AppWindow *appWindow = new AppWindow(&jsonObject);
         appWindow->show();
+        this->close();
+
+        partialOutput.clear();  // Clear buffer after successful JSON parsing
     } else {
-        qDebug() << "Invalid JSON string!";
+        qDebug() << "Waiting for full JSON...";
     }
-    this->close();
 }
+
 
 void MenuWindow::onScriptFinished(bool success, const QString &error)
 {
@@ -115,8 +131,12 @@ void MenuWindow::selectCsvFile() {
         // qDebug() << "Selected CSV file: " << fileName;
         readCsvFile(csvFile);
         // qDebug() << data;
+        if (!data.isEmpty()) { // Ensure data is loaded before enabling the button
+            ui->runAppButton->setEnabled(true);
+        }
     } else {
         ui->fileLabel->setText("No file selected");
+        ui->runAppButton->setEnabled(false);
     }
 }
 

@@ -6,6 +6,7 @@
 #include <QScatterSeries>
 #include <QHorizontalBarSeries>
 #include <QBarSet>
+#include <QValueAxis>
 
 AppWindow::AppWindow(QJsonObject *json, QWidget *parent)
     : QMainWindow(parent)
@@ -65,6 +66,20 @@ AppWindow::AppWindow(QJsonObject *json, QWidget *parent)
     }
     series->append(set);
     ui->explanationForm->explanationPlot->setHorizontalBarSeries(series);
+
+    connect(ui->tsneForm->tsnePlot, &TsnePlot::zoomChanged, ui->overviewForm->overviewPlot, &OverviewPlot::updateZoomRectangle);
+}
+
+void AppWindow::resizeEvent(QResizeEvent *event) {
+    QMainWindow::resizeEvent(event);
+
+    // Force OverviewPlot to update zoom rectangle
+    QValueAxis *axisX = qobject_cast<QValueAxis *>(ui->tsneForm->tsnePlot->chart()->axes(Qt::Horizontal).first());
+    QValueAxis *axisY = qobject_cast<QValueAxis *>(ui->tsneForm->tsnePlot->chart()->axes(Qt::Vertical).first());
+
+    if (axisX && axisY) {
+        emit ui->tsneForm->tsnePlot->zoomChanged(axisX->min(), axisX->max(), axisY->min(), axisY->max());
+    }
 }
 
 QList<qreal> AppWindow::jsonArrayToQList(const QJsonArray &jsonArray) {
@@ -85,12 +100,12 @@ QList<QList<QList<qreal>>> AppWindow::convertJsonArrayToQList3D(const QJsonArray
             QJsonArray outerArray = outerValue.toArray();
             QList<QList<qreal>> listOfLists2D;
 
-            for (const QJsonValue &innerValue : outerArray) {
+            for (const QJsonValue &innerValue : std::as_const(outerArray)) {
                 if (innerValue.isArray()) {
                     QJsonArray innerArray = innerValue.toArray();
                     QList<qreal> innerList;
 
-                    for (const QJsonValue &value : innerArray) {
+                    for (const QJsonValue &value : std::as_const(innerArray)) {
                         if (value.isDouble()) {
                             innerList.append(value.toDouble());
                         }
