@@ -27,12 +27,16 @@ protected:
     void wheelEvent(QWheelEvent *event) override;
 
 private:
+    QStringList labels;
+    QMap<QString, QScatterSeries *> scatterSeriesMap;
+
     bool isDrawing;
     QPainterPath path;
     QGraphicsPathItem *pathItem;
-    QMap<QString, QScatterSeries *> scatterSeriesMap;
     QPointF firstPoint;
-    QStringList labels;
+
+    qreal initialMinX, initialMaxX, initialMinY, initialMaxY;
+
     void updateOverviewRectangle();
     void selectPointsInsideLasso();
 };

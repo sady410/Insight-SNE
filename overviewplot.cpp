@@ -6,6 +6,8 @@
 OverviewPlot::OverviewPlot(QChart *chart, QWidget *parent)
     : QChartView(chart, parent) {
     setRenderHint(QPainter::Antialiasing);
+
+    chart->setAnimationOptions(QChart::SeriesAnimations);
 }
 
 void OverviewPlot::setScatterSeries(QScatterSeries *series) {

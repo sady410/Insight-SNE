@@ -7,6 +7,8 @@
 ExplanationPlot::ExplanationPlot(QChart *chart, QWidget *parent)
     : QChartView(chart, parent) {
     setRenderHint(QPainter::Antialiasing);
+
+    chart->setAnimationOptions(QChart::SeriesAnimations);
 }
 
 void ExplanationPlot::setHorizontalBarSeries(QHorizontalBarSeries *series) {

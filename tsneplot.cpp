@@ -12,6 +12,8 @@ TsnePlot::TsnePlot(QChart *chart, QWidget *parent)
     : QChartView(chart, parent), isDrawing(false), pathItem(nullptr) {
     setRenderHint(QPainter::Antialiasing);
     setMouseTracking(true);
+
+    chart->setAnimationOptions(QChart::SeriesAnimations);
 }
 
 void TsnePlot::setScatterSeries(QScatterSeries *series) {
