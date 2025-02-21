@@ -21,6 +21,8 @@ public:
     ~MenuWindow();
 
 private:
+    QString partialOutput; // For linux terminal output
+
     void readCsvFile(const QString &filePath);
     QStringList constructArgsString();
     QString list2String(const QList<QString> &list);

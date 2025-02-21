@@ -70,19 +70,21 @@ void MenuWindow::onRunAppButtonClicked()
     qDebug() << "Executing Python script...";
     QString projectRoot = QDir(QCoreApplication::applicationDirPath()).absolutePath();
     if (projectRoot.contains("build")) {
-        projectRoot = QDir(projectRoot).filePath("../../"); // Maybe different on windows
+        if (QSysInfo::productType() == "windows") {
+            projectRoot = QDir(projectRoot).filePath("../../..");
+        } else {
+            projectRoot = QDir(projectRoot).filePath("../../");
+        }
     }
 
     QStringList args = constructArgsString();
     pythonExecutor->executeScript(QDir(projectRoot).filePath("main.py"), args);
 }
 
-QString partialOutput;
-
 void MenuWindow::onOutputReceived(const QString &output)
 {
     partialOutput += output.trimmed();  // Append new output
-
+    qDebug() << partialOutput;
     // Try to parse JSON
     QJsonDocument json = QJsonDocument::fromJson(partialOutput.toUtf8());
 

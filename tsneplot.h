@@ -20,6 +20,9 @@ public:
 signals:
     void zoomChanged(qreal minX, qreal maxX, qreal minY, qreal maxY);
 
+public slots:
+    void resetZoom();
+
 protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
@@ -34,6 +37,7 @@ private:
     QPainterPath path;
     QGraphicsPathItem *pathItem;
     QPointF firstPoint;
+    QList<QPointF> *selectedPoints;
 
     qreal initialMinX, initialMaxX, initialMinY, initialMaxY;
 

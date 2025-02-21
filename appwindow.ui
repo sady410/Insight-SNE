@@ -43,25 +43,7 @@
      </layout>
     </item>
     <item>
-     <widget class="ExplanationForm" name="explanationForm" native="true">
-      <layout class="QHBoxLayout" name="explanationFormLayout" stretch="">
-       <property name="spacing">
-        <number>6</number>
-       </property>
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-      </layout>
-     </widget>
+     <widget class="ExplanationForm" name="explanationForm" native="true"/>
     </item>
    </layout>
   </widget>
@@ -71,7 +53,7 @@
      <x>0</x>
      <y>0</y>
      <width>795</width>
-     <height>23</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

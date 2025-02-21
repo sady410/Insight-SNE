@@ -12,16 +12,16 @@ AppWindow::AppWindow(QJsonObject *json, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::AppWindow)
 {
-    ui->setupUi(this);
+    ui->setupUi(this); // Warning: QLayout: Attempting to add QLayout "" to ExplanationForm "explanationForm", which already has a layout
 
     // Tsne Plot
-    QJsonArray labels = json->take("labels").toArray();
+    QJsonArray labels = json->value("labels").toArray();
     QStringList labelsList;
     std::transform(labels.begin(), labels.end(), std::back_inserter(labelsList),
                    [](const QJsonValue &value) { return value.toString(); });
     ui->tsneForm->tsnePlot->setLabels(labelsList);
 
-    QJsonArray embedding = json->take("Y").toArray();
+    QJsonArray embedding = json->value("Y").toArray();
     QScatterSeries *tsneSeries = new QScatterSeries();
     for (const QJsonValue &val : std::as_const(embedding)) {
         QJsonArray point = val.toArray();
@@ -44,9 +44,8 @@ AppWindow::AppWindow(QJsonObject *json, QWidget *parent)
 
     ui->overviewForm->overviewPlot->setScatterSeries(overviewSeries);
 
-
     // Explanation Plot
-    QJsonArray featureNames = json->take("featureNames").toArray();
+    QJsonArray featureNames = json->value("featureNames").toArray();
     QStringList featureNamesList;
     std::transform(featureNames.begin(), featureNames.end(), std::back_inserter(featureNamesList),
                    [](const QJsonValue &value) { return value.toString(); });
@@ -58,7 +57,7 @@ AppWindow::AppWindow(QJsonObject *json, QWidget *parent)
 
     QJsonArray meanGradients = json->value("mean_gradients").toArray();
     QList<qreal> meanGradientsList = jsonArrayToQList(meanGradients);
-    // qDebug() << meanGradientsList;
+
     QHorizontalBarSeries *series = new QHorizontalBarSeries();
     QBarSet *set = new QBarSet("Mean Values");
     for (auto& value : meanGradientsList) {
@@ -85,7 +84,7 @@ void AppWindow::resizeEvent(QResizeEvent *event) {
 QList<qreal> AppWindow::jsonArrayToQList(const QJsonArray &jsonArray) {
     QList<qreal> list;
     for (const auto &value : jsonArray) {
-        if (value.isDouble()) {  // Ensure it's a number
+        if (value.isDouble()) {
             list.append(value.toDouble());
         }
     }

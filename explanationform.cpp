@@ -19,7 +19,6 @@ ExplanationForm::ExplanationForm(QWidget *parent)
 
     explanationPlot = new ExplanationPlot(explanationChart, nullptr);
     explanationChart->setTitle("Explanation Plot");
-
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->addWidget(explanationPlot);
 }
