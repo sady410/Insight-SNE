@@ -14,6 +14,7 @@ TsnePlot::TsnePlot(QChart *chart, QWidget *parent)
     setMouseTracking(true);
 
     chart->setAnimationOptions(QChart::SeriesAnimations);
+    chart->setTheme(QChart::ChartThemeDark);
 }
 
 void TsnePlot::setScatterSeries(QScatterSeries *series) {
@@ -30,19 +31,17 @@ void TsnePlot::setScatterSeries(QScatterSeries *series) {
         }
     }
     scatterSeriesMap.clear();
+    pointIndexMap.clear();  // Clear previous mapping
 
-    // Define colors
     QStringList colorList = {"red", "blue", "green", "purple", "orange", "pink"};
     QMap<QString, QColor> labelColors;
     int colorIndex = 0;
 
-    // Compute initial min/max values dynamically
     initialMinX = std::numeric_limits<qreal>::max();
     initialMaxX = std::numeric_limits<qreal>::min();
     initialMinY = std::numeric_limits<qreal>::max();
     initialMaxY = std::numeric_limits<qreal>::min();
 
-    // Iterate over points and create series per label
     for (int i = 0; i < series->count(); ++i) {
         QPointF point = series->at(i);
         if (i >= labels.size()) {
@@ -51,64 +50,58 @@ void TsnePlot::setScatterSeries(QScatterSeries *series) {
         }
         QString label = labels[i];
 
-        // Assign a unique color to each label
         if (!labelColors.contains(label)) {
             labelColors[label] = QColor(colorList[colorIndex % colorList.size()]);
             colorIndex++;
         }
 
-        // Create a new series if label does not exist
         if (!scatterSeriesMap.contains(label)) {
             QScatterSeries *newSeries = new QScatterSeries();
             newSeries->setName(label);
             newSeries->setMarkerSize(8.0);
             newSeries->setColor(labelColors[label]);
-            chart()->addSeries(newSeries);  // **Ensure series is added before setting axes**
+            chart()->addSeries(newSeries);
             scatterSeriesMap[label] = newSeries;
         }
 
-        // Add point to respective series
         scatterSeriesMap[label]->append(point);
+        pointIndexMap[point] = i;  // Store original index
 
-        // Update min/max values
         initialMinX = std::min(initialMinX, point.x());
         initialMaxX = std::max(initialMaxX, point.x());
         initialMinY = std::min(initialMinY, point.y());
         initialMaxY = std::max(initialMaxY, point.y());
     }
 
-    // Expand slightly to allow space around the points
     initialMinX -= 1;
     initialMaxX += 1;
     initialMinY -= 1;
     initialMaxY += 1;
 
-    // Remove existing axes if they exist
     QList<QAbstractAxis *> existingAxes = chart()->axes();
     for (QAbstractAxis *axis : std::as_const(existingAxes)) {
         chart()->removeAxis(axis);
         delete axis;
     }
 
-    // Create and configure new axes
     QValueAxis *axisX = new QValueAxis();
     QValueAxis *axisY = new QValueAxis();
     axisX->setRange(initialMinX, initialMaxX);
     axisY->setRange(initialMinY, initialMaxY);
 
+    axisX->setGridLineVisible(false);
+    axisY->setGridLineVisible(false);
+
     chart()->addAxis(axisX, Qt::AlignBottom);
     chart()->addAxis(axisY, Qt::AlignLeft);
 
-    // Attach each series to the new axes
     for (QScatterSeries *labelSeries : std::as_const(scatterSeriesMap)) {
         labelSeries->attachAxis(axisX);
         labelSeries->attachAxis(axisY);
     }
 
-    // Enable legend
     chart()->legend()->setVisible(true);
     chart()->legend()->setAlignment(Qt::AlignRight);
-
     // qDebug() << "Scatter series set with " << scatterSeriesMap.size() << " series.";
 }
 
@@ -142,7 +135,6 @@ void TsnePlot::mousePressEvent(QMouseEvent *event) {
         chart()->scene()->addItem(pathItem);
     }
 }
-
 
 void TsnePlot::wheelEvent(QWheelEvent *event) {
     if (!chart()) {
@@ -194,9 +186,9 @@ void TsnePlot::wheelEvent(QWheelEvent *event) {
     axisX->setRange(newMinX, newMaxX);
     axisY->setRange(newMinY, newMaxY);
 
-    qDebug() << "Zooming to mouse position: " << mouseChartPos
-             << " New X range: [" << newMinX << ", " << newMaxX << "]"
-             << " New Y range: [" << newMinY << ", " << newMaxY << "]";
+    // qDebug() << "Zooming to mouse position: " << mouseChartPos
+    //          << " New X range: [" << newMinX << ", " << newMaxX << "]"
+    //          << " New Y range: [" << newMinY << ", " << newMaxY << "]";
 
     updateOverviewRectangle();
 }
@@ -213,12 +205,11 @@ void TsnePlot::resetZoom() {
     axisX->setRange(initialMinX, initialMaxX);
     axisY->setRange(initialMinY, initialMaxY);
 
-    qDebug() << "Reset zoom to initial range: X(" << initialMinX << "," << initialMaxX
-             << ") Y(" << initialMinY << "," << initialMaxY << ")";
+    // qDebug() << "Reset zoom to initial range: X(" << initialMinX << "," << initialMaxX
+    //          << ") Y(" << initialMinY << "," << initialMaxY << ")";
 
     updateOverviewRectangle();
 }
-
 
 void TsnePlot::updateOverviewRectangle() {
     if (!chart() || !chart()->scene()) {
@@ -241,10 +232,9 @@ void TsnePlot::updateOverviewRectangle() {
     }
 
     emit zoomChanged(axisX->min(), axisX->max(), axisY->min(), axisY->max());
-    qDebug() << "zoomChanged emitted: X(" << axisX->min() << "," << axisX->max()
-             << ") Y(" << axisY->min() << "," << axisY->max() << ")";
+    // qDebug() << "zoomChanged emitted: X(" << axisX->min() << "," << axisX->max()
+    //          << ") Y(" << axisY->min() << "," << axisY->max() << ")";
 }
-
 
 void TsnePlot::mouseMoveEvent(QMouseEvent *event) {
     if (isDrawing) {
@@ -267,22 +257,30 @@ void TsnePlot::mouseReleaseEvent(QMouseEvent *event) {
 void TsnePlot::selectPointsInsideLasso() {
     qDebug() << "Checking points inside lasso...";
 
-    // Iterate through all the scatter series
+    selectedIndices.clear();  // Clear previous selections
+
     for (auto it = scatterSeriesMap.begin(); it != scatterSeriesMap.end(); ++it) {
         QScatterSeries *series = it.value();
         for (int i = 0; i < series->count(); ++i) {
             QPointF point = series->at(i);
             QPointF screenPos = chart()->mapToPosition(point);
 
-            // Check if the point is inside the lasso path
             if (path.contains(screenPos)) {
-                qDebug() << "Point inside lasso:" << point;
-                // Add the point to the selectedpoints list
                 selectedPoints->append(point);
+
+                // Retrieve the index of the selected point
+                auto it = pointIndexMap.find(point);
+                if (it != pointIndexMap.end()) {
+                    selectedIndices.append(it->second);
+                }
             }
         }
     }
 
     qDebug() << "Total points selected: " << selectedPoints->size();
+    qDebug() << "Selected Indices: " << selectedIndices;
+
+    // Emit signal with the selected indices
+    emit pointsSelected(selectedIndices);
 }
 

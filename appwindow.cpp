@@ -12,7 +12,7 @@ AppWindow::AppWindow(QJsonObject *json, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::AppWindow)
 {
-    ui->setupUi(this); // Warning: QLayout: Attempting to add QLayout "" to ExplanationForm "explanationForm", which already has a layout
+    ui->setupUi(this);
 
     // Tsne Plot
     QJsonArray labels = json->value("labels").toArray();
@@ -52,8 +52,8 @@ AppWindow::AppWindow(QJsonObject *json, QWidget *parent)
     ui->explanationForm->explanationPlot->setFeatureNames(featureNamesList);
 
     QJsonArray gradients = json->value("gradients").toArray();
-    QList<QList<QList<qreal>>> *gradientsList = new QList<QList<QList<qreal>>>(convertJsonArrayToQList3D(gradients));
-    ui->explanationForm->setGradients(gradientsList); // TODO MAYBE USELESS SO REMOVE ?
+    QList<QList<QList<qreal>>> gradientsList = convertJsonArrayToQList3D(gradients);
+    ui->explanationForm->explanationPlot->setGradients(gradientsList);
 
     QJsonArray meanGradients = json->value("mean_gradients").toArray();
     QList<qreal> meanGradientsList = jsonArrayToQList(meanGradients);
@@ -66,6 +66,11 @@ AppWindow::AppWindow(QJsonObject *json, QWidget *parent)
     series->append(set);
     ui->explanationForm->explanationPlot->setHorizontalBarSeries(series);
 
+    QJsonArray magnitudes = json->value("magnitudes").toArray();
+    QList<QList<qreal>> magnitudesList = jsonArrayToQList2D(magnitudes);
+    ui->explanationForm->explanationPlot->setMagnitudes(magnitudesList);
+
+    connect(ui->tsneForm->tsnePlot, &TsnePlot::pointsSelected, ui->explanationForm->explanationPlot, &ExplanationPlot::updateSelectedPoints);
     connect(ui->tsneForm->tsnePlot, &TsnePlot::zoomChanged, ui->overviewForm->overviewPlot, &OverviewPlot::updateZoomRectangle);
 }
 
@@ -89,6 +94,27 @@ QList<qreal> AppWindow::jsonArrayToQList(const QJsonArray &jsonArray) {
         }
     }
     return list;
+}
+
+QList<QList<qreal>> AppWindow::jsonArrayToQList2D(const QJsonArray &jsonArray) {
+    QList<QList<qreal>> listOfLists2D;
+
+    for (const QJsonValue &outerValue : jsonArray) {
+        if (outerValue.isArray()) {
+            QJsonArray outerArray = outerValue.toArray();
+            QList<qreal> innerList;
+
+            for (const QJsonValue &value : outerArray) {
+                if (value.isDouble()) {
+                    innerList.append(value.toDouble());
+                }
+            }
+
+            listOfLists2D.append(innerList);
+        }
+    }
+
+    return listOfLists2D;
 }
 
 QList<QList<QList<qreal>>> AppWindow::convertJsonArrayToQList3D(const QJsonArray &jsonArray) {

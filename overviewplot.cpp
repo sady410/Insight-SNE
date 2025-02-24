@@ -8,6 +8,7 @@ OverviewPlot::OverviewPlot(QChart *chart, QWidget *parent)
     setRenderHint(QPainter::Antialiasing);
 
     chart->setAnimationOptions(QChart::SeriesAnimations);
+    chart->setTheme(QChart::ChartThemeDark);
 }
 
 void OverviewPlot::setScatterSeries(QScatterSeries *series) {
@@ -44,7 +45,8 @@ void OverviewPlot::setScatterSeries(QScatterSeries *series) {
     QValueAxis *axisY = new QValueAxis();
     axisX->setRange(minX - 1, maxX + 1); // Adding margins
     axisY->setRange(minY - 1, maxY + 1);
-
+    axisX->setGridLineVisible(false);
+    axisY->setGridLineVisible(false);
     // Remove existing axes if they exist
     QList<QAbstractAxis *> existingAxes = chart()->axes();
     for (QAbstractAxis *axis : std::as_const(existingAxes)) {

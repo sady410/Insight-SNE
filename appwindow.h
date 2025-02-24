@@ -22,6 +22,7 @@ private:
     Ui::AppWindow *ui;
 
     QList<qreal> jsonArrayToQList(const QJsonArray &jsonArray);
+    QList<QList<qreal>> jsonArrayToQList2D(const QJsonArray &jsonArray);
     QList<QList<QList<qreal>>> convertJsonArrayToQList3D(const QJsonArray &jsonArray);
 };
 

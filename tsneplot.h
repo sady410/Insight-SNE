@@ -19,6 +19,7 @@ public:
 
 signals:
     void zoomChanged(qreal minX, qreal maxX, qreal minY, qreal maxY);
+    void pointsSelected(const QList<int> &indices);
 
 public slots:
     void resetZoom();
@@ -30,8 +31,17 @@ protected:
     void wheelEvent(QWheelEvent *event) override;
 
 private:
+    struct QPointFComparator {
+        bool operator()(const QPointF &p1, const QPointF &p2) const {
+            if (p1.x() != p2.x()) return p1.x() < p2.x();
+            return p1.y() < p2.y();
+        }
+    };
+
     QStringList labels;
     QMap<QString, QScatterSeries *> scatterSeriesMap;
+    std::map<QPointF, int, QPointFComparator> pointIndexMap;
+    QList<int> selectedIndices;
 
     bool isDrawing;
     QPainterPath path;

@@ -9,6 +9,7 @@ ExplanationPlot::ExplanationPlot(QChart *chart, QWidget *parent)
     setRenderHint(QPainter::Antialiasing);
 
     chart->setAnimationOptions(QChart::SeriesAnimations);
+    chart->setTheme(QChart::ChartThemeDark);
 }
 
 void ExplanationPlot::setHorizontalBarSeries(QHorizontalBarSeries *series) {
@@ -51,25 +52,37 @@ void ExplanationPlot::setHorizontalBarSeries(QHorizontalBarSeries *series) {
     axisX->setLabelFormat("%.2f");
     axisX->setTickCount(5);
     axisX->setRange(minX, maxX);
+    axisX->setGridLineVisible(false);
     chart()->addAxis(axisX, Qt::AlignBottom);
     horizontalBarSeries->attachAxis(axisX);
 
     // Set up Y-axis
     QCategoryAxis *axisY = new QCategoryAxis();
     // axisY->setTitleText("Features");
-
     for (int i = 0; i < featureNames.size(); ++i) {
         axisY->append(featureNames[i], i);
     }
-
     axisY->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+    axisY->setGridLineVisible(false);
     chart()->addAxis(axisY, Qt::AlignLeft);
     horizontalBarSeries->attachAxis(axisY);
 }
 
-
-void ExplanationPlot::setFeatureNames(const QStringList &featureNames) {
+void ExplanationPlot::setFeatureNames(const QStringList featureNames) {
     this->featureNames = featureNames;
 }
 
+void ExplanationPlot::setGradients(QList<QList<QList<qreal>>> gradients) {
+    this->gradients = gradients;
+}
 
+void ExplanationPlot::setMagnitudes(const QList<QList<qreal>> magnitudes) {
+    this->magnitudes = magnitudes;
+}
+
+void ExplanationPlot::updateSelectedPoints(const QList<int> &indices) {
+    qDebug() << "Received selected indices: " << indices;
+
+    // Use the indices to fetch data and update the explanation plot
+    // Example: Set new data to horizontal bar series
+}

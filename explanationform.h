@@ -19,12 +19,11 @@ public:
     ~ExplanationForm();
 
     ExplanationPlot *explanationPlot;
-    void setGradients(QList<QList<QList<qreal>>> *gradients);
 
 private:
     Ui::ExplanationForm *ui;
 
-    QList<QList<QList<qreal>>> *gradients;
+    void changeActivePlot();
 };
 
 #endif // EXPLANATIONFORM_H

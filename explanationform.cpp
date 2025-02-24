@@ -23,9 +23,7 @@ ExplanationForm::ExplanationForm(QWidget *parent)
     layout->addWidget(explanationPlot);
 }
 
-void ExplanationForm::setGradients(QList<QList<QList<qreal>>> *gradients) {
-    this->gradients = new QList<QList<QList<qreal>>>(*gradients);
-}
+void ExplanationForm::changeActivePlot() {};
 
 ExplanationForm::~ExplanationForm()
 {

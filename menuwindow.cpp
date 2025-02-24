@@ -83,8 +83,8 @@ void MenuWindow::onRunAppButtonClicked()
 
 void MenuWindow::onOutputReceived(const QString &output)
 {
-    partialOutput += output.trimmed();  // Append new output
-    qDebug() << partialOutput;
+    partialOutput += output.trimmed();
+    // qDebug() << partialOutput;
     // Try to parse JSON
     QJsonDocument json = QJsonDocument::fromJson(partialOutput.toUtf8());
 
