@@ -8,6 +8,7 @@
 #include <QValueAxis>
 #include <QCategoryAxis>
 #include <QRandomGenerator>
+#include <QPushButton>
 
 ExplanationForm::ExplanationForm(QWidget *parent)
     : QWidget(parent)
@@ -19,8 +20,23 @@ ExplanationForm::ExplanationForm(QWidget *parent)
 
     explanationPlot = new ExplanationPlot(explanationChart, nullptr);
     explanationChart->setTitle("Explanation Plot");
-    QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->addWidget(explanationPlot);
+
+    QPushButton *button1 = new QPushButton("Button 1");
+    QPushButton *button2 = new QPushButton("Button 2");
+
+    button1->setFixedSize(80, 30);
+    button2->setFixedSize(80, 30);
+
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    buttonLayout->addStretch();
+    buttonLayout->addWidget(button1);
+    buttonLayout->addWidget(button2);
+
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    mainLayout->addLayout(buttonLayout);
+    mainLayout->addWidget(explanationPlot);
+
+    setLayout(mainLayout);
 }
 
 void ExplanationForm::changeActivePlot() {};

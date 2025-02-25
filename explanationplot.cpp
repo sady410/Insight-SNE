@@ -12,7 +12,7 @@ ExplanationPlot::ExplanationPlot(QChart *chart, QWidget *parent)
     chart->setTheme(QChart::ChartThemeDark);
 }
 
-void ExplanationPlot::setHorizontalBarSeries(QHorizontalBarSeries *series) {
+void ExplanationPlot::initPlot(QHorizontalBarSeries *series) {
     if (!series)
         return;
 
@@ -33,7 +33,9 @@ void ExplanationPlot::setHorizontalBarSeries(QHorizontalBarSeries *series) {
     qreal minX = std::numeric_limits<qreal>::max();
     qreal maxX = std::numeric_limits<qreal>::lowest();
 
-    for (QBarSet *set : horizontalBarSeries->barSets()) { // Access QBarSet dynamically
+    const auto &barSets = horizontalBarSeries->barSets();
+    for (int j = 0; j < barSets.size(); ++j) {
+        const auto *set = barSets.at(j);
         for (int i = 0; i < set->count(); ++i) {
             qreal value = set->at(i);
             minX = qMin(minX, value);
@@ -85,4 +87,47 @@ void ExplanationPlot::updateSelectedPoints(const QList<int> &indices) {
 
     // Use the indices to fetch data and update the explanation plot
     // Example: Set new data to horizontal bar series
+
+    addNewMagnitude(indices);
 }
+
+void ExplanationPlot::addNewMagnitude(const QList<int> &indices) {
+    if (indices.isEmpty()) {
+        qDebug() << "No indices provided";
+        return;
+    } else if (magnitudes.isEmpty()) {
+        qDebug() << "Magnitudes data is empty.";
+        return;
+    }
+
+    QList<qreal> meanValues;
+    int numFeatures = magnitudes.first().size();
+
+    for (int i = 0; i < numFeatures; ++i) {
+        qreal sum = 0;
+        int count = 0;
+        for (int index : indices) {
+            if (index >= 0 && index < magnitudes.size()) {
+                sum += magnitudes[index][i];
+                count++;
+            }
+        }
+        meanValues.append(count > 0 ? sum / count : 0);
+    }
+    qDebug()<< meanValues;
+    // Create a new bar set with the computed mean values
+    QBarSet *newSet = new QBarSet("New Data"); // TODO
+    for (qreal value : meanValues) {
+        *newSet << value;
+    }
+    // Append new data to the existing series without clearing
+    if (horizontalBarSeries) {
+        horizontalBarSeries->append(newSet);
+    } else {
+        delete newSet;  // Prevent leak if horizontalBarSeries is null
+    }
+
+    chart()->update();
+}
+
+

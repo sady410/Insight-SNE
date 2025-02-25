@@ -12,7 +12,7 @@ class ExplanationPlot : public QChartView {
 public:
     explicit ExplanationPlot(QChart *chart, QWidget *parent = nullptr);
 
-    void setHorizontalBarSeries(QHorizontalBarSeries *horizontalBarSeries);
+    void initPlot(QHorizontalBarSeries *horizontalBarSeries);
     void setFeatureNames(const QStringList featureNames);
     void setMagnitudes(const QList<QList<qreal>> magnitudes);
     void setGradients(const QList<QList<QList<qreal>>> gradients);
@@ -25,6 +25,7 @@ private:
     QStringList featureNames; // TODO pointer ?
     QList<QList<qreal>> magnitudes; // TODO pointer ?
     QList<QList<QList<qreal>>> gradients;
+    void addNewMagnitude(const QList<int> &indices);
 };
 
 #endif // EXPLANATIONPLOT_H

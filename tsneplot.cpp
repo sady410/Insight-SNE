@@ -17,7 +17,7 @@ TsnePlot::TsnePlot(QChart *chart, QWidget *parent)
     chart->setTheme(QChart::ChartThemeDark);
 }
 
-void TsnePlot::setScatterSeries(QScatterSeries *series) {
+void TsnePlot::initPlot(QScatterSeries *series) {
     if (!series || series->count() == 0) {
         qDebug() << "Error: Empty series!";
         return;
@@ -102,7 +102,6 @@ void TsnePlot::setScatterSeries(QScatterSeries *series) {
 
     chart()->legend()->setVisible(true);
     chart()->legend()->setAlignment(Qt::AlignRight);
-    // qDebug() << "Scatter series set with " << scatterSeriesMap.size() << " series.";
 }
 
 void TsnePlot::setLabels(const QStringList &labels) {

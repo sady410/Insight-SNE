@@ -118,19 +118,12 @@ def _compute_xy_derivative(i, X, y, sigma):
     return 4 * ( v_ij_d.T @ ( y_ij * E_ij.reshape(n, 1) ) )
 
 def compute_mean_magnitudes(gradients):
-    norms = np.zeros(gradients.shape[2])
-
-    for g in gradients:
-        norm = np.linalg.norm(g, axis=0)
-        norms += (norm / np.sum(norm))
-
-    return norms/gradients.shape[2]
+    magnitudes =  np.linalg.norm(gradients, axis=1)
+    mean_magnitudes = np.mean(magnitudes, axis=0)
+    return mean_magnitudes
 
 def compute_magnitudes(gradients):
-    magnitudes = np.array([])
-    for g in gradients:
-        magnitudes = np.append(magnitudes, np.linalg.norm(g, axis=0))
-    return magnitudes
+    return np.linalg.norm(gradients, axis=1)
 
 
 

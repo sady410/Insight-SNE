@@ -32,11 +32,12 @@ AppWindow::AppWindow(QJsonObject *json, QWidget *parent)
         }
     }
     tsneSeries->setMarkerSize(8.0);
-    ui->tsneForm->tsnePlot->setScatterSeries(tsneSeries);
+    ui->tsneForm->tsnePlot->initPlot(tsneSeries);
 
     // Overview Plot
     QScatterSeries *overviewSeries = new QScatterSeries();
-    for (const QPointF &point : tsneSeries->points()) {
+    const auto &points = tsneSeries->points();  // Store reference to avoid detachment
+    for (const QPointF &point : points) {
         overviewSeries->append(point);
     }
     overviewSeries->setMarkerSize(tsneSeries->markerSize());
@@ -55,16 +56,16 @@ AppWindow::AppWindow(QJsonObject *json, QWidget *parent)
     QList<QList<QList<qreal>>> gradientsList = convertJsonArrayToQList3D(gradients);
     ui->explanationForm->explanationPlot->setGradients(gradientsList);
 
+
     QJsonArray meanGradients = json->value("mean_gradients").toArray();
     QList<qreal> meanGradientsList = jsonArrayToQList(meanGradients);
-
     QHorizontalBarSeries *series = new QHorizontalBarSeries();
     QBarSet *set = new QBarSet("Mean Values");
     for (auto& value : meanGradientsList) {
         *set << value;
     }
     series->append(set);
-    ui->explanationForm->explanationPlot->setHorizontalBarSeries(series);
+    ui->explanationForm->explanationPlot->initPlot(series);
 
     QJsonArray magnitudes = json->value("magnitudes").toArray();
     QList<QList<qreal>> magnitudesList = jsonArrayToQList2D(magnitudes);
@@ -104,7 +105,7 @@ QList<QList<qreal>> AppWindow::jsonArrayToQList2D(const QJsonArray &jsonArray) {
             QJsonArray outerArray = outerValue.toArray();
             QList<qreal> innerList;
 
-            for (const QJsonValue &value : outerArray) {
+            for (const QJsonValue &value : std::as_const(outerArray)) {
                 if (value.isDouble()) {
                     innerList.append(value.toDouble());
                 }

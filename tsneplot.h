@@ -14,7 +14,7 @@ class TsnePlot : public QChartView {
 public:
     explicit TsnePlot(QChart *chart, QWidget *parent = nullptr);
 
-    void setScatterSeries(QScatterSeries *series);
+    void initPlot(QScatterSeries *series);
     void setLabels(const QStringList &labels);
 
 signals:

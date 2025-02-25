@@ -130,10 +130,8 @@ void MenuWindow::selectCsvFile() {
     if (!fileName.isEmpty()) {
         ui->fileLabel->setText("Selected File: " + fileName);
         csvFile = fileName;
-        // qDebug() << "Selected CSV file: " << fileName;
         readCsvFile(csvFile);
-        // qDebug() << data;
-        if (!data.isEmpty()) { // Ensure data is loaded before enabling the button
+        if (!data.isEmpty()) {
             ui->runAppButton->setEnabled(true);
         }
     } else {
