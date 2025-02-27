@@ -21,9 +21,11 @@ protected:
 private:
     Ui::AppWindow *ui;
 
+    QList<QList<qreal>> getAxisGradient(QList<QList<QList<qreal>>> gradientsList, int axis);
+
     QList<qreal> jsonArrayToQList(const QJsonArray &jsonArray);
     QList<QList<qreal>> jsonArrayToQList2D(const QJsonArray &jsonArray);
-    QList<QList<QList<qreal>>> convertJsonArrayToQList3D(const QJsonArray &jsonArray);
+    QList<QList<QList<qreal>>> jsonArrayToQList3D(const QJsonArray &jsonArray);
 };
 
 #endif // APPWINDOW_H

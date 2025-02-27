@@ -12,8 +12,7 @@ OverviewPlot::OverviewPlot(QChart *chart, QWidget *parent)
 }
 
 void OverviewPlot::setScatterSeries(QScatterSeries *series) {
-    if (!series)
-        return;
+    if (!series || !chart()) return;
 
     // Remove the previous scatter series if it exists
     if (scatterSeries && chart()->series().contains(scatterSeries)) {
@@ -41,30 +40,40 @@ void OverviewPlot::setScatterSeries(QScatterSeries *series) {
     }
 
     // Create and configure new axes
-    QValueAxis *axisX = new QValueAxis();
-    QValueAxis *axisY = new QValueAxis();
-    axisX->setRange(minX - 1, maxX + 1); // Adding margins
-    axisY->setRange(minY - 1, maxY + 1);
-    axisX->setGridLineVisible(false);
-    axisY->setGridLineVisible(false);
-    // Remove existing axes if they exist
-    QList<QAbstractAxis *> existingAxes = chart()->axes();
-    for (QAbstractAxis *axis : std::as_const(existingAxes)) {
-        chart()->removeAxis(axis);
-        delete axis;
+    try {
+        QValueAxis *axisX = new QValueAxis();
+        QValueAxis *axisY = new QValueAxis();
+        axisX->setRange(minX - 1, maxX + 1); // Adding margins
+        axisY->setRange(minY - 1, maxY + 1);
+        axisX->setGridLineVisible(false);
+        axisY->setGridLineVisible(false);
+
+        // Remove existing axes if they exist
+        QList<QAbstractAxis *> existingAxes = chart()->axes();
+        for (QAbstractAxis *axis : existingAxes) {
+            if (axis) {
+                chart()->removeAxis(axis);
+                delete axis;
+            }
+        }
+
+        chart()->addAxis(axisX, Qt::AlignBottom);
+        chart()->addAxis(axisY, Qt::AlignLeft);
+
+        // Attach the series to the new axes
+        scatterSeries->attachAxis(axisX);
+        scatterSeries->attachAxis(axisY);
+
+        chart()->legend()->hide();
+    } catch (const std::bad_alloc& e) {
+        // Handle memory allocation failure
+        qWarning() << "Memory allocation failed:" << e.what();
     }
-
-    chart()->addAxis(axisX, Qt::AlignBottom);
-    chart()->addAxis(axisY, Qt::AlignLeft);
-
-    // Attach the series to the new axes
-    scatterSeries->attachAxis(axisX);
-    scatterSeries->attachAxis(axisY);
-
-    chart()->legend()->hide();
 }
 
 void OverviewPlot::updateZoomRectangle(qreal minX, qreal maxX, qreal minY, qreal maxY) {
+    if (!chart() || !chart()->scene()) return;
+
     if (!zoomRectItem) {
         zoomRectItem = new QGraphicsRectItem();
         QPen pen(Qt::red);

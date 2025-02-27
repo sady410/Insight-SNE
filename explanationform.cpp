@@ -16,16 +16,29 @@ ExplanationForm::ExplanationForm(QWidget *parent)
 {
     ui->setupUi(this);
 
-    QChart *explanationChart = new QChart();
+    QChart *magnitudesChart = new QChart();
 
-    explanationPlot = new ExplanationPlot(explanationChart, nullptr);
-    explanationChart->setTitle("Explanation Plot");
+    magnitudesPlot = new MagnitudesPlot(magnitudesChart, nullptr);
+    magnitudesChart->setTitle("Magnitudes Plot");
 
-    QPushButton *button1 = new QPushButton("Button 1");
-    QPushButton *button2 = new QPushButton("Button 2");
+    QChart *gradientsChartTop = new QChart();
+
+    gradientsPlotTop = new GradientsPlot(gradientsChartTop, nullptr);
+    gradientsChartTop->setTitle("Gradients Plot X");
+
+    QChart *gradientsChartBottom = new QChart();
+
+    gradientsPlotBottom = new GradientsPlot(gradientsChartBottom, nullptr);
+    gradientsChartBottom->setTitle("Gradients Plot Y");
+
+    QPushButton *button1 = new QPushButton("Magnitudes");
+    QPushButton *button2 = new QPushButton("Gradients");
 
     button1->setFixedSize(80, 30);
     button2->setFixedSize(80, 30);
+
+    connect(button1, &QPushButton::clicked, this, &ExplanationForm::showMagnitudesPlot);
+    connect(button2, &QPushButton::clicked, this, &ExplanationForm::showGradientsPlot);
 
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     buttonLayout->addStretch();
@@ -34,14 +47,29 @@ ExplanationForm::ExplanationForm(QWidget *parent)
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->addLayout(buttonLayout);
-    mainLayout->addWidget(explanationPlot);
+    mainLayout->addWidget(magnitudesPlot);
+    mainLayout->addWidget(gradientsPlotTop);
+    mainLayout->addWidget(gradientsPlotBottom);
+
+    magnitudesPlot->setVisible(true);
+    gradientsPlotTop->setVisible(false);
+    gradientsPlotBottom->setVisible(false);
 
     setLayout(mainLayout);
 }
 
-void ExplanationForm::changeActivePlot() {};
+void ExplanationForm::showMagnitudesPlot() {
+    magnitudesPlot->setVisible(true);
+    gradientsPlotTop->setVisible(false);
+    gradientsPlotBottom->setVisible(false);
+}
 
-ExplanationForm::~ExplanationForm()
-{
+void ExplanationForm::showGradientsPlot() {
+    magnitudesPlot->setVisible(false);
+    gradientsPlotTop->setVisible(true);
+    gradientsPlotBottom->setVisible(true);
+}
+
+ExplanationForm::~ExplanationForm() {
     delete ui;
 }

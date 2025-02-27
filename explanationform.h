@@ -1,7 +1,8 @@
 #ifndef EXPLANATIONFORM_H
 #define EXPLANATIONFORM_H
 
-#include "explanationplot.h"
+#include "magnitudesplot.h"
+#include "gradientsplot.h"
 
 #include <QWidget>
 #include <QHorizontalBarSeries>
@@ -18,12 +19,16 @@ public:
     explicit ExplanationForm(QWidget *parent = nullptr);
     ~ExplanationForm();
 
-    ExplanationPlot *explanationPlot;
+    MagnitudesPlot *magnitudesPlot;
+    GradientsPlot *gradientsPlotTop;
+    GradientsPlot *gradientsPlotBottom;
+
+public slots:
+    void showMagnitudesPlot();
+    void showGradientsPlot();
 
 private:
     Ui::ExplanationForm *ui;
-
-    void changeActivePlot();
 };
 
 #endif // EXPLANATIONFORM_H

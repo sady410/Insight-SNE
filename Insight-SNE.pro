@@ -11,7 +11,8 @@ CONFIG += c++17
 SOURCES += \
     appwindow.cpp \
     explanationform.cpp \
-    explanationplot.cpp \
+    gradientsplot.cpp \
+    magnitudesplot.cpp \
     main.cpp \
     menuwindow.cpp \
     overviewform.cpp \
@@ -23,7 +24,8 @@ SOURCES += \
 HEADERS += \
     appwindow.h \
     explanationform.h \
-    explanationplot.h \
+    gradientsplot.h \
+    magnitudesplot.h \
     menuwindow.h \
     overviewform.h \
     overviewplot.h \

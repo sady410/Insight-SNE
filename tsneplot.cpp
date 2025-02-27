@@ -276,8 +276,8 @@ void TsnePlot::selectPointsInsideLasso() {
         }
     }
 
-    qDebug() << "Total points selected: " << selectedPoints->size();
-    qDebug() << "Selected Indices: " << selectedIndices;
+    // qDebug() << "Total points selected: " << selectedPoints->size();
+    // qDebug() << "Selected Indices: " << selectedIndices;
 
     // Emit signal with the selected indices
     emit pointsSelected(selectedIndices);

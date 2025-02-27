@@ -122,6 +122,10 @@ def compute_mean_magnitudes(gradients):
     mean_magnitudes = np.mean(magnitudes, axis=0)
     return mean_magnitudes
 
+def compute_mean_gradients(gradients):
+    mean_gradients = np.mean(gradients, axis=0)
+    return mean_gradients
+
 def compute_magnitudes(gradients):
     return np.linalg.norm(gradients, axis=1)
 

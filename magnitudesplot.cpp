@@ -1,10 +1,10 @@
-#include "explanationplot.h"
+#include "magnitudesplot.h"
 #include "qbarset.h"
 
 #include <QValueAxis>
 #include <QCategoryAxis>
 
-ExplanationPlot::ExplanationPlot(QChart *chart, QWidget *parent)
+MagnitudesPlot::MagnitudesPlot(QChart *chart, QWidget *parent)
     : QChartView(chart, parent) {
     setRenderHint(QPainter::Antialiasing);
 
@@ -12,7 +12,7 @@ ExplanationPlot::ExplanationPlot(QChart *chart, QWidget *parent)
     chart->setTheme(QChart::ChartThemeDark);
 }
 
-void ExplanationPlot::initPlot(QHorizontalBarSeries *series) {
+void MagnitudesPlot::initPlot(QHorizontalBarSeries *series) {
     if (!series)
         return;
 
@@ -70,28 +70,19 @@ void ExplanationPlot::initPlot(QHorizontalBarSeries *series) {
     horizontalBarSeries->attachAxis(axisY);
 }
 
-void ExplanationPlot::setFeatureNames(const QStringList featureNames) {
+void MagnitudesPlot::setFeatureNames(const QStringList featureNames) {
     this->featureNames = featureNames;
 }
 
-void ExplanationPlot::setGradients(QList<QList<QList<qreal>>> gradients) {
-    this->gradients = gradients;
-}
-
-void ExplanationPlot::setMagnitudes(const QList<QList<qreal>> magnitudes) {
+void MagnitudesPlot::setMagnitudes(const QList<QList<qreal>> magnitudes) {
     this->magnitudes = magnitudes;
 }
 
-void ExplanationPlot::updateSelectedPoints(const QList<int> &indices) {
-    qDebug() << "Received selected indices: " << indices;
-
-    // Use the indices to fetch data and update the explanation plot
-    // Example: Set new data to horizontal bar series
-
+void MagnitudesPlot::updateSelectedPoints(const QList<int> &indices) {
     addNewMagnitude(indices);
 }
 
-void ExplanationPlot::addNewMagnitude(const QList<int> &indices) {
+void MagnitudesPlot::addNewMagnitude(const QList<int> &indices) {
     if (indices.isEmpty()) {
         qDebug() << "No indices provided";
         return;
@@ -103,6 +94,7 @@ void ExplanationPlot::addNewMagnitude(const QList<int> &indices) {
     QList<qreal> meanValues;
     int numFeatures = magnitudes.first().size();
 
+    // Calculate mean values for the selected indices
     for (int i = 0; i < numFeatures; ++i) {
         qreal sum = 0;
         int count = 0;
@@ -114,20 +106,45 @@ void ExplanationPlot::addNewMagnitude(const QList<int> &indices) {
         }
         meanValues.append(count > 0 ? sum / count : 0);
     }
-    qDebug()<< meanValues;
+
     // Create a new bar set with the computed mean values
-    QBarSet *newSet = new QBarSet("New Data"); // TODO
+    QBarSet *newSet = new QBarSet("New Data"); // TODO: Customize the label
     for (qreal value : meanValues) {
         *newSet << value;
     }
-    // Append new data to the existing series without clearing
+
+    // Append new data to the existing series
     if (horizontalBarSeries) {
         horizontalBarSeries->append(newSet);
+
+        // Recalculate the X-axis range
+        qreal minX = std::numeric_limits<qreal>::max();
+        qreal maxX = std::numeric_limits<qreal>::lowest();
+
+        const auto &barSets = horizontalBarSeries->barSets();
+        for (int j = 0; j < barSets.size(); ++j) {
+            const auto *set = barSets.at(j);
+            for (int i = 0; i < set->count(); ++i) {
+                qreal value = set->at(i);
+                minX = qMin(minX, value);
+                maxX = qMax(maxX, value);
+            }
+        }
+
+        // Add padding to the X-axis range
+        qreal padding = (maxX - minX) * 0.1; // 10% padding
+        if (padding == 0) padding = 0.1; // Ensure some padding
+        minX -= padding;
+        maxX += padding;
+
+        // Update the X-axis range
+        QValueAxis *axisX = qobject_cast<QValueAxis *>(chart()->axes(Qt::Horizontal).first());
+        if (axisX) {
+            axisX->setRange(minX, maxX);
+        }
+
+        chart()->update();
     } else {
-        delete newSet;  // Prevent leak if horizontalBarSeries is null
+        delete newSet;  // Prevent memory leak if horizontalBarSeries is null
     }
-
-    chart()->update();
 }
-
-
