@@ -2,9 +2,9 @@
 #define MENUWINDOW_H
 
 #include "pythonexecutor.h"
-
 #include <QMainWindow>
 #include <QFile>
+#include <QMap>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -17,12 +17,23 @@ class MenuWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MenuWindow(QWidget *parent = nullptr);
+    explicit MenuWindow(QWidget *parent = nullptr);
     ~MenuWindow();
 
 private:
-    QString partialOutput; // For linux terminal output
+    Ui::MenuWindow *ui;
+    QString partialOutput; // to handle terminal output
+    PythonExecutor *pythonExecutor;
 
+    // File & Data Handling
+    QString csvFile;
+    QList<QList<QString>> data;
+    QStringList featureNames;
+    QStringList labels;
+
+    QMap<int, int> iterationsMap; // Maps slider values to iterations
+
+    // Utility Functions
     void readCsvFile(const QString &filePath);
     QStringList constructArgsString();
     QString list2String(const QList<QString> &list);
@@ -37,17 +48,6 @@ private slots:
     void onScriptFinished(bool success, const QString &error);
 
     void onRunAppButtonClicked();
-
-private:
-    Ui::MenuWindow *ui;
-
-    QMap<int, int> iterationsMap;
-    QString csvFile;
-
-    QList<QList<QString>> data;
-    QStringList featureNames;
-    QStringList labels;
-
-    PythonExecutor *pythonExecutor;
 };
+
 #endif // MENUWINDOW_H

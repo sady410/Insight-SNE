@@ -29,7 +29,7 @@ MenuWindow::MenuWindow(QWidget *parent)
         {0, 100}, {1, 200}, {2, 300}, {3, 400}, {4, 500},
         {5, 600}, {6, 700}, {7, 800}, {8, 900}, {9, 1000}
     };
-    ui->iterationsLabel->setText("Perplexity: " + QString::number(iterationsMap[3]));
+    ui->iterationsLabel->setText("Iterations: " + QString::number(iterationsMap[3]));
 
     ui->iterationsSlider->setRange(0, 9);
     ui->iterationsSlider->setTickInterval(1);
@@ -56,13 +56,11 @@ MenuWindow::~MenuWindow()
 
 void MenuWindow::updatePerplexityLabel(int value) {
     ui->perplexityLabel->setText("Perplexity: " + QString::number(value));
-    qDebug() << "Perplexity: " << value;
 }
 
 void MenuWindow::updateIterationsLabel(int value) {
     int iterations = iterationsMap[value];
     ui->iterationsLabel->setText("Iterations: " + QString::number(iterations));
-    qDebug() << "Iterations: " << iterations;
 }
 
 void MenuWindow::onRunAppButtonClicked()
@@ -104,8 +102,9 @@ void MenuWindow::onOutputReceived(const QString &output)
         }
         jsonObject["labels"] = labelsArray;
 
-        AppWindow *appWindow = new AppWindow(&jsonObject);
-        appWindow->show();
+        //AppWindow *appWindow = new AppWindow(jsonObject);
+        //appWindow->show();
+        new AppWindow(jsonObject);
         this->close();
 
         partialOutput.clear();  // Clear buffer after successful JSON parsing
