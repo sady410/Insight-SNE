@@ -103,34 +103,17 @@ void MenuWindow::onOutputReceived(const QString &output)
             }
             jsonObject["labels"] = labelsArray;
 
-            AppWindow *appWindow = new AppWindow(&jsonObject);
-            appWindow->show();
+            //AppWindow *appWindow = new AppWindow(jsonObject);
+            //appWindow->show();
+            new AppWindow(jsonObject);
             this->close();
 
-            partialOutput.clear();  // Clear buffer after successful JSON parsing
+            partialOutput.clear();
         }
-<<<<<<< HEAD
-=======
-        jsonObject["featureNames"] = featureNamesArray;
-
-        QJsonArray labelsArray;
-        for (const QString &label : std::as_const(labels)) {
-            labelsArray.append(label);
-        }
-        jsonObject["labels"] = labelsArray;
-
-        //AppWindow *appWindow = new AppWindow(jsonObject);
-        //appWindow->show();
-        new AppWindow(jsonObject);
-        this->close();
-
-        partialOutput.clear();  // Clear buffer after successful JSON parsing
->>>>>>> b560c7f90fe6edd4d7946f618f10c076ded61fb9
     } else {
         qDebug() << "Waiting for full JSON...";
     }
 }
-
 
 void MenuWindow::onScriptFinished(bool success, const QString &error)
 {
