@@ -56,13 +56,11 @@ MenuWindow::~MenuWindow()
 
 void MenuWindow::updatePerplexityLabel(int value) {
     ui->perplexityLabel->setText("Perplexity: " + QString::number(value));
-    qDebug() << "Perplexity: " << value;
 }
 
 void MenuWindow::updateIterationsLabel(int value) {
     int iterations = iterationsMap[value];
     ui->iterationsLabel->setText("Iterations: " + QString::number(iterations));
-    qDebug() << "Iterations: " << iterations;
 }
 
 void MenuWindow::onRunAppButtonClicked()
@@ -111,6 +109,23 @@ void MenuWindow::onOutputReceived(const QString &output)
 
             partialOutput.clear();  // Clear buffer after successful JSON parsing
         }
+<<<<<<< HEAD
+=======
+        jsonObject["featureNames"] = featureNamesArray;
+
+        QJsonArray labelsArray;
+        for (const QString &label : std::as_const(labels)) {
+            labelsArray.append(label);
+        }
+        jsonObject["labels"] = labelsArray;
+
+        //AppWindow *appWindow = new AppWindow(jsonObject);
+        //appWindow->show();
+        new AppWindow(jsonObject);
+        this->close();
+
+        partialOutput.clear();  // Clear buffer after successful JSON parsing
+>>>>>>> b560c7f90fe6edd4d7946f618f10c076ded61fb9
     } else {
         qDebug() << "Waiting for full JSON...";
     }
