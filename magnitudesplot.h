@@ -17,13 +17,14 @@ public:
     void setMagnitudes(const QList<QList<qreal>> magnitudes);
 
 public slots:
-    void updateSelectedPoints(const QList<int> &indices);
+    void updateSelectedPoints(const QList<int> &indices, const QColor &color);
 
 private:
     QHorizontalBarSeries *horizontalBarSeries;
     QStringList featureNames; // TODO pointer ?
     QList<QList<qreal>> magnitudes; // TODO pointer ?
-    void addNewMagnitude(const QList<int> &indices);
+
+    void addNewMagnitude(const QList<int> &indices, const QColor &color);
 };
 
 #endif // MAGNITUDESPLOT_H

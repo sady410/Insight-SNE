@@ -18,14 +18,14 @@ public:
     void setMeanGradients(const QList<QList<qreal>> meanGradients);
 
 public slots:
-    void updateSelectedPoints(const QList<int> &indices);
+    void updateSelectedPoints(const QList<int> &indices, const QColor &color);
 
 private:
     QHorizontalBarSeries *horizontalBarSeries;
     QStringList featureNames; // TODO pointer ?
     QList<QList<qreal>> gradients;
     QList<QList<qreal>> meanGradients;
-    void addNewGradient(const QList<int> &indices);
+    void addNewGradient(const QList<int> &indices, const QColor &color);
 };
 
 #endif // MAGNITUDESPLOT_H

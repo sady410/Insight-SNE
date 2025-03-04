@@ -29,7 +29,7 @@ MenuWindow::MenuWindow(QWidget *parent)
         {0, 100}, {1, 200}, {2, 300}, {3, 400}, {4, 500},
         {5, 600}, {6, 700}, {7, 800}, {8, 900}, {9, 1000}
     };
-    ui->iterationsLabel->setText("Perplexity: " + QString::number(iterationsMap[3]));
+    ui->iterationsLabel->setText("Iterations: " + QString::number(iterationsMap[3]));
 
     ui->iterationsSlider->setRange(0, 9);
     ui->iterationsSlider->setTickInterval(1);
@@ -78,6 +78,7 @@ void MenuWindow::onRunAppButtonClicked()
     }
 
     QStringList args = constructArgsString();
+    // qDebug() << args;
     pythonExecutor->executeScript(QDir(projectRoot).filePath("main.py"), args);
 }
 
@@ -86,29 +87,30 @@ void MenuWindow::onOutputReceived(const QString &output)
     partialOutput += output.trimmed();
     // qDebug() << partialOutput;
     // Try to parse JSON
-    QJsonDocument json = QJsonDocument::fromJson(partialOutput.toUtf8());
+    if (partialOutput.endsWith("}") || partialOutput.endsWith("]")) {
+        QJsonDocument json = QJsonDocument::fromJson(partialOutput.toUtf8());
+        if (!json.isNull() && json.isObject()) {
+            QJsonObject jsonObject = json.object();
 
-    if (!json.isNull() && json.isObject()) {
-        QJsonObject jsonObject = json.object();
+            // Add feature names and labels
+            QJsonArray featureNamesArray;
+            for (const QString &feature : std::as_const(featureNames)) {
+                featureNamesArray.append(feature);
+            }
+            jsonObject["featureNames"] = featureNamesArray;
 
-        // Add feature names and labels
-        QJsonArray featureNamesArray;
-        for (const QString &feature : std::as_const(featureNames)) {
-            featureNamesArray.append(feature);
+            QJsonArray labelsArray;
+            for (const QString &label : std::as_const(labels)) {
+                labelsArray.append(label);
+            }
+            jsonObject["labels"] = labelsArray;
+
+            AppWindow *appWindow = new AppWindow(&jsonObject);
+            appWindow->show();
+            this->close();
+
+            partialOutput.clear();  // Clear buffer after successful JSON parsing
         }
-        jsonObject["featureNames"] = featureNamesArray;
-
-        QJsonArray labelsArray;
-        for (const QString &label : std::as_const(labels)) {
-            labelsArray.append(label);
-        }
-        jsonObject["labels"] = labelsArray;
-
-        AppWindow *appWindow = new AppWindow(&jsonObject);
-        appWindow->show();
-        this->close();
-
-        partialOutput.clear();  // Clear buffer after successful JSON parsing
     } else {
         qDebug() << "Waiting for full JSON...";
     }

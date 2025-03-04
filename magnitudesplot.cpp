@@ -78,11 +78,11 @@ void MagnitudesPlot::setMagnitudes(const QList<QList<qreal>> magnitudes) {
     this->magnitudes = magnitudes;
 }
 
-void MagnitudesPlot::updateSelectedPoints(const QList<int> &indices) {
-    addNewMagnitude(indices);
+void MagnitudesPlot::updateSelectedPoints(const QList<int> &indices, const QColor &color) {
+    addNewMagnitude(indices, color);
 }
 
-void MagnitudesPlot::addNewMagnitude(const QList<int> &indices) {
+void MagnitudesPlot::addNewMagnitude(const QList<int> &indices, const QColor &color) {
     if (indices.isEmpty()) {
         qDebug() << "No indices provided";
         return;
@@ -112,6 +112,9 @@ void MagnitudesPlot::addNewMagnitude(const QList<int> &indices) {
     for (qreal value : meanValues) {
         *newSet << value;
     }
+
+    // Apply the color to the new bar set
+    newSet->setColor(color);
 
     // Append new data to the existing series
     if (horizontalBarSeries) {

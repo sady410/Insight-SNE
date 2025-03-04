@@ -19,7 +19,7 @@ public:
 
 signals:
     void zoomChanged(qreal minX, qreal maxX, qreal minY, qreal maxY);
-    void pointsSelected(const QList<int> &indices);
+    void pointsSelected(const QList<int> &indices, const QColor& color);
 
 public slots:
     void resetZoom();
@@ -48,6 +48,11 @@ private:
     QGraphicsPathItem *pathItem;
     QPointF firstPoint;
     QList<QPointF> *selectedPoints;
+
+    int selectionCount;
+    QList<QColor> colorList;
+
+    static const int MAX_SELECTIONS = 4;
 
     qreal initialMinX, initialMaxX, initialMinY, initialMaxY;
 

@@ -31,6 +31,9 @@ ExplanationForm::ExplanationForm(QWidget *parent)
     gradientsPlotBottom = new GradientsPlot(gradientsChartBottom, nullptr);
     gradientsChartBottom->setTitle("Gradients Plot Y");
 
+    gradientsPlotTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    gradientsPlotBottom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
     QPushButton *button1 = new QPushButton("Magnitudes");
     QPushButton *button2 = new QPushButton("Gradients");
 
@@ -48,8 +51,8 @@ ExplanationForm::ExplanationForm(QWidget *parent)
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->addLayout(buttonLayout);
     mainLayout->addWidget(magnitudesPlot);
-    mainLayout->addWidget(gradientsPlotTop);
-    mainLayout->addWidget(gradientsPlotBottom);
+    mainLayout->addWidget(gradientsPlotTop, 1);
+    mainLayout->addWidget(gradientsPlotBottom, 1);
 
     magnitudesPlot->setVisible(true);
     gradientsPlotTop->setVisible(false);

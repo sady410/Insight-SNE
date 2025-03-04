@@ -82,11 +82,11 @@ void GradientsPlot::setGradients(QList<QList<qreal>> gradients) {
     this->gradients = gradients;
 }
 
-void GradientsPlot::updateSelectedPoints(const QList<int> &indices) {
-    addNewGradient(indices);
+void GradientsPlot::updateSelectedPoints(const QList<int> &indices, const QColor &color) {
+    addNewGradient(indices, color);
 }
 
-void GradientsPlot::addNewGradient(const QList<int> &indices) {
+void GradientsPlot::addNewGradient(const QList<int> &indices, const QColor &color) {
     if (indices.isEmpty()) {
         qDebug() << "No indices provided";
         return;
@@ -110,11 +110,15 @@ void GradientsPlot::addNewGradient(const QList<int> &indices) {
         }
         meanValues.append(count > 0 ? sum / count : 0);
     }
+
     // Create a new bar set with the computed mean values
     QBarSet *newSet = new QBarSet("New Data"); // TODO: Customize the label
     for (qreal value : meanValues) {
         *newSet << value;
     }
+
+    // Apply the color to the new bar set
+    newSet->setColor(color);
 
     // Append new data to the existing series
     if (horizontalBarSeries) {

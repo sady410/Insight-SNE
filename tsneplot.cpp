@@ -9,12 +9,15 @@
 #include <QValueAxis>
 
 TsnePlot::TsnePlot(QChart *chart, QWidget *parent)
-    : QChartView(chart, parent), isDrawing(false), pathItem(nullptr), selectedPoints(new QList<QPointF>()) {
+    : QChartView(chart, parent), isDrawing(false), pathItem(nullptr), selectedPoints(new QList<QPointF>()), selectionCount(0)
+{
     setRenderHint(QPainter::Antialiasing);
     setMouseTracking(true);
 
     chart->setAnimationOptions(QChart::SeriesAnimations);
     chart->setTheme(QChart::ChartThemeDark);
+
+    colorList = {Qt::red, Qt::blue, Qt::green, Qt::yellow};
 }
 
 void TsnePlot::initPlot(QScatterSeries *series) {
@@ -109,7 +112,7 @@ void TsnePlot::setLabels(const QStringList &labels) {
 }
 
 void TsnePlot::mousePressEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton && selectionCount < MAX_SELECTIONS) {
         // Clear the previous lasso if it exists
         if (pathItem) {
             chart()->scene()->removeItem(pathItem);
@@ -244,12 +247,30 @@ void TsnePlot::mouseMoveEvent(QMouseEvent *event) {
 }
 
 void TsnePlot::mouseReleaseEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton && selectionCount < MAX_SELECTIONS) {
         isDrawing = false;
         path.lineTo(firstPoint);
         path.closeSubpath();
         pathItem->setPath(path);
+
+        // Select points inside the lasso
         selectPointsInsideLasso();
+
+        if (!selectedIndices.isEmpty()) {
+            QColor color = colorList[selectionCount % colorList.size()];
+            selectionCount++;  // Increment the selection count
+
+            // Emit the signal with the selected indices and color
+            emit pointsSelected(selectedIndices, color);
+        }
+
+        // // Clear the lasso path and item
+        // if (pathItem) {
+        //     chart()->scene()->removeItem(pathItem);
+        //     delete pathItem;
+        //     pathItem = nullptr;
+        // }
+        // path = QPainterPath(); // Clear the path
     }
 }
 
@@ -257,6 +278,7 @@ void TsnePlot::selectPointsInsideLasso() {
     qDebug() << "Checking points inside lasso...";
 
     selectedIndices.clear();  // Clear previous selections
+    selectedPoints->clear();  // Clear previous selected points
 
     for (auto it = scatterSeriesMap.begin(); it != scatterSeriesMap.end(); ++it) {
         QScatterSeries *series = it.value();
@@ -279,7 +301,6 @@ void TsnePlot::selectPointsInsideLasso() {
     // qDebug() << "Total points selected: " << selectedPoints->size();
     // qDebug() << "Selected Indices: " << selectedIndices;
 
-    // Emit signal with the selected indices
-    emit pointsSelected(selectedIndices);
+    // Emit signal with the selected indices and color (color is assigned in mouseReleaseEvent)
+    // Note: The signal is emitted in mouseReleaseEvent, not here.
 }
-

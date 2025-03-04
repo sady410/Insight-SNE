@@ -4,7 +4,7 @@
 #include <QValueAxis>
 
 OverviewPlot::OverviewPlot(QChart *chart, QWidget *parent)
-    : QChartView(chart, parent) {
+    : QChartView(chart, parent), zoomRectItem(nullptr) {
     setRenderHint(QPainter::Antialiasing);
 
     chart->setAnimationOptions(QChart::SeriesAnimations);
@@ -50,7 +50,7 @@ void OverviewPlot::setScatterSeries(QScatterSeries *series) {
 
         // Remove existing axes if they exist
         QList<QAbstractAxis *> existingAxes = chart()->axes();
-        for (QAbstractAxis *axis : existingAxes) {
+        for (QAbstractAxis *axis : std::as_const(existingAxes)) {
             if (axis) {
                 chart()->removeAxis(axis);
                 delete axis;
@@ -81,7 +81,6 @@ void OverviewPlot::updateZoomRectangle(qreal minX, qreal maxX, qreal minY, qreal
         zoomRectItem->setPen(pen);
         chart()->scene()->addItem(zoomRectItem);
     }
-
     // Convert data coordinates to scene coordinates
     QPointF topLeft = chart()->mapToPosition(QPointF(minX, maxY));
     QPointF bottomRight = chart()->mapToPosition(QPointF(maxX, minY));

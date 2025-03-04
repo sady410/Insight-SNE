@@ -5,6 +5,7 @@
 
 #include <QWidget>
 #include <QScatterSeries>
+#include <QVBoxLayout>
 
 namespace Ui {
 class TsneForm;
@@ -20,8 +21,12 @@ public:
 
     TsnePlot *tsnePlot; // TODO MAYBE CREATE GETTER AND PUT MEMBER PRIVATE
 
+private slots:
+    void handleSelection(const QList<int>& selectedIndices, const QColor& color);
+
 private:
     Ui::TsneForm *ui;
+    QList<QColor> colorList;
 };
 
 #endif // TSNEFORM_H
