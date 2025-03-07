@@ -275,7 +275,7 @@ void TsnePlot::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void TsnePlot::selectPointsInsideLasso() {
-    qDebug() << "Checking points inside lasso...";
+    // qDebug() << "Checking points inside lasso...";
 
     selectedIndices.clear();  // Clear previous selections
     selectedPoints->clear();  // Clear previous selected points

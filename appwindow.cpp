@@ -1,10 +1,10 @@
 #include "appwindow.h"
-#include "qjsonobject.h"
 #include "ui_appwindow.h"
+#include "jsonparser.h"
 
-#include <QJsonArray>
 #include <QScatterSeries>
 #include <QHorizontalBarSeries>
+#include <QBarSeries>
 #include <QBarSet>
 #include <QValueAxis>
 
@@ -15,6 +15,16 @@ AppWindow::AppWindow(QJsonObject json, QWidget *parent)
 {
     ui->setupUi(this);
     qDebug() << "AppWindow initialized with JSON data.";
+
+    // Add feature names to plots that requires them
+    QJsonArray featureNames = json.value("featureNames").toArray();
+    QStringList featureNamesList;
+    std::transform(featureNames.begin(), featureNames.end(), std::back_inserter(featureNamesList),
+                   [](const QJsonValue &value) { return value.toString(); });
+    ui->explanationForm->magnitudesPlot->setLabels(featureNamesList);
+    ui->explanationForm->gradientsPlotTop->setLabels(featureNamesList);
+    ui->explanationForm->gradientsPlotBottom->setLabels(featureNamesList);
+    ui->featuresForm->featuresPlot->setLabels(featureNamesList);
 
     // Tsne Plot
     QJsonArray labels = json.value("labels").toArray();
@@ -47,19 +57,25 @@ AppWindow::AppWindow(QJsonObject json, QWidget *parent)
 
     ui->overviewForm->overviewPlot->setScatterSeries(overviewSeries);
 
-    // Explanation Plots
-    QJsonArray featureNames = json.value("featureNames").toArray();
-    QStringList featureNamesList;
-    std::transform(featureNames.begin(), featureNames.end(), std::back_inserter(featureNamesList),
-                   [](const QJsonValue &value) { return value.toString(); });
-    ui->explanationForm->magnitudesPlot->setFeatureNames(featureNamesList);
-    ui->explanationForm->gradientsPlotTop->setFeatureNames(featureNamesList);
-    ui->explanationForm->gradientsPlotBottom->setFeatureNames(featureNamesList);
+    // Features Plot
+    QJsonArray data = json.value("data").toArray();
+    QList<QList<qreal>> dataList = JsonParser::jsonArrayToQList2D(data);
+    ui->featuresForm->featuresPlot->setValues(dataList);
 
+    QList<qreal> meanDataList = computeMeanData(dataList);
+    QBarSeries *meanDataSeries = new QBarSeries();
+    QBarSet *meanDataSet = new QBarSet("Mean features value");
+    for (auto& value : meanDataList) {
+        *meanDataSet << value;
+    }
+    meanDataSeries->append(meanDataSet);
+    ui->featuresForm->featuresPlot->initPlot(meanDataSeries, BarPlot::Vertical);
+
+    // Explanation Plots
     QJsonArray meanGradients = json.value("mean_gradients").toArray();
-    QList<QList<qreal>> meanGradientsList = jsonArrayToQList2D(meanGradients);
-    ui->explanationForm->gradientsPlotTop->setMeanGradients(meanGradientsList);
-    ui->explanationForm->gradientsPlotBottom->setMeanGradients(meanGradientsList);
+    QList<QList<qreal>> meanGradientsList = JsonParser::jsonArrayToQList2D(meanGradients);
+    ui->explanationForm->gradientsPlotTop->setMeanValues(meanGradientsList);
+    ui->explanationForm->gradientsPlotBottom->setMeanValues(meanGradientsList);
 
     QHorizontalBarSeries *meanGradientsXSeries = new QHorizontalBarSeries();
     QBarSet *meanGradientsXSet = new QBarSet("Mean Gradients X");
@@ -67,7 +83,7 @@ AppWindow::AppWindow(QJsonObject json, QWidget *parent)
         *meanGradientsXSet << value;
     }
     meanGradientsXSeries->append(meanGradientsXSet);
-    ui->explanationForm->gradientsPlotTop->initPlot(meanGradientsXSeries);
+    ui->explanationForm->gradientsPlotTop->initPlot(meanGradientsXSeries, BarPlot::Horizontal);
 
     QHorizontalBarSeries *meanGradientsYSeries = new QHorizontalBarSeries();
     QBarSet *meanGradientsYSet = new QBarSet("Mean Gradients Y");
@@ -75,34 +91,72 @@ AppWindow::AppWindow(QJsonObject json, QWidget *parent)
         *meanGradientsYSet << value;
     }
     meanGradientsYSeries->append(meanGradientsYSet);
-    ui->explanationForm->gradientsPlotBottom->initPlot(meanGradientsYSeries);
+    ui->explanationForm->gradientsPlotBottom->initPlot(meanGradientsYSeries, BarPlot::Horizontal);
 
     QJsonArray gradients = json.value("gradients").toArray();
-    QList<QList<QList<qreal>>> gradientsList = jsonArrayToQList3D(gradients);
-    ui->explanationForm->gradientsPlotTop->setGradients(getAxisGradient(gradientsList, 0));
-    ui->explanationForm->gradientsPlotBottom->setGradients(getAxisGradient(gradientsList, 1));
+    QList<QList<QList<qreal>>> gradientsList = JsonParser::jsonArrayToQList3D(gradients);
+    ui->explanationForm->gradientsPlotTop->setValues(getAxisGradient(gradientsList, 0));
+    ui->explanationForm->gradientsPlotBottom->setValues(getAxisGradient(gradientsList, 1));
 
     QJsonArray meanMagnitudes = json.value("mean_magnitudes").toArray();
-    QList<qreal> meanMagnitudesList = jsonArrayToQList(meanMagnitudes);
-    QHorizontalBarSeries *series = new QHorizontalBarSeries();
-    QBarSet *set = new QBarSet("Mean Magnitudes");
+    QList<qreal> meanMagnitudesList = JsonParser::jsonArrayToQList(meanMagnitudes);
+    QHorizontalBarSeries *meanMagnitudesSeries = new QHorizontalBarSeries();
+    QBarSet *meanMagnitudesSet = new QBarSet("Mean Magnitudes");
     for (auto& value : meanMagnitudesList) {
-        *set << value;
+        *meanMagnitudesSet << value;
     }
-    series->append(set);
-    ui->explanationForm->magnitudesPlot->initPlot(series);
+    meanMagnitudesSeries->append(meanMagnitudesSet);
+    ui->explanationForm->magnitudesPlot->initPlot(meanMagnitudesSeries, BarPlot::Horizontal);
 
     QJsonArray magnitudes = json.value("magnitudes").toArray();
-    QList<QList<qreal>> magnitudesList = jsonArrayToQList2D(magnitudes);
-    ui->explanationForm->magnitudesPlot->setMagnitudes(magnitudesList);
+    QList<QList<qreal>> magnitudesList = JsonParser::jsonArrayToQList2D(magnitudes);
+    ui->explanationForm->magnitudesPlot->setValues(magnitudesList);
 
-    connect(ui->tsneForm->tsnePlot, &TsnePlot::pointsSelected, ui->explanationForm->magnitudesPlot, &MagnitudesPlot::updateSelectedPoints);
-    connect(ui->tsneForm->tsnePlot, &TsnePlot::pointsSelected, ui->explanationForm->gradientsPlotTop, &GradientsPlot::updateSelectedPoints);
-    connect(ui->tsneForm->tsnePlot, &TsnePlot::pointsSelected, ui->explanationForm->gradientsPlotBottom, &GradientsPlot::updateSelectedPoints);
+    // Connect signals and slots
+    connect(ui->tsneForm->tsnePlot, &TsnePlot::pointsSelected, ui->explanationForm->magnitudesPlot, &BarPlot::addValue);
+    connect(ui->tsneForm->tsnePlot, &TsnePlot::pointsSelected, ui->explanationForm->gradientsPlotTop, &BarPlot::addValue);
+    connect(ui->tsneForm->tsnePlot, &TsnePlot::pointsSelected, ui->explanationForm->gradientsPlotBottom, &BarPlot::addValue);
+    connect(ui->tsneForm->tsnePlot, &TsnePlot::pointsSelected, ui->featuresForm->featuresPlot, &BarPlot::addValue);
+
     connect(ui->tsneForm->tsnePlot, &TsnePlot::zoomChanged, ui->overviewForm->overviewPlot, &OverviewPlot::updateZoomRectangle);
 
-    isInitialized = true;
+    isInitialized = true; // Avoid resize event issue
     show();
+}
+
+QList<qreal> AppWindow::computeMeanData(const QList<QList<qreal>> &dataList) {
+    QList<qreal> meanDataList;
+
+    if (dataList.isEmpty()) {
+        return meanDataList; // Return empty list if input is empty
+    }
+
+    // Determine the number of columns (assuming all rows have the same number of columns)
+    int numColumns = dataList[0].size();
+
+    // Initialize the meanDataList with zeros
+    meanDataList.resize(numColumns);
+    std::fill(meanDataList.begin(), meanDataList.end(), 0.0);
+
+    // Iterate through each row and accumulate column values
+    for (const QList<qreal> &row : dataList) {
+        if (row.size() != numColumns) {
+            qWarning() << "Row size mismatch! Skipping row.";
+            continue;
+        }
+
+        for (int col = 0; col < numColumns; ++col) {
+            meanDataList[col] += row[col];
+        }
+    }
+
+    // Divide by the number of rows to compute the mean for each column
+    int numRows = dataList.size();
+    for (int col = 0; col < numColumns; ++col) {
+        meanDataList[col] /= numRows;
+    }
+
+    return meanDataList;
 }
 
 QList<QList<qreal>> AppWindow::getAxisGradient(const QList<QList<QList<qreal>>> &gradientsList, int axis) {
@@ -133,67 +187,6 @@ void AppWindow::resizeEvent(QResizeEvent *event) {
     if (axisX && axisY) {
         emit ui->tsneForm->tsnePlot->zoomChanged(axisX->min(), axisX->max(), axisY->min(), axisY->max());
     }
-}
-
-QList<qreal> AppWindow::jsonArrayToQList(const QJsonArray &jsonArray) {
-    QList<qreal> list;
-    for (const auto &value : jsonArray) {
-        if (value.isDouble()) {
-            list.append(value.toDouble());
-        }
-    }
-    return list;
-}
-
-QList<QList<qreal>> AppWindow::jsonArrayToQList2D(const QJsonArray &jsonArray) {
-    QList<QList<qreal>> listOfLists2D;
-
-    for (const QJsonValue &outerValue : jsonArray) {
-        if (outerValue.isArray()) {
-            QJsonArray outerArray = outerValue.toArray();
-            QList<qreal> innerList;
-
-            for (const QJsonValue &value : std::as_const(outerArray)) {
-                if (value.isDouble()) {
-                    innerList.append(value.toDouble());
-                }
-            }
-
-            listOfLists2D.append(innerList);
-        }
-    }
-
-    return listOfLists2D;
-}
-
-QList<QList<QList<qreal>>> AppWindow::jsonArrayToQList3D(const QJsonArray &jsonArray) {
-    QList<QList<QList<qreal>>> listOfLists3D;
-
-    for (const QJsonValue &outerValue : jsonArray) {
-        if (outerValue.isArray()) {
-            QJsonArray outerArray = outerValue.toArray();
-            QList<QList<qreal>> listOfLists2D;
-
-            for (const QJsonValue &innerValue : std::as_const(outerArray)) {
-                if (innerValue.isArray()) {
-                    QJsonArray innerArray = innerValue.toArray();
-                    QList<qreal> innerList;
-
-                    for (const QJsonValue &value : std::as_const(innerArray)) {
-                        if (value.isDouble()) {
-                            innerList.append(value.toDouble());
-                        }
-                    }
-
-                    listOfLists2D.append(innerList);
-                }
-            }
-
-            listOfLists3D.append(listOfLists2D);
-        }
-    }
-
-    return listOfLists3D;
 }
 
 AppWindow::~AppWindow()

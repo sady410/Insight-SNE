@@ -1,0 +1,77 @@
+/* Global Styles */
+QMainWindow {
+    background-color: #f0f0f0; /* Light gray background */
+}
+
+/* Button Styles */
+QPushButton {
+    background-color: #4CAF50; /* Green background */
+    color: white;              /* White text */
+    border-radius: 5px;        /* Rounded corners */
+    padding: 10px;             /* Padding */
+    font-size: 14px;           /* Font size */
+    border: none;              /* Remove default border */
+}
+
+QPushButton:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
+QPushButton:disabled {
+    background-color: #cccccc; /* Gray when disabled */
+    color: #666666;            /* Dark gray text */
+}
+
+/* Upload CSV Button */
+#uploadCsvButton {
+    background-color: #2196F3; /* Blue background */
+}
+
+#uploadCsvButton:hover {
+    background-color: #1e88e5; /* Darker blue on hover */
+}
+
+/* Run App Button */
+#runAppButton {
+    background-color: #FF5722; /* Orange background */
+}
+
+#runAppButton:hover {
+    background-color: #E64A19; /* Darker orange on hover */
+}
+
+/* Label Styles */
+QLabel {
+    font-size: 16px;           /* Larger font for labels */
+    color: #333333;            /* Dark gray text */
+}
+
+/* Slider Styles */
+QSlider::groove:horizontal {
+    background-color: #e0e0e0; /* Light gray groove */
+    height: 8px;               /* Height of the groove */
+    border-radius: 4px;        /* Rounded corners */
+}
+
+QSlider::handle:horizontal {
+    background-color: #4CAF50; /* Green handle */
+    width: 20px;               /* Width of the handle */
+    height: 20px;              /* Height of the handle */
+    margin: -6px 0;            /* Handle position */
+    border-radius: 10px;       /* Circular handle */
+}
+
+QSlider::handle:horizontal:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
+/* File Label */
+#fileLabel {
+    font-weight: bold;         /* Bold text for file label */
+    color: #555555;            /* Darker gray text */
+}
+
+/* Perplexity and Iterations Labels */
+#perplexityLabel, #iterationsLabel {
+    font-style: italic;        /* Italic text for these labels */
+}

@@ -10,10 +10,12 @@ CONFIG += c++17
 
 SOURCES += \
     appwindow.cpp \
+    barplot.cpp \
     explanationform.cpp \
-    gradientsplot.cpp \
-    magnitudesplot.cpp \
+    featuresform.cpp \
+    jsonparser.cpp \
     main.cpp \
+    menuform.cpp \
     menuwindow.cpp \
     overviewform.cpp \
     overviewplot.cpp \
@@ -23,9 +25,11 @@ SOURCES += \
 
 HEADERS += \
     appwindow.h \
+    barplot.h \
     explanationform.h \
-    gradientsplot.h \
-    magnitudesplot.h \
+    featuresform.h \
+    jsonparser.h \
+    menuform.h \
     menuwindow.h \
     overviewform.h \
     overviewplot.h \
@@ -36,6 +40,8 @@ HEADERS += \
 FORMS += \
     appwindow.ui \
     explanationform.ui \
+    featuresform.ui \
+    menuform.ui \
     menuwindow.ui \
     overviewform.ui \
     tsneform.ui
@@ -49,3 +55,6 @@ DISTFILES += \
     gradients.py \
     main.py \
     tsne.py
+
+RESOURCES += \
+    resources.qrc

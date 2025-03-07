@@ -7,6 +7,7 @@ import numpy as np
 from tsne import compute_tsne
 from gradients import compute_all_gradients, compute_mean_magnitudes, compute_magnitudes, compute_mean_gradients
 
+
 if __name__ == "__main__":
 
     input_data, perplexity, iterations = sys.argv[1], float(sys.argv[2]), int(sys.argv[3])

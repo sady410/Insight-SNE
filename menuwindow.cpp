@@ -14,6 +14,15 @@ MenuWindow::MenuWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    QFile styleFile(":/styles/styles.qss");
+    if (styleFile.open(QFile::ReadOnly)) {
+        QString styleSheet = QLatin1String(styleFile.readAll());
+        qApp->setStyleSheet(styleSheet);
+        styleFile.close();
+    } else {
+        qDebug() << "Failed to load stylesheet.";
+    }
+
     connect(ui->uploadCsvButton, &QPushButton::clicked, this, &MenuWindow::selectCsvFile);
 
     ui->perplexityLabel->setText("Perplexity: " + QString::number(15));
@@ -103,8 +112,25 @@ void MenuWindow::onOutputReceived(const QString &output)
             }
             jsonObject["labels"] = labelsArray;
 
-            //AppWindow *appWindow = new AppWindow(jsonObject);
-            //appWindow->show();
+            // Add data to JSON
+            QJsonArray dataArray;
+            for (const QList<QString> &row : std::as_const(data)) {
+                QJsonArray rowArray;
+                for (const QString &value : row) {
+                    // Convert QString to qreal (double)
+                    bool conversionOk;
+                    qreal numericValue = value.toDouble(&conversionOk);
+                    if (conversionOk) {
+                        rowArray.append(numericValue);
+                    } else {
+                        // Handle conversion error, perhaps by appending a default value or skipping
+                        rowArray.append(0.0); // or handle differently
+                    }
+                }
+                dataArray.append(rowArray);
+            }
+            jsonObject["data"] = dataArray;
+
             new AppWindow(jsonObject);
             this->close();
 

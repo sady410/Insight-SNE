@@ -27,10 +27,8 @@ private:
     bool isInitialized;
 
     // Utility functions for handling JSON conversion
+    QList<qreal> computeMeanData(const QList<QList<qreal>> &dataList);
     QList<QList<qreal>> getAxisGradient(const QList<QList<QList<qreal>>> &gradientsList, int axis);
-    QList<qreal> jsonArrayToQList(const QJsonArray &jsonArray);
-    QList<QList<qreal>> jsonArrayToQList2D(const QJsonArray &jsonArray);
-    QList<QList<QList<qreal>>> jsonArrayToQList3D(const QJsonArray &jsonArray);
 };
 
 #endif // APPWINDOW_H

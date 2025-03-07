@@ -18,17 +18,17 @@ ExplanationForm::ExplanationForm(QWidget *parent)
 
     QChart *magnitudesChart = new QChart();
 
-    magnitudesPlot = new MagnitudesPlot(magnitudesChart, nullptr);
+    magnitudesPlot = new BarPlot(magnitudesChart, nullptr);
     magnitudesChart->setTitle("Magnitudes Plot");
 
     QChart *gradientsChartTop = new QChart();
 
-    gradientsPlotTop = new GradientsPlot(gradientsChartTop, nullptr);
+    gradientsPlotTop = new BarPlot(gradientsChartTop, nullptr);
     gradientsChartTop->setTitle("Gradients Plot X");
 
     QChart *gradientsChartBottom = new QChart();
 
-    gradientsPlotBottom = new GradientsPlot(gradientsChartBottom, nullptr);
+    gradientsPlotBottom = new BarPlot(gradientsChartBottom, nullptr);
     gradientsChartBottom->setTitle("Gradients Plot Y");
 
     gradientsPlotTop->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
