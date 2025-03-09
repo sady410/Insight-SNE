@@ -1,5 +1,6 @@
 #include "menuwindow.h"
 #include "appwindow.h"
+#include "appwindowbuilder.h"
 #include "qjsonarray.h"
 #include "ui_menuwindow.h"
 
@@ -131,9 +132,14 @@ void MenuWindow::onOutputReceived(const QString &output)
             }
             jsonObject["data"] = dataArray;
 
-            new AppWindow(jsonObject);
-            this->close();
+            AppWindowBuilder builder(jsonObject);
+            builder.initializeTsnePlot()
+                .initializeOverviewPlot()
+                .initializeFeaturesPlot()
+                .initializeExplanationPlots()
+                .build();
 
+            this->close();
             partialOutput.clear();
         }
     } else {

@@ -10,6 +10,7 @@ CONFIG += c++17
 
 SOURCES += \
     appwindow.cpp \
+    appwindowbuilder.cpp \
     barplot.cpp \
     explanationform.cpp \
     featuresform.cpp \
@@ -25,6 +26,7 @@ SOURCES += \
 
 HEADERS += \
     appwindow.h \
+    appwindowbuilder.h \
     barplot.h \
     explanationform.h \
     featuresform.h \

@@ -3,32 +3,40 @@
 
 #include <QMainWindow>
 #include <QJsonObject>
-#include <QJsonArray>
-#include <QList>
+#include <QResizeEvent>
 
 namespace Ui {
 class AppWindow;
 }
 
-class AppWindow : public QMainWindow
-{
+class AppWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit AppWindow(QJsonObject json, QWidget *parent = nullptr);
+    explicit AppWindow(QWidget *parent = nullptr);
     ~AppWindow();
 
+    // Helper methods (used by the builder or other classes)
+    QList<qreal> computeMeanData(const QList<QList<qreal>> &dataList);
+    QList<QList<qreal>> getAxisGradient(const QList<QList<QList<qreal>>> &gradientsList, int axis);
+
+    // Public getters for UI components
+    class TsneForm* getTsneForm() const;
+    class OverviewForm* getOverviewForm() const;
+    class FeaturesForm* getFeaturesForm() const;
+    class ExplanationForm* getExplanationForm() const;
+
+    void connectSignalsAndSlots();
+
+    void setInitialized(bool initialized) { isInitialized = initialized; }
+
 protected:
+    // Override the resizeEvent method
     void resizeEvent(QResizeEvent *event) override;
 
 private:
-    Ui::AppWindow *ui;
-    QJsonObject jsonData; // Deep copy of JSON object
-    bool isInitialized;
-
-    // Utility functions for handling JSON conversion
-    QList<qreal> computeMeanData(const QList<QList<qreal>> &dataList);
-    QList<QList<qreal>> getAxisGradient(const QList<QList<QList<qreal>>> &gradientsList, int axis);
+    Ui::AppWindow *ui; // UI components
+    bool isInitialized = false; // Flag to track initialization
 };
 
 #endif // APPWINDOW_H
