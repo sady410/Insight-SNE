@@ -25,16 +25,16 @@ public:
 
 public slots:
     void addValue(int id, const QColor &color, const QList<int> &indices);
-    void removeValueByLabel(const QString &label); // TODO not used and maybe only need removeValue
+    void removeValue(int index);
+    // void removeValueByLabel(const QString &label);
 
 private:
     Orientation currentOrientation;
     QAbstractBarSeries *barSeries;
+    QMap<int, QBarSet*> idToBarSetMap;
     QStringList labels; // TODO pointer ?
     QList<QList<qreal>> values;
     QList<QList<qreal>> meanValues;
-
-    void removeValue(int index);
 };
 
 #endif // BARPLOT_H

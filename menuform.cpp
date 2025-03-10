@@ -78,6 +78,7 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color) {
     verticalLayout->addWidget(selectionWidget);
 
     // Connect the delete button to a future slot for deletion
-    // (Implementation of deletion logic is not part of this task)
-    // connect(deleteButton, &QPushButton::clicked, this, [this, selectionWidget]() { ... });
+    connect(deleteButton, &QPushButton::clicked, this, [this, id]() {
+        emit requestRemoveSelection(id);
+    });
 }

@@ -19,6 +19,9 @@ public:
     explicit MenuForm(QWidget *parent = nullptr); // Constructor
     ~MenuForm(); // Destructor
 
+signals:
+    void requestRemoveSelection(int id);
+
 public slots:
     // Slot to add a new selection to the menu
     void addSelectionToMenu(int id, const QColor &color);

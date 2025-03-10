@@ -143,6 +143,8 @@ void BarPlot::addValue(int id, const QColor &color, const QList<int> &indices) {
     // Apply the color to the new bar set
     newSet->setColor(color);
 
+    idToBarSetMap[id] = newSet;
+
     // Append new data to the existing series
     if (barSeries) {
         barSeries->append(newSet);
@@ -214,25 +216,31 @@ void BarPlot::setOrientation(Orientation orientation) {
     }
 }
 
-void BarPlot::removeValue(int index) {
-    if (!barSeries || index < 0 || index >= barSeries->barSets().size()) {
-        qDebug() << "Invalid index or series is empty.";
+void BarPlot::removeValue(int id) {
+    if (!barSeries || !idToBarSetMap.contains(id)) {
+        qDebug() << "Invalid ID or series is empty.";
         return;
     }
 
-    // Get the bar set at the specified index
-    QBarSet *barSet = barSeries->barSets().at(index);
+    // Get the QBarSet corresponding to the ID
+    QBarSet *barSet = idToBarSetMap.value(id);
+    if (!barSet) {
+        qDebug() << "Bar set not found for ID:" << id;
+        return;
+    }
 
     // Remove the bar set from the series
     barSeries->remove(barSet);
 
+    // Remove the mapping
+    idToBarSetMap.remove(id);
+
     // Delete the bar set to free memory
     delete barSet;
 
-    // Recalculate the X-axis range after removal
+    // Recalculate the axis range (existing code)
     qreal minX = std::numeric_limits<qreal>::max();
     qreal maxX = std::numeric_limits<qreal>::lowest();
-
     const auto &barSets = barSeries->barSets();
     for (int j = 0; j < barSets.size(); ++j) {
         const auto *set = barSets.at(j);
@@ -243,13 +251,12 @@ void BarPlot::removeValue(int index) {
         }
     }
 
-    // Add padding to the X-axis range
     qreal padding = (maxX - minX) * 0.1; // 10% padding
     if (padding == 0) padding = 0.1; // Ensure some padding
     minX -= padding;
     maxX += padding;
 
-    // Update the X-axis range
+    // Update the axis range (existing code)
     QValueAxis *axisX = qobject_cast<QValueAxis *>(chart()->axes(Qt::Horizontal).first());
     if (axisX) {
         axisX->setRange(minX, maxX);
@@ -259,21 +266,21 @@ void BarPlot::removeValue(int index) {
     chart()->update();
 }
 
-void BarPlot::removeValueByLabel(const QString &label) {
-    if (!barSeries) {
-        qDebug() << "Series is empty.";
-        return;
-    }
+// void BarPlot::removeValueByLabel(const QString &label) {
+//     if (!barSeries) {
+//         qDebug() << "Series is empty.";
+//         return;
+//     }
 
-    // Find the bar set with the specified label
-    const auto &barSets = barSeries->barSets();
-    for (int i = 0; i < barSets.size(); ++i) {
-        if (barSets.at(i)->label() == label) {
-            // Remove the bar set
-            removeValue(i);
-            return;
-        }
-    }
+//     // Find the bar set with the specified label
+//     const auto &barSets = barSeries->barSets();
+//     for (int i = 0; i < barSets.size(); ++i) {
+//         if (barSets.at(i)->label() == label) {
+//             // Remove the bar set
+//             removeValue(i);
+//             return;
+//         }
+//     }
 
-    qDebug() << "Bar set with label" << label << "not found.";
-}
+//     qDebug() << "Bar set with label" << label << "not found.";
+// }

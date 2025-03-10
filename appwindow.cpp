@@ -34,11 +34,20 @@ class MenuForm* AppWindow::getMenuForm() const {
 
 void AppWindow::connectSignalsAndSlots() {
     connect(getTsneForm()->tsnePlot, &TsnePlot::pointsSelected, selectionManager, &SelectionManager::createSelection);
+
+    connect(getMenuForm(), &MenuForm::requestRemoveSelection, selectionManager, &SelectionManager::removeSelection);
+
     connect(selectionManager, &SelectionManager::selectionCreated, getMenuForm(), &MenuForm::addSelectionToMenu);
     connect(selectionManager, &SelectionManager::selectionCreated, ui->explanationForm->magnitudesPlot, &BarPlot::addValue);
     connect(selectionManager, &SelectionManager::selectionCreated, ui->explanationForm->gradientsPlotTop, &BarPlot::addValue);
     connect(selectionManager, &SelectionManager::selectionCreated, ui->explanationForm->gradientsPlotBottom, &BarPlot::addValue);
     connect(selectionManager, &SelectionManager::selectionCreated, ui->featuresForm->featuresPlot, &BarPlot::addValue);
+
+    connect(selectionManager, &SelectionManager::selectionRemoved, ui->featuresForm->featuresPlot, &BarPlot::removeValue);
+    connect(selectionManager, &SelectionManager::selectionRemoved, ui->explanationForm->magnitudesPlot, &BarPlot::removeValue);
+    connect(selectionManager, &SelectionManager::selectionRemoved, ui->explanationForm->gradientsPlotTop, &BarPlot::removeValue);
+    connect(selectionManager, &SelectionManager::selectionRemoved, ui->explanationForm->gradientsPlotBottom, &BarPlot::removeValue);
+
     connect(ui->tsneForm->tsnePlot, &TsnePlot::zoomChanged, ui->overviewForm->overviewPlot, &OverviewPlot::updateZoomRectangle);
 }
 
