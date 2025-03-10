@@ -261,7 +261,7 @@ void TsnePlot::mouseReleaseEvent(QMouseEvent *event) {
             selectionCount++;  // Increment the selection count
 
             // Emit the signal with the selected indices and color
-            emit pointsSelected(selectedIndices, color);
+            emit pointsSelected(color, selectedIndices);
         }
 
         // // Clear the lasso path and item
@@ -300,7 +300,4 @@ void TsnePlot::selectPointsInsideLasso() {
 
     // qDebug() << "Total points selected: " << selectedPoints->size();
     // qDebug() << "Selected Indices: " << selectedIndices;
-
-    // Emit signal with the selected indices and color (color is assigned in mouseReleaseEvent)
-    // Note: The signal is emitted in mouseReleaseEvent, not here.
 }

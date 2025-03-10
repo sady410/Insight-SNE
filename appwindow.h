@@ -1,6 +1,8 @@
 #ifndef APPWINDOW_H
 #define APPWINDOW_H
 
+#include "selectionmanager.h"
+
 #include <QMainWindow>
 #include <QJsonObject>
 #include <QResizeEvent>
@@ -22,6 +24,7 @@ public:
 
     // Public getters for UI components
     class TsneForm* getTsneForm() const;
+    class MenuForm* getMenuForm() const;
     class OverviewForm* getOverviewForm() const;
     class FeaturesForm* getFeaturesForm() const;
     class ExplanationForm* getExplanationForm() const;
@@ -36,6 +39,7 @@ protected:
 
 private:
     Ui::AppWindow *ui; // UI components
+    SelectionManager *selectionManager;
     bool isInitialized = false; // Flag to track initialization
 };
 

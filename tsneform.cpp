@@ -47,7 +47,7 @@ TsneForm::~TsneForm()
 }
 
 
-void TsneForm::handleSelection(const QList<int>& selectedIndices, const QColor& color)
+void TsneForm::handleSelection(const QColor& color, const QList<int>& selectedIndices)
 {
     // Create a small button (like an icon) for the selection
     QPushButton *selectionButton = new QPushButton();

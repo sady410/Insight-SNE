@@ -22,7 +22,7 @@ public:
     TsnePlot *tsnePlot; // TODO MAYBE CREATE GETTER AND PUT MEMBER PRIVATE
 
 private slots:
-    void handleSelection(const QList<int>& selectedIndices, const QColor& color);
+    void handleSelection(const QColor& color, const QList<int>& selectedIndices);
 
 private:
     Ui::TsneForm *ui;

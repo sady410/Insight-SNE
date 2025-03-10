@@ -24,7 +24,7 @@ public:
     void setMeanValues(const QList<QList<qreal>> meanGradients);
 
 public slots:
-    void addValue(const QList<int> &indices, const QColor &color);
+    void addValue(int id, const QColor &color, const QList<int> &indices);
     void removeValueByLabel(const QString &label); // TODO not used and maybe only need removeValue
 
 private:

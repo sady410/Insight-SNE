@@ -19,7 +19,7 @@ public:
 
 signals:
     void zoomChanged(qreal minX, qreal maxX, qreal minY, qreal maxY);
-    void pointsSelected(const QList<int> &indices, const QColor& color);
+    void pointsSelected(const QColor& color, const QList<int> &indices);
 
 public slots:
     void resetZoom();

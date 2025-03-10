@@ -6,6 +6,7 @@
 AppWindow::AppWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::AppWindow)
+    , selectionManager(new SelectionManager(this))
 {
     ui->setupUi(this);
     qDebug() << "AppWindow UI initialized.";
@@ -27,11 +28,17 @@ class ExplanationForm* AppWindow::getExplanationForm() const {
     return ui->explanationForm;
 }
 
+class MenuForm* AppWindow::getMenuForm() const {
+    return ui->menuForm;
+}
+
 void AppWindow::connectSignalsAndSlots() {
-    connect(ui->tsneForm->tsnePlot, &TsnePlot::pointsSelected, ui->explanationForm->magnitudesPlot, &BarPlot::addValue);
-    connect(ui->tsneForm->tsnePlot, &TsnePlot::pointsSelected, ui->explanationForm->gradientsPlotTop, &BarPlot::addValue);
-    connect(ui->tsneForm->tsnePlot, &TsnePlot::pointsSelected, ui->explanationForm->gradientsPlotBottom, &BarPlot::addValue);
-    connect(ui->tsneForm->tsnePlot, &TsnePlot::pointsSelected, ui->featuresForm->featuresPlot, &BarPlot::addValue);
+    connect(getTsneForm()->tsnePlot, &TsnePlot::pointsSelected, selectionManager, &SelectionManager::createSelection);
+    connect(selectionManager, &SelectionManager::selectionCreated, getMenuForm(), &MenuForm::addSelectionToMenu);
+    connect(selectionManager, &SelectionManager::selectionCreated, ui->explanationForm->magnitudesPlot, &BarPlot::addValue);
+    connect(selectionManager, &SelectionManager::selectionCreated, ui->explanationForm->gradientsPlotTop, &BarPlot::addValue);
+    connect(selectionManager, &SelectionManager::selectionCreated, ui->explanationForm->gradientsPlotBottom, &BarPlot::addValue);
+    connect(selectionManager, &SelectionManager::selectionCreated, ui->featuresForm->featuresPlot, &BarPlot::addValue);
     connect(ui->tsneForm->tsnePlot, &TsnePlot::zoomChanged, ui->overviewForm->overviewPlot, &OverviewPlot::updateZoomRectangle);
 }
 

@@ -109,7 +109,7 @@ void BarPlot::setValues(QList<QList<qreal>> values) {
     this->values = values;
 }
 
-void BarPlot::addValue(const QList<int> &indices, const QColor &color) {
+void BarPlot::addValue(int id, const QColor &color, const QList<int> &indices) {
     if (indices.isEmpty()) {
         qDebug() << "No indices provided";
         return;
