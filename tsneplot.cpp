@@ -7,12 +7,13 @@
 #include <QPen>
 #include <QDebug>
 #include <QValueAxis>
+#include <QToolTip>
 
 TsnePlot::TsnePlot(QChart *chart, QWidget *parent)
     : QChartView(chart, parent), isDrawing(false), pathItem(nullptr), selectedPoints(new QList<QPointF>()), selectionCount(0)
 {
     setRenderHint(QPainter::Antialiasing);
-    setMouseTracking(true);
+    setMouseTracking(true);  // Enable mouse tracking
 
     chart->setAnimationOptions(QChart::SeriesAnimations);
     chart->setTheme(QChart::ChartThemeDark);
@@ -186,10 +187,6 @@ void TsnePlot::wheelEvent(QWheelEvent *event) {
     axisX->setRange(newMinX, newMaxX);
     axisY->setRange(newMinY, newMaxY);
 
-    // qDebug() << "Zooming to mouse position: " << mouseChartPos
-    //          << " New X range: [" << newMinX << ", " << newMaxX << "]"
-    //          << " New Y range: [" << newMinY << ", " << newMaxY << "]";
-
     updateOverviewRectangle();
 }
 
@@ -204,9 +201,6 @@ void TsnePlot::resetZoom() {
 
     axisX->setRange(initialMinX, initialMaxX);
     axisY->setRange(initialMinY, initialMaxY);
-
-    // qDebug() << "Reset zoom to initial range: X(" << initialMinX << "," << initialMaxX
-    //          << ") Y(" << initialMinY << "," << initialMaxY << ")";
 
     updateOverviewRectangle();
 }
@@ -232,8 +226,6 @@ void TsnePlot::updateOverviewRectangle() {
     }
 
     emit zoomChanged(axisX->min(), axisX->max(), axisY->min(), axisY->max());
-    // qDebug() << "zoomChanged emitted: X(" << axisX->min() << "," << axisX->max()
-    //          << ") Y(" << axisY->min() << "," << axisY->max() << ")";
 }
 
 void TsnePlot::mouseMoveEvent(QMouseEvent *event) {
@@ -241,6 +233,36 @@ void TsnePlot::mouseMoveEvent(QMouseEvent *event) {
         QPointF scenePos = event->pos();
         path.lineTo(scenePos);
         pathItem->setPath(path);
+    } else {
+        // Check if the mouse is hovering over a point
+        QPointF mousePos = event->pos();
+
+        for (auto it = scatterSeriesMap.begin(); it != scatterSeriesMap.end(); ++it) {
+            QScatterSeries *series = it.value();
+            for (int i = 0; i < series->count(); ++i) {
+                QPointF point = series->at(i);
+                QPointF screenPos = chart()->mapToPosition(point);
+
+                // Check if the mouse is near the point
+                if (QLineF(mousePos, screenPos).length() < 5) {
+                    // Retrieve the label, coordinates, and ID
+                    QString label = series->name();
+                    int id = pointIndexMap[point];
+                    QString tooltipText = QString("Label: %1\nCoordinates: (%2, %3)\nID: %4")
+                                              .arg(label)
+                                              .arg(point.x())
+                                              .arg(point.y())
+                                              .arg(id);
+
+                    // Show the tooltip
+                    QToolTip::showText(event->globalPosition().toPoint(), tooltipText, this);
+                    return;
+                }
+            }
+        }
+
+        // If no point is hovered, hide the tooltip
+        QToolTip::hideText();
     }
 }
 
@@ -260,20 +282,10 @@ void TsnePlot::mouseReleaseEvent(QMouseEvent *event) {
             // Emit the signal with the selected indices and color
             emit pointsSelected(selectedIndices);
         }
-
-        // // Clear the lasso path and item
-        // if (pathItem) {
-        //     chart()->scene()->removeItem(pathItem);
-        //     delete pathItem;
-        //     pathItem = nullptr;
-        // }
-        // path = QPainterPath(); // Clear the path
     }
 }
 
 void TsnePlot::selectPointsInsideLasso() {
-    // qDebug() << "Checking points inside lasso...";
-
     selectedIndices.clear();  // Clear previous selections
     selectedPoints->clear();  // Clear previous selected points
 
@@ -294,7 +306,4 @@ void TsnePlot::selectPointsInsideLasso() {
             }
         }
     }
-
-    // qDebug() << "Total points selected: " << selectedPoints->size();
-    // qDebug() << "Selected Indices: " << selectedIndices;
 }
