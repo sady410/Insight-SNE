@@ -18,11 +18,7 @@ class TsneForm : public QWidget
 public:
     explicit TsneForm(QWidget *parent = nullptr);
     ~TsneForm();
-
-    TsnePlot *tsnePlot; // TODO MAYBE CREATE GETTER AND PUT MEMBER PRIVATE
-
-private slots:
-    void handleSelection(const QColor& color, const QList<int>& selectedIndices);
+    TsnePlot *tsnePlot;
 
 private:
     Ui::TsneForm *ui;

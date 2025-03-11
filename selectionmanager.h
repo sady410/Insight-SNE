@@ -7,6 +7,7 @@
 #include <QPoint>
 #include <QHash>
 #include <QStack>
+#include <QSet>
 
 class SelectionManager : public QObject {
     Q_OBJECT
@@ -24,7 +25,7 @@ public:
     explicit SelectionManager(QObject* parent = nullptr);
 
 public slots:
-    void createSelection(const QColor& color, const QList<int>& indices);
+    void createSelection(const QList<int>& indices);
     void removeSelection(int id);
 
 signals:
@@ -32,11 +33,16 @@ signals:
     void selectionRemoved(int id);
 
 private:
+    QList<QColor> colorList;
+    QSet<QColor> usedColors;
+
     QHash<int, Selection> selections; // Use QHash for efficient lookups by ID
     QStack<int> availableIds; // Stack to store reusable IDs
     int nextId; // Counter for generating new IDs
 
     int generateUniqueId();
+    QColor getAvailableColor();
+    void releaseColor(const QColor& color);
 };
 
 #endif // SELECTIONMANAGER_H

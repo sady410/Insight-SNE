@@ -148,44 +148,46 @@ void BarPlot::addValue(int id, const QColor &color, const QList<int> &indices) {
     // Append new data to the existing series
     if (barSeries) {
         barSeries->append(newSet);
-
-        // Recalculate the X-axis range
-        qreal minX = std::numeric_limits<qreal>::max();
-        qreal maxX = std::numeric_limits<qreal>::lowest();
-
-        const auto &barSets = barSeries->barSets();
-        for (int j = 0; j < barSets.size(); ++j) {
-            const auto *set = barSets.at(j);
-            for (int i = 0; i < set->count(); ++i) {
-                qreal value = set->at(i);
-                minX = qMin(minX, value);
-                maxX = qMax(maxX, value);
-            }
-        }
-
-        // Add padding to the axis range
-        qreal padding = (maxX - minX) * 0.1; // 10% padding
-        if (padding == 0) padding = 0.1; // Ensure some padding
-        minX -= padding;
-        maxX += padding;
-
-        Qt::Orientation orientation;
-        if (currentOrientation == BarPlot::Horizontal) {
-            orientation = Qt::Horizontal;
-        } else {
-            orientation = Qt::Vertical;
-        }
-
-        // Update the axis range
-        QValueAxis *axis = qobject_cast<QValueAxis *>(chart()->axes(orientation).first());
-        if (axis) {
-            axis->setRange(minX, maxX);
-        }
-
-        chart()->update();
+        updateAxisRange(); // Update the axis range
     } else {
         delete newSet;  // Prevent memory leak if horizontalBarSeries is null
     }
+}
+
+void BarPlot::updateAxisRange() {
+    if (!barSeries) return;
+
+    qreal minValue = std::numeric_limits<qreal>::max();
+    qreal maxValue = std::numeric_limits<qreal>::lowest();
+
+    const auto &barSets = barSeries->barSets();
+    for (int j = 0; j < barSets.size(); ++j) {
+        const auto *set = barSets.at(j);
+        for (int i = 0; i < set->count(); ++i) {
+            qreal value = set->at(i);
+            minValue = qMin(minValue, value);
+            maxValue = qMax(maxValue, value);
+        }
+    }
+
+    qreal padding = (maxValue - minValue) * 0.1; // 10% padding
+    if (padding == 0) padding = 0.1; // Ensure some padding
+    minValue -= padding;
+    maxValue += padding;
+
+    // Update the axis range based on the current orientation
+    QValueAxis *axis = nullptr;
+    if (currentOrientation == Horizontal) {
+        axis = qobject_cast<QValueAxis *>(chart()->axes(Qt::Horizontal).first());
+    } else {
+        axis = qobject_cast<QValueAxis *>(chart()->axes(Qt::Vertical).first());
+    }
+
+    if (axis) {
+        axis->setRange(minValue, maxValue);
+    }
+
+    chart()->update();
 }
 
 void BarPlot::setOrientation(Orientation orientation) {
@@ -235,35 +237,8 @@ void BarPlot::removeValue(int id) {
     // Remove the mapping
     idToBarSetMap.remove(id);
 
-    // Delete the bar set to free memory
-    delete barSet;
-
-    // Recalculate the axis range (existing code)
-    qreal minX = std::numeric_limits<qreal>::max();
-    qreal maxX = std::numeric_limits<qreal>::lowest();
-    const auto &barSets = barSeries->barSets();
-    for (int j = 0; j < barSets.size(); ++j) {
-        const auto *set = barSets.at(j);
-        for (int i = 0; i < set->count(); ++i) {
-            qreal value = set->at(i);
-            minX = qMin(minX, value);
-            maxX = qMax(maxX, value);
-        }
-    }
-
-    qreal padding = (maxX - minX) * 0.1; // 10% padding
-    if (padding == 0) padding = 0.1; // Ensure some padding
-    minX -= padding;
-    maxX += padding;
-
-    // Update the axis range (existing code)
-    QValueAxis *axisX = qobject_cast<QValueAxis *>(chart()->axes(Qt::Horizontal).first());
-    if (axisX) {
-        axisX->setRange(minX, maxX);
-    }
-
-    // Update the chart
-    chart()->update();
+    // Update the axis range
+    updateAxisRange();
 }
 
 // void BarPlot::removeValueByLabel(const QString &label) {

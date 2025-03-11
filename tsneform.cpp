@@ -20,12 +20,11 @@ TsneForm::TsneForm(QWidget *parent)
     QPushButton *resetZoomButton = new QPushButton("Reset Zoom");
     resetZoomButton->setFixedSize(80, 30); // Fixed size for Reset Zoom button
 
-    // Create a horizontal layout for the top bar (selection buttons + reset zoom)
+    // Create a horizontal layout for the top bar (reset zoom)
     QHBoxLayout *topBarLayout = new QHBoxLayout();
 
     // Add a stretchable spacer to push the Reset Zoom button to the right
     topBarLayout->addStretch();
-
     // Add the Reset Zoom button to the right
     topBarLayout->addWidget(resetZoomButton);
 
@@ -38,29 +37,9 @@ TsneForm::TsneForm(QWidget *parent)
 
     // Connect signals and slots
     connect(resetZoomButton, &QPushButton::clicked, tsnePlot, &TsnePlot::resetZoom);
-    connect(tsnePlot, &TsnePlot::pointsSelected, this, &TsneForm::handleSelection);
 }
 
 TsneForm::~TsneForm()
 {
     delete ui;
-}
-
-
-void TsneForm::handleSelection(const QColor& color, const QList<int>& selectedIndices)
-{
-    // Create a small button (like an icon) for the selection
-    QPushButton *selectionButton = new QPushButton();
-    selectionButton->setFixedSize(30, 30); // Small fixed size (like an icon)
-    selectionButton->setStyleSheet(QString("background-color: %1; border: none;").arg(color.name()));
-    selectionButton->setToolTip(QString("Selection %1").arg(selectedIndices.size()));
-
-    // Store the selected indices in the button's property
-    selectionButton->setProperty("selectedIndices", QVariant::fromValue(selectedIndices));
-
-    // Add the button to the top bar layout (left side)
-    QHBoxLayout *topBarLayout = qobject_cast<QHBoxLayout *>(layout()->itemAt(0)->layout());
-    if (topBarLayout) {
-        topBarLayout->insertWidget(topBarLayout->count() - 1, selectionButton); // Insert before the spacer
-    }
 }

@@ -48,6 +48,10 @@ void AppWindow::connectSignalsAndSlots() {
     connect(selectionManager, &SelectionManager::selectionRemoved, ui->explanationForm->gradientsPlotTop, &BarPlot::removeValue);
     connect(selectionManager, &SelectionManager::selectionRemoved, ui->explanationForm->gradientsPlotBottom, &BarPlot::removeValue);
 
+    connect(selectionManager, &SelectionManager::selectionRemoved, this, [this](int) {
+        ui->tsneForm->tsnePlot->decreaseSelectionCount();
+    });
+
     connect(ui->tsneForm->tsnePlot, &TsnePlot::zoomChanged, ui->overviewForm->overviewPlot, &OverviewPlot::updateZoomRectangle);
 }
 

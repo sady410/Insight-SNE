@@ -35,6 +35,8 @@ private:
     QStringList labels; // TODO pointer ?
     QList<QList<qreal>> values;
     QList<QList<qreal>> meanValues;
+
+    void updateAxisRange();
 };
 
 #endif // BARPLOT_H

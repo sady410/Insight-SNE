@@ -2,22 +2,42 @@
 #include <QDebug>
 #include <QStack>
 
-SelectionManager::SelectionManager(QObject* parent) : QObject(parent), nextId(0) {}
+// Custom hash function for QColor
+inline size_t qHash(const QColor &color, size_t seed = 0)
+{
+    return qHash(color.rgba(), seed); // Use the rgba value for hashing
+}
 
-void SelectionManager::createSelection(const QColor& color, const QList<int>& indices) {
-    int newId = generateUniqueId(); // Generate a unique ID for the new selection
+SelectionManager::SelectionManager(QObject* parent) : QObject(parent), nextId(0) {
+    colorList = {Qt::red, Qt::blue, Qt::green, Qt::yellow};
+}
+
+void SelectionManager::createSelection(const QList<int>& indices) {
+    if (colorList.size() == usedColors.size()) {
+        qWarning() << "No available colors for new selection!";
+        return;
+    }
+
+    int newId = generateUniqueId();
+    QColor color = getAvailableColor();
+
+    // Add the color to usedColors
+    usedColors.insert(color);
+
     Selection newSelection(newId, color, indices);
+    selections.insert(newId, newSelection);
 
-    selections.insert(newId, newSelection); // Add the new selection to the map
-
-    emit selectionCreated(newId, color, indices); // Emit signal with the new selection
+    emit selectionCreated(newId, color, indices);
 }
 
 void SelectionManager::removeSelection(int id) {
     if (selections.contains(id)) {
-        selections.remove(id); // Remove the selection from the map
-        availableIds.push(id); // Add the ID back to the available pool
-        emit selectionRemoved(id); // Emit signal with the ID of the removed selection
+        // Release the color associated with the selection
+        releaseColor(selections.value(id).color);
+
+        selections.remove(id);
+        availableIds.push(id);
+        emit selectionRemoved(id);
     } else {
         qWarning() << "Selection with ID" << id << "not found.";
     }
@@ -28,4 +48,17 @@ int SelectionManager::generateUniqueId() {
         return availableIds.pop(); // Reuse an available ID
     }
     return nextId++; // Otherwise, generate a new ID
+}
+
+QColor SelectionManager::getAvailableColor() {
+    for (const QColor& color : colorList) {
+        if (!usedColors.contains(color)) {
+            return color;
+        }
+    }
+    return Qt::black; // Fallback (should not happen)
+}
+
+void SelectionManager::releaseColor(const QColor& color) {
+    usedColors.remove(color);
 }

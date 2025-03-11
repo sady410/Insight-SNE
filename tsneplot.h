@@ -19,10 +19,11 @@ public:
 
 signals:
     void zoomChanged(qreal minX, qreal maxX, qreal minY, qreal maxY);
-    void pointsSelected(const QColor& color, const QList<int> &indices);
+    void pointsSelected(const QList<int> &indices);
 
 public slots:
     void resetZoom();
+    void decreaseSelectionCount() {selectionCount--;}
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -50,7 +51,6 @@ private:
     QList<QPointF> *selectedPoints;
 
     int selectionCount;
-    QList<QColor> colorList;
 
     static const int MAX_SELECTIONS = 4;
 

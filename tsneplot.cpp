@@ -16,8 +16,6 @@ TsnePlot::TsnePlot(QChart *chart, QWidget *parent)
 
     chart->setAnimationOptions(QChart::SeriesAnimations);
     chart->setTheme(QChart::ChartThemeDark);
-
-    colorList = {Qt::red, Qt::blue, Qt::green, Qt::yellow};
 }
 
 void TsnePlot::initPlot(QScatterSeries *series) {
@@ -257,11 +255,10 @@ void TsnePlot::mouseReleaseEvent(QMouseEvent *event) {
         selectPointsInsideLasso();
 
         if (!selectedIndices.isEmpty()) {
-            QColor color = colorList[selectionCount % colorList.size()];
             selectionCount++;  // Increment the selection count
 
             // Emit the signal with the selected indices and color
-            emit pointsSelected(color, selectedIndices);
+            emit pointsSelected(selectedIndices);
         }
 
         // // Clear the lasso path and item
