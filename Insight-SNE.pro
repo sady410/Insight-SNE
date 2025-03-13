@@ -22,6 +22,7 @@ SOURCES += \
     overviewplot.cpp \
     pythonexecutor.cpp \
     selectionmanager.cpp \
+    selectionwidget.cpp \
     tsneform.cpp \
     tsneplot.cpp
 
@@ -38,6 +39,7 @@ HEADERS += \
     overviewplot.h \
     pythonexecutor.h \
     selectionmanager.h \
+    selectionwidget.h \
     tsneform.h \
     tsneplot.h
 

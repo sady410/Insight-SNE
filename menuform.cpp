@@ -1,5 +1,6 @@
 #include "menuform.h"
 #include "ui_menuform.h"
+#include "selectionwidget.h"  // Include the new header file
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
@@ -48,7 +49,7 @@ MenuForm::~MenuForm() {
 
 void MenuForm::addSelectionToMenu(int id, const QColor &color) {
     // Create a container widget for the selection
-    QWidget *selectionWidget = new QWidget(this);
+    SelectionWidget *selectionWidget = new SelectionWidget(id, this);
 
     // Create a horizontal layout for the selection
     QHBoxLayout *selectionLayout = new QHBoxLayout(selectionWidget);
@@ -89,6 +90,10 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color) {
         emit requestRemoveSelection(id); // Emit signal to remove the selection
         removeSelectionWidget(id);      // Remove the widget from the UI
     });
+
+    // Connect the hover signals from the selectionWidget to the MenuForm signals
+    connect(selectionWidget, &SelectionWidget::hovered, this, &MenuForm::selectionHovered);
+    connect(selectionWidget, &SelectionWidget::left, this, &MenuForm::selectionLeft);
 }
 
 void MenuForm::removeSelectionWidget(int id) {

@@ -16,11 +16,14 @@ class MenuForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit MenuForm(QWidget *parent = nullptr); // Constructor
-    ~MenuForm(); // Destructor
+    explicit MenuForm(QWidget *parent = nullptr);
+    ~MenuForm();
 
 signals:
     void requestRemoveSelection(int id);
+
+    void selectionHovered(int id);
+    void selectionLeft(int id);
 
 public slots:
     // Slot to add a new selection to the menu
@@ -28,8 +31,8 @@ public slots:
     void removeSelectionWidget(int id);
 
 private:
-    Ui::MenuForm *ui; // UI object
-    QVBoxLayout *verticalLayout; // Horizontal layout to hold selections
+    Ui::MenuForm *ui;
+    QVBoxLayout *verticalLayout; // Vertical layout to hold selections
     QMap<int, QWidget*> selectionWidgets;
 };
 

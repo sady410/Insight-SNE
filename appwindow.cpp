@@ -52,6 +52,12 @@ void AppWindow::connectSignalsAndSlots() {
         ui->tsneForm->tsnePlot->decreaseSelectionCount();
     });
 
+    connect(getMenuForm(), &MenuForm::selectionHovered, selectionManager, &SelectionManager::findHoveredSelectionAndEmitSignal);
+    connect(getMenuForm(), &MenuForm::selectionLeft, selectionManager, &SelectionManager::stopHighlightSelection);
+
+    connect(selectionManager, &SelectionManager::startHighlightSelection, getTsneForm()->tsnePlot, &TsnePlot::startHighlightSelection);
+    connect(selectionManager, &SelectionManager::stopHighlightSelection, getTsneForm()->tsnePlot, &TsnePlot::stopHighlightSelection);
+
     connect(ui->tsneForm->tsnePlot, &TsnePlot::zoomChanged, ui->overviewForm->overviewPlot, &OverviewPlot::updateZoomRectangle);
 }
 

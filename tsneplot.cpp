@@ -110,6 +110,14 @@ void TsnePlot::setLabels(const QStringList &labels) {
     this->labels = labels;
 }
 
+void TsnePlot::startHighlightSelection(const QColor &color, const QList<int>& indices) {
+    qDebug() << "start" << color << indices;
+};
+
+void TsnePlot::stopHighlightSelection() {
+    qDebug() << "stop";
+}
+
 void TsnePlot::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton && selectionCount < MAX_SELECTIONS) {
         // Clear the previous lasso if it exists

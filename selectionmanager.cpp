@@ -43,6 +43,15 @@ void SelectionManager::removeSelection(int id) {
     }
 }
 
+void SelectionManager::findHoveredSelectionAndEmitSignal(int id) {
+    if (selections.contains(id)) {
+        Selection selection = selections.value(id);
+        emit startHighlightSelection(selection.color, selection.indices);
+    } else {
+        qWarning() << "Selection with ID" << id << "not found.";
+    }
+}
+
 int SelectionManager::generateUniqueId() {
     if (!availableIds.isEmpty()) {
         return availableIds.pop(); // Reuse an available ID
@@ -51,7 +60,7 @@ int SelectionManager::generateUniqueId() {
 }
 
 QColor SelectionManager::getAvailableColor() {
-    for (const QColor& color : colorList) {
+    for (const QColor& color : std::as_const(colorList)) {
         if (!usedColors.contains(color)) {
             return color;
         }

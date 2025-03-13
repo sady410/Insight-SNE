@@ -25,6 +25,9 @@ public slots:
     void resetZoom();
     void decreaseSelectionCount() {selectionCount--;}
 
+    void startHighlightSelection(const QColor &color, const QList<int>& indices);
+    void stopHighlightSelection();
+
 protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;

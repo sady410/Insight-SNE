@@ -28,9 +28,15 @@ public slots:
     void createSelection(const QList<int>& indices);
     void removeSelection(int id);
 
+    void findHoveredSelectionAndEmitSignal(int id);
+
 signals:
     void selectionCreated(int id, const QColor &color, const QList<int>& indices);
     void selectionRemoved(int id);
+
+    // Signals used when hovering in MenuForm
+    void startHighlightSelection(const QColor &color, const QList<int>& indices);
+    void stopHighlightSelection();
 
 private:
     QList<QColor> colorList;
