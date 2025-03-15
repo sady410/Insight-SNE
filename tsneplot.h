@@ -7,12 +7,18 @@
 #include <QMouseEvent>
 #include <QPainterPath>
 #include <QPen>
+#include <QMap>
+#include <QList>
+#include <QStringList>
+#include <QToolTip>
+#include <QTimer>
 
 class TsnePlot : public QChartView {
     Q_OBJECT
 
 public:
     explicit TsnePlot(QChart *chart, QWidget *parent = nullptr);
+    ~TsnePlot();
 
     void initPlot(QScatterSeries *series);
     void setLabels(const QStringList &labels);
@@ -23,10 +29,13 @@ signals:
 
 public slots:
     void resetZoom();
-    void decreaseSelectionCount() {selectionCount--;}
+    void decreaseSelectionCount() { selectionCount--; }
 
     void startHighlightSelection(const QColor &color, const QList<int>& indices);
     void stopHighlightSelection();
+
+private slots:
+    void fadeLasso();
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -42,25 +51,29 @@ private:
         }
     };
 
+    void setupAxes(qreal minX, qreal maxX, qreal minY, qreal maxY);
+    void updateOverviewRectangle();
+    void selectPointsInsideLasso();
+    void clearLasso();
+
+    QMap<QString, QColor> labelColors;
     QStringList labels;
     QMap<QString, QScatterSeries *> scatterSeriesMap;
     std::map<QPointF, int, QPointFComparator> pointIndexMap;
-    QList<int> selectedIndices;
 
     bool isDrawing;
     QPainterPath path;
     QGraphicsPathItem *pathItem;
     QPointF firstPoint;
     QList<QPointF> *selectedPoints;
+    QList<int> selectedIndices;
+    QTimer *lassoFadeTimer;
+    qreal lassoOpacity;
 
     int selectionCount;
-
     static const int MAX_SELECTIONS = 4;
 
     qreal initialMinX, initialMaxX, initialMinY, initialMaxY;
-
-    void updateOverviewRectangle();
-    void selectPointsInsideLasso();
 };
 
 #endif // TSNEPLOT_H

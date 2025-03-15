@@ -5,6 +5,7 @@
 #include <QAbstractBarSeries>
 #include <QtCharts/QChartView>
 #include <QScatterSeries>
+#include <QMap>
 
 class BarPlot : public QChartView {
     Q_OBJECT
@@ -16,27 +17,31 @@ public:
     };
 
     explicit BarPlot(QChart *chart, QWidget *parent = nullptr);
+    ~BarPlot();
 
     void initPlot(QAbstractBarSeries *series, Orientation orientation);
     void setOrientation(Orientation orientation);
-    void setLabels(const QStringList labels);
-    void setValues(const QList<QList<qreal>> gradients);
-    void setMeanValues(const QList<QList<qreal>> meanGradients);
+    void setLabels(const QStringList &labels);
+    void setValues(const QList<QList<qreal>> &values);
+    void setMeanValues(const QList<QList<qreal>> &meanValues);
 
 public slots:
     void addValue(int id, const QColor &color, const QList<int> &indices);
-    void removeValue(int index);
-    // void removeValueByLabel(const QString &label);
+    void removeValue(int id);
 
 private:
+    void updateAxisRange();
+    void setupAxes(Orientation orientation);
+    void calculateDynamicRange(qreal &minValue, qreal &maxValue) const;
+    void cleanupOldSeries();
+    void cleanupOldAxes();
+
     Orientation currentOrientation;
     QAbstractBarSeries *barSeries;
     QMap<int, QBarSet*> idToBarSetMap;
-    QStringList labels; // TODO pointer ?
+    QStringList labels;
     QList<QList<qreal>> values;
     QList<QList<qreal>> meanValues;
-
-    void updateAxisRange();
 };
 
 #endif // BARPLOT_H

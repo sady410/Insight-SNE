@@ -1,22 +1,26 @@
 #include "tsneplot.h"
-
 #include <QGraphicsScene>
-#include <QGraphicsItem>
-#include <QMouseEvent>
-#include <QPainterPath>
-#include <QPen>
-#include <QDebug>
 #include <QValueAxis>
-#include <QToolTip>
+#include <QDebug>
+#include <QLineF>
 
 TsnePlot::TsnePlot(QChart *chart, QWidget *parent)
-    : QChartView(chart, parent), isDrawing(false), pathItem(nullptr), selectedPoints(new QList<QPointF>()), selectionCount(0)
-{
+    : QChartView(chart, parent), isDrawing(false), pathItem(nullptr), selectedPoints(new QList<QPointF>()), selectionCount(0) {
     setRenderHint(QPainter::Antialiasing);
-    setMouseTracking(true);  // Enable mouse tracking
+    setMouseTracking(true);
 
     chart->setAnimationOptions(QChart::SeriesAnimations);
     chart->setTheme(QChart::ChartThemeDark);
+
+    // Initialize the timer
+    lassoFadeTimer = new QTimer(this);
+    connect(lassoFadeTimer, &QTimer::timeout, this, &TsnePlot::fadeLasso);
+    lassoOpacity = 1.0;
+}
+
+TsnePlot::~TsnePlot() {
+    clearLasso();
+    delete selectedPoints;
 }
 
 void TsnePlot::initPlot(QScatterSeries *series) {
@@ -26,7 +30,8 @@ void TsnePlot::initPlot(QScatterSeries *series) {
     }
 
     // Clear previous scatter series
-    for (QScatterSeries *s : std::as_const(scatterSeriesMap)) {
+    for (auto it = scatterSeriesMap.begin(); it != scatterSeriesMap.end(); ++it) {
+        QScatterSeries *s = it.value();
         if (chart()->series().contains(s)) {
             chart()->removeSeries(s);
             delete s;
@@ -36,7 +41,7 @@ void TsnePlot::initPlot(QScatterSeries *series) {
     pointIndexMap.clear();  // Clear previous mapping
 
     QStringList colorList = {"red", "blue", "green", "purple", "orange", "pink"};
-    QMap<QString, QColor> labelColors;
+    labelColors.clear(); // Clear previous label colors
     int colorIndex = 0;
 
     initialMinX = std::numeric_limits<qreal>::max();
@@ -80,27 +85,7 @@ void TsnePlot::initPlot(QScatterSeries *series) {
     initialMinY -= 1;
     initialMaxY += 1;
 
-    QList<QAbstractAxis *> existingAxes = chart()->axes();
-    for (QAbstractAxis *axis : std::as_const(existingAxes)) {
-        chart()->removeAxis(axis);
-        delete axis;
-    }
-
-    QValueAxis *axisX = new QValueAxis();
-    QValueAxis *axisY = new QValueAxis();
-    axisX->setRange(initialMinX, initialMaxX);
-    axisY->setRange(initialMinY, initialMaxY);
-
-    axisX->setGridLineVisible(false);
-    axisY->setGridLineVisible(false);
-
-    chart()->addAxis(axisX, Qt::AlignBottom);
-    chart()->addAxis(axisY, Qt::AlignLeft);
-
-    for (QScatterSeries *labelSeries : std::as_const(scatterSeriesMap)) {
-        labelSeries->attachAxis(axisX);
-        labelSeries->attachAxis(axisY);
-    }
+    setupAxes(initialMinX, initialMaxX, initialMinY, initialMaxY);
 
     chart()->legend()->setVisible(true);
     chart()->legend()->setAlignment(Qt::AlignRight);
@@ -110,25 +95,33 @@ void TsnePlot::setLabels(const QStringList &labels) {
     this->labels = labels;
 }
 
-void TsnePlot::startHighlightSelection(const QColor &color, const QList<int>& indices) {
-    qDebug() << "start" << color << indices;
-};
+void TsnePlot::setupAxes(qreal minX, qreal maxX, qreal minY, qreal maxY) {
+    QList<QAbstractAxis *> existingAxes = chart()->axes();
+    for (QAbstractAxis *axis : std::as_const(existingAxes)) {
+        chart()->removeAxis(axis);
+        delete axis;
+    }
 
-void TsnePlot::stopHighlightSelection() {
-    qDebug() << "stop";
+    QValueAxis *axisX = new QValueAxis();
+    QValueAxis *axisY = new QValueAxis();
+    axisX->setRange(minX, maxX);
+    axisY->setRange(minY, maxY);
+
+    axisX->setGridLineVisible(false);
+    axisY->setGridLineVisible(false);
+
+    chart()->addAxis(axisX, Qt::AlignBottom);
+    chart()->addAxis(axisY, Qt::AlignLeft);
+
+    for (QScatterSeries *series : std::as_const(scatterSeriesMap)) {
+        series->attachAxis(axisX);
+        series->attachAxis(axisY);
+    }
 }
 
 void TsnePlot::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton && selectionCount < MAX_SELECTIONS) {
-        // Clear the previous lasso if it exists
-        if (pathItem) {
-            chart()->scene()->removeItem(pathItem);
-            delete pathItem;
-            pathItem = nullptr;  // Reset pathItem
-        }
-
-        // Clear selected points when starting a new selection
-        selectedPoints->clear();
+        clearLasso();  // Clear previous lasso if it exists
 
         isDrawing = true;
         QPointF scenePos = event->pos();
@@ -142,6 +135,107 @@ void TsnePlot::mousePressEvent(QMouseEvent *event) {
         pathItem->setPen(pen);
 
         chart()->scene()->addItem(pathItem);
+    }
+}
+
+void TsnePlot::mouseMoveEvent(QMouseEvent *event) {
+    if (isDrawing) {
+        QPointF scenePos = event->pos();
+        path.lineTo(scenePos);
+        pathItem->setPath(path);
+    } else {
+        // Check if the mouse is hovering over a point
+        QPointF mousePos = event->pos();
+
+        for (auto it = scatterSeriesMap.begin(); it != scatterSeriesMap.end(); ++it) {
+            QScatterSeries *series = it.value();
+            for (int i = 0; i < series->count(); ++i) {
+                QPointF point = series->at(i);
+                QPointF screenPos = chart()->mapToPosition(point);
+
+                if (QLineF(mousePos, screenPos).length() < 5) {
+                    QString label = series->name();
+                    int id = pointIndexMap[point];
+                    QString tooltipText = QString("Label: %1\nCoordinates: (%2, %3)\nID: %4")
+                                              .arg(label)
+                                              .arg(point.x(), 0, 'f', 2)
+                                              .arg(point.y(), 0, 'f', 2)
+                                              .arg(id);
+
+                    QToolTip::showText(event->globalPosition().toPoint(), tooltipText, this);
+                    return;
+                }
+            }
+        }
+
+        QToolTip::hideText();
+    }
+}
+
+void TsnePlot::mouseReleaseEvent(QMouseEvent *event) {
+    if (event->button() == Qt::LeftButton && selectionCount < MAX_SELECTIONS) {
+        isDrawing = false;
+        path.lineTo(firstPoint);
+        path.closeSubpath();
+        pathItem->setPath(path);
+
+        selectPointsInsideLasso();
+
+        if (!selectedIndices.isEmpty()) {
+            selectionCount++;
+            emit pointsSelected(selectedIndices);
+        }
+
+        // Start the fade timer
+        lassoFadeTimer->start(50);  // Adjust the interval as needed
+    }
+}
+
+void TsnePlot::selectPointsInsideLasso() {
+    selectedIndices.clear();
+    selectedPoints->clear();
+
+    for (auto it = scatterSeriesMap.begin(); it != scatterSeriesMap.end(); ++it) {
+        QScatterSeries *series = it.value();
+        for (int i = 0; i < series->count(); ++i) {
+            QPointF point = series->at(i);
+            QPointF screenPos = chart()->mapToPosition(point);
+
+            if (path.contains(screenPos)) {
+                selectedPoints->append(point);
+                auto it = pointIndexMap.find(point);
+                if (it != pointIndexMap.end()) {
+                    selectedIndices.append(it->second);
+                }
+            }
+        }
+    }
+}
+
+void TsnePlot::fadeLasso() {
+    if (pathItem) {
+        lassoOpacity -= 0.05;  // Reduce opacity by 5% each time
+        if (lassoOpacity <= 0.0) {
+            lassoFadeTimer->stop();
+            clearLasso();
+            lassoOpacity = 1.0;  // Reset opacity for next lasso
+        } else {
+            QPen pen = pathItem->pen();
+            QColor color = pen.color();
+            color.setAlphaF(lassoOpacity);
+            pen.setColor(color);
+            pathItem->setPen(pen);
+        }
+    }
+}
+
+void TsnePlot::clearLasso() {
+    if (pathItem) {
+        chart()->scene()->removeItem(pathItem);
+        delete pathItem;
+        pathItem = nullptr;
+        lassoFadeTimer->stop();
+        lassoOpacity = 1.0;
     }
 }
 
@@ -176,13 +270,11 @@ void TsnePlot::wheelEvent(QWheelEvent *event) {
     qreal minY = axisY->min();
     qreal maxY = axisY->max();
 
-    // Compute new zoomed ranges
     qreal newMinX = mouseChartPos.x() - (mouseChartPos.x() - minX) * factor;
     qreal newMaxX = mouseChartPos.x() + (maxX - mouseChartPos.x()) * factor;
     qreal newMinY = mouseChartPos.y() - (mouseChartPos.y() - minY) * factor;
     qreal newMaxY = mouseChartPos.y() + (maxY - mouseChartPos.y()) * factor;
 
-    // Clamp zoom-out to initial limits
     if (newMinX < initialMinX && newMaxX > initialMaxX) {
         newMinX = initialMinX;
         newMaxX = initialMaxX;
@@ -199,29 +291,13 @@ void TsnePlot::wheelEvent(QWheelEvent *event) {
 }
 
 void TsnePlot::resetZoom() {
-    QValueAxis *axisX = qobject_cast<QValueAxis *>(chart()->axes(Qt::Horizontal).first());
-    QValueAxis *axisY = qobject_cast<QValueAxis *>(chart()->axes(Qt::Vertical).first());
-
-    if (!axisX || !axisY) {
-        qDebug() << "Error: Axes are null!";
-        return;
-    }
-
-    axisX->setRange(initialMinX, initialMaxX);
-    axisY->setRange(initialMinY, initialMaxY);
-
+    setupAxes(initialMinX, initialMaxX, initialMinY, initialMaxY);
     updateOverviewRectangle();
 }
 
 void TsnePlot::updateOverviewRectangle() {
     if (!chart() || !chart()->scene()) {
         qDebug() << "Error: chart() or chart()->scene() is null!";
-        return;
-    }
-
-    QList<QAbstractAxis *> axes = chart()->axes();
-    if (axes.isEmpty()) {
-        qDebug() << "Error: No axes found!";
         return;
     }
 
@@ -236,82 +312,10 @@ void TsnePlot::updateOverviewRectangle() {
     emit zoomChanged(axisX->min(), axisX->max(), axisY->min(), axisY->max());
 }
 
-void TsnePlot::mouseMoveEvent(QMouseEvent *event) {
-    if (isDrawing) {
-        QPointF scenePos = event->pos();
-        path.lineTo(scenePos);
-        pathItem->setPath(path);
-    } else {
-        // Check if the mouse is hovering over a point
-        QPointF mousePos = event->pos();
-
-        for (auto it = scatterSeriesMap.begin(); it != scatterSeriesMap.end(); ++it) {
-            QScatterSeries *series = it.value();
-            for (int i = 0; i < series->count(); ++i) {
-                QPointF point = series->at(i);
-                QPointF screenPos = chart()->mapToPosition(point);
-
-                // Check if the mouse is near the point
-                if (QLineF(mousePos, screenPos).length() < 5) {
-                    // Retrieve the label, coordinates, and ID
-                    QString label = series->name();
-                    int id = pointIndexMap[point];
-                    QString tooltipText = QString("Label: %1\nCoordinates: (%2, %3)\nID: %4")
-                                              .arg(label)
-                                              .arg(point.x())
-                                              .arg(point.y())
-                                              .arg(id);
-
-                    // Show the tooltip
-                    QToolTip::showText(event->globalPosition().toPoint(), tooltipText, this);
-                    return;
-                }
-            }
-        }
-
-        // If no point is hovered, hide the tooltip
-        QToolTip::hideText();
-    }
+void TsnePlot::startHighlightSelection(const QColor &color, const QList<int>& indices) {
+    // qDebug() << "start" << color << indices;
 }
 
-void TsnePlot::mouseReleaseEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton && selectionCount < MAX_SELECTIONS) {
-        isDrawing = false;
-        path.lineTo(firstPoint);
-        path.closeSubpath();
-        pathItem->setPath(path);
-
-        // Select points inside the lasso
-        selectPointsInsideLasso();
-
-        if (!selectedIndices.isEmpty()) {
-            selectionCount++;  // Increment the selection count
-
-            // Emit the signal with the selected indices and color
-            emit pointsSelected(selectedIndices);
-        }
-    }
-}
-
-void TsnePlot::selectPointsInsideLasso() {
-    selectedIndices.clear();  // Clear previous selections
-    selectedPoints->clear();  // Clear previous selected points
-
-    for (auto it = scatterSeriesMap.begin(); it != scatterSeriesMap.end(); ++it) {
-        QScatterSeries *series = it.value();
-        for (int i = 0; i < series->count(); ++i) {
-            QPointF point = series->at(i);
-            QPointF screenPos = chart()->mapToPosition(point);
-
-            if (path.contains(screenPos)) {
-                selectedPoints->append(point);
-
-                // Retrieve the index of the selected point
-                auto it = pointIndexMap.find(point);
-                if (it != pointIndexMap.end()) {
-                    selectedIndices.append(it->second);
-                }
-            }
-        }
-    }
+void TsnePlot::stopHighlightSelection() {
+    // qDebug() << "stop";
 }
