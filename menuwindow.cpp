@@ -1,5 +1,4 @@
 #include "menuwindow.h"
-#include "appwindow.h"
 #include "appwindowbuilder.h"
 #include "qjsonarray.h"
 #include "ui_menuwindow.h"

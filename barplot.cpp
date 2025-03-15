@@ -219,8 +219,9 @@ void BarPlot::cleanupOldSeries() {
 
 void BarPlot::cleanupOldAxes() {
     QList<QAbstractAxis *> axes = chart()->axes();
-    for (QAbstractAxis *axis : axes) {
+    for (QAbstractAxis *axis : std::as_const(axes)) {
         chart()->removeAxis(axis);
         delete axis;
     }
 }
+

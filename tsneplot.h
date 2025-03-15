@@ -61,6 +61,8 @@ private:
     QMap<QString, QScatterSeries *> scatterSeriesMap;
     std::map<QPointF, int, QPointFComparator> pointIndexMap;
 
+    QScatterSeries *highlightedSeries;
+
     bool isDrawing;
     QPainterPath path;
     QGraphicsPathItem *pathItem;

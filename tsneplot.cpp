@@ -3,6 +3,7 @@
 #include <QValueAxis>
 #include <QDebug>
 #include <QLineF>
+#include <QLegendMarker>
 
 TsnePlot::TsnePlot(QChart *chart, QWidget *parent)
     : QChartView(chart, parent), isDrawing(false), pathItem(nullptr), selectedPoints(new QList<QPointF>()), selectionCount(0) {
@@ -312,10 +313,64 @@ void TsnePlot::updateOverviewRectangle() {
     emit zoomChanged(axisX->min(), axisX->max(), axisY->min(), axisY->max());
 }
 
-void TsnePlot::startHighlightSelection(const QColor &color, const QList<int>& indices) {
-    // qDebug() << "start" << color << indices;
+void TsnePlot::startHighlightSelection(const QColor &highlightColor, const QList<int>& indices) {
+    // Clear any previous highlights
+    stopHighlightSelection();
+
+    // Create a new series for highlighted points
+    highlightedSeries = new QScatterSeries();
+    highlightedSeries->setMarkerSize(12.0);  // Larger size for emphasis
+    highlightedSeries->setColor(highlightColor);  // Use the provided highlight color
+    highlightedSeries->setName("Highlighted");  // Set a name for the series (optional)
+
+    // Iterate through all points and add highlighted points to the new series
+    for (auto it = scatterSeriesMap.begin(); it != scatterSeriesMap.end(); ++it) {
+        QScatterSeries *series = it.value();
+        for (int i = 0; i < series->count(); ++i) {
+            QPointF point = series->at(i);
+            auto it = pointIndexMap.find(point);
+            if (it != pointIndexMap.end()) {
+                int index = it->second;
+                if (indices.contains(index)) {
+                    highlightedSeries->append(point);
+                }
+            }
+        }
+    }
+
+    // Add the highlighted series to the chart
+    chart()->addSeries(highlightedSeries);
+
+    // Attach the series to the axes
+    QValueAxis *axisX = qobject_cast<QValueAxis *>(chart()->axes(Qt::Horizontal).first());
+    QValueAxis *axisY = qobject_cast<QValueAxis *>(chart()->axes(Qt::Vertical).first());
+    if (axisX && axisY) {
+        highlightedSeries->attachAxis(axisX);
+        highlightedSeries->attachAxis(axisY);
+    }
+
+    // Hide the legend marker for the highlighted series
+    QList<QLegendMarker*> markers = chart()->legend()->markers(highlightedSeries);
+    if (!markers.isEmpty()) {
+        markers[0]->setVisible(false);  // Hide the legend marker
+    }
 }
 
 void TsnePlot::stopHighlightSelection() {
-    // qDebug() << "stop";
+    if (highlightedSeries) {
+        // Remove the series from the chart (the chart will handle deletion)
+        chart()->removeSeries(highlightedSeries);
+        highlightedSeries = nullptr; // Reset the pointer to nullptr
+    }
+
+    // Restore the original series
+    for (auto it = scatterSeriesMap.begin(); it != scatterSeriesMap.end(); ++it) {
+        QScatterSeries *series = it.value();
+        if (!chart()->series().contains(series)) {
+            chart()->addSeries(series);
+        }
+    }
+
+    // Restore the axes and legend
+    setupAxes(initialMinX, initialMaxX, initialMinY, initialMaxY);
 }

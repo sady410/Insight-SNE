@@ -38,6 +38,7 @@ void SelectionManager::removeSelection(int id) {
         selections.remove(id);
         availableIds.push(id);
         emit selectionRemoved(id);
+        emit stopHighlightSelection();
     } else {
         qWarning() << "Selection with ID" << id << "not found.";
     }
