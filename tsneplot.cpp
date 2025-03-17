@@ -313,14 +313,16 @@ void TsnePlot::updateOverviewRectangle() {
     emit zoomChanged(axisX->min(), axisX->max(), axisY->min(), axisY->max());
 }
 
-void TsnePlot::startHighlightSelection(const QColor &highlightColor, const QList<int>& indices) {
+void TsnePlot::startHighlightSelection(const QColor &color, const QList<int>& indices) {
+
+    chart()->setAnimationOptions(QChart::NoAnimation);
     // Clear any previous highlights
-    stopHighlightSelection();
+    // stopHighlightSelection();
 
     // Create a new series for highlighted points
     highlightedSeries = new QScatterSeries();
     highlightedSeries->setMarkerSize(12.0);  // Larger size for emphasis
-    highlightedSeries->setColor(highlightColor);  // Use the provided highlight color
+    highlightedSeries->setColor(color);  // Use the provided highlight color
     highlightedSeries->setName("Highlighted");  // Set a name for the series (optional)
 
     // Iterate through all points and add highlighted points to the new series
@@ -357,6 +359,9 @@ void TsnePlot::startHighlightSelection(const QColor &highlightColor, const QList
 }
 
 void TsnePlot::stopHighlightSelection() {
+
+    chart()->setAnimationOptions(QChart::SeriesAnimations);
+
     if (highlightedSeries) {
         // Remove the series from the chart (the chart will handle deletion)
         chart()->removeSeries(highlightedSeries);

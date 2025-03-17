@@ -11,7 +11,7 @@ class BarPlot : public QChartView {
     Q_OBJECT
 
 public:
-    enum Orientation {
+    enum Orientation { // TODO use Qt enum for orientation
         Horizontal,
         Vertical
     };
@@ -29,6 +29,9 @@ public slots:
     void addValue(int id, const QColor &color, const QList<int> &indices);
     void removeValue(int id);
 
+    void startHighlightSelection(const QColor &color, const QList<int>& indices);
+    void stopHighlightSelection();
+
 private:
     void updateAxisRange();
     void setupAxes(Orientation orientation);
@@ -37,8 +40,13 @@ private:
     void cleanupOldAxes();
 
     Orientation currentOrientation;
+
     QAbstractBarSeries *barSeries;
     QMap<int, QBarSet*> idToBarSetMap;
+
+    QMap<int, QColor> initialBarSetColors;
+    QMap<QBarSet*, QColor> originalBarSetColors;
+
     QStringList labels;
     QList<QList<qreal>> values;
     QList<QList<qreal>> meanValues;
