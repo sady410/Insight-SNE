@@ -13,48 +13,16 @@ BarPlot::BarPlot(QChart *chart, QWidget *parent)
     chart->setTheme(QChart::ChartThemeDark);
 }
 
-BarPlot::~BarPlot() {
-    cleanupOldSeries();
-}
+BarPlot::~BarPlot() {}
 
-void BarPlot::initPlot(QAbstractBarSeries *series, Orientation orientation) {
+void BarPlot::initPlot(QAbstractBarSeries *series, Qt::Orientation orientation) {
     if (!series) return;
-
-    cleanupOldSeries();
-    cleanupOldAxes();
 
     barSeries = series;
     chart()->addSeries(barSeries);
 
     setupAxes(orientation);
-    currentOrientation = orientation;
-}
-
-void BarPlot::setOrientation(Orientation orientation) {
-    if (orientation == currentOrientation) return;
-
-    // Create a new series based on the orientation
-    QAbstractBarSeries *newSeries = nullptr;
-    if (orientation == Horizontal) {
-        newSeries = new QHorizontalBarSeries();
-    } else {
-        newSeries = new QBarSeries();
-    }
-
-    // Copy bar sets from the old series to the new one
-    if (barSeries) {
-        for (QBarSet *set : barSeries->barSets()) {
-            newSeries->append(set);
-        }
-    }
-
-    // Reinitialize the plot with the new series and orientation
-    initPlot(newSeries, orientation);
-
-    // Delete the old series
-    if (barSeries) {
-        delete barSeries;
-    }
+    plotOrientation = orientation;
 }
 
 void BarPlot::setLabels(const QStringList &labels) {
@@ -156,25 +124,21 @@ void BarPlot::updateAxisRange() {
 
     QValueAxis *axis = nullptr;
 
-    if (currentOrientation == Horizontal) {
-        axis = qobject_cast<QValueAxis *>(chart()->axes(Qt::Horizontal).first());
-    } else {
-        axis = qobject_cast<QValueAxis *>(chart()->axes(Qt::Vertical).first());
-    }
+    axis = qobject_cast<QValueAxis *>(chart()->axes(plotOrientation).first());
 
     if (axis) {
         axis->setRange(minValue, maxValue);
         // qDebug() << "Axis range updated to:" << axis->min() << "-" << axis->max();
     } else {
-        qDebug() << "Axis not found for orientation:" << currentOrientation;
+        qDebug() << "Axis not found for orientation:" << plotOrientation;
     }
 }
 
-void BarPlot::setupAxes(Orientation orientation) {
+void BarPlot::setupAxes(Qt::Orientation orientation) {
     qreal minValue, maxValue;
     calculateDynamicRange(minValue, maxValue);
 
-    if (orientation == Horizontal) {
+    if (orientation == Qt::Horizontal) {
         QValueAxis *axisX = new QValueAxis();
         axisX->setTitleText("Gradients");
         axisX->setLabelFormat("%.2f");
@@ -214,13 +178,12 @@ void BarPlot::setupAxes(Orientation orientation) {
 }
 
 void BarPlot::calculateDynamicRange(qreal &minValue, qreal &maxValue) const {
-    minValue = std::numeric_limits<qreal>::max(); // Initialize minValue to the maximum possible value
+    minValue = 0; // Initialize minValue to 0
     maxValue = std::numeric_limits<qreal>::min(); // Initialize maxValue to the minimum possible value
 
     if (!barSeries || barSeries->barSets().isEmpty()) {
         qDebug() << "Bar series is empty in calculateDynamicRange";
-        minValue = 0; // Fallback to zero if no data is available
-        maxValue = 0;
+        maxValue = 0; // Fallback to zero if no data is available
         return;
     }
 
@@ -229,37 +192,20 @@ void BarPlot::calculateDynamicRange(qreal &minValue, qreal &maxValue) const {
         for (int i = 0; i < set->count(); ++i) {
             qreal value = set->at(i);
             if (value < minValue) {
-                minValue = value;
+                minValue = value; // Update minValue only if a negative value is found
             }
             if (value > maxValue) {
-                maxValue = value;
+                maxValue = value; // Always update maxValue
             }
         }
     }
 
-    // If all values are zero or no data is available, set a default range
-    if (minValue == std::numeric_limits<qreal>::max() && maxValue == std::numeric_limits<qreal>::min()) {
-        minValue = 0;
+    // If no data is available or all values are zero, set a default range
+    if (maxValue == std::numeric_limits<qreal>::min()) {
         maxValue = 0;
     }
 
-    // qDebug() << "Dynamic range calculated: minValue =" << minValue << ", maxValue =" << maxValue;
-}
-
-void BarPlot::cleanupOldSeries() {
-    if (barSeries && chart()->series().contains(barSeries)) {
-        chart()->removeSeries(barSeries);
-        delete barSeries;
-        barSeries = nullptr;
-    }
-}
-
-void BarPlot::cleanupOldAxes() {
-    QList<QAbstractAxis *> axes = chart()->axes();
-    for (QAbstractAxis *axis : std::as_const(axes)) {
-        chart()->removeAxis(axis);
-        delete axis;
-    }
+    qDebug() << "Dynamic range calculated: minValue =" << minValue << ", maxValue =" << maxValue;
 }
 
 void BarPlot::startHighlightSelection(const QColor &color, const QList<int>& indices) {
@@ -272,15 +218,7 @@ void BarPlot::startHighlightSelection(const QColor &color, const QList<int>& ind
             originalBarSetColors[set] = set->color();
         }
 
-        if (set->color() == color) {
-            // Highlight the bar set by changing its pen and brush
-            QPen highlightPen(Qt::yellow, 3); // Example: Yellow border with a width of 3
-            set->setPen(highlightPen);
-
-            QBrush highlightBrush(set->color().lighter(150)); // Example: Lighter color for the brush
-            set->setBrush(highlightBrush);
-        } else {
-            // Dim or de-emphasize other bar sets
+        if (set->color() != color) {
             QPen defaultPen(Qt::black, 1); // Example: Default black border with a width of 1
             set->setPen(defaultPen);
 
@@ -288,8 +226,6 @@ void BarPlot::startHighlightSelection(const QColor &color, const QList<int>& ind
             set->setBrush(defaultBrush);
         }
     }
-
-    // Update the chart to reflect the changes
     chart()->update();
 }
 
@@ -305,14 +241,12 @@ void BarPlot::stopHighlightSelection() {
         }
 
         // Reset the pen to its default values
-        QPen defaultPen(Qt::black, 1); // Default black border with a width of 1
+        QPen defaultPen(Qt::white, 1); // Default black border with a width of 1
         set->setPen(defaultPen);
     }
 
-    // Clear the stored original colors (optional, depending on your use case)
+    // Clear the stored original colors
     originalBarSetColors.clear();
-
-    // Update the chart to reflect the changes
     chart()->update();
 }
 

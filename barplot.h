@@ -11,16 +11,10 @@ class BarPlot : public QChartView {
     Q_OBJECT
 
 public:
-    enum Orientation { // TODO use Qt enum for orientation
-        Horizontal,
-        Vertical
-    };
-
     explicit BarPlot(QChart *chart, QWidget *parent = nullptr);
     ~BarPlot();
 
-    void initPlot(QAbstractBarSeries *series, Orientation orientation);
-    void setOrientation(Orientation orientation);
+    void initPlot(QAbstractBarSeries *series, Qt::Orientation orientation);
     void setLabels(const QStringList &labels);
     void setValues(const QList<QList<qreal>> &values);
     void setMeanValues(const QList<QList<qreal>> &meanValues);
@@ -34,12 +28,10 @@ public slots:
 
 private:
     void updateAxisRange();
-    void setupAxes(Orientation orientation);
+    void setupAxes(Qt::Orientation orientation);
     void calculateDynamicRange(qreal &minValue, qreal &maxValue) const;
-    void cleanupOldSeries();
-    void cleanupOldAxes();
 
-    Orientation currentOrientation;
+    Qt::Orientation plotOrientation;
 
     QAbstractBarSeries *barSeries;
     QMap<int, QBarSet*> idToBarSetMap;

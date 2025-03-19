@@ -81,7 +81,7 @@ AppWindowBuilder& AppWindowBuilder::initializeFeaturesPlot() {
         *meanDataSet << value;
     }
     meanDataSeries->append(meanDataSet);
-    featuresForm->featuresPlot->initPlot(meanDataSeries, BarPlot::Vertical);
+    featuresForm->featuresPlot->initPlot(meanDataSeries, Qt::Vertical);
 
     return *this;
 }
@@ -111,7 +111,7 @@ AppWindowBuilder& AppWindowBuilder::initializeExplanationPlots() {
         *meanGradientsXSet << value;
     }
     meanGradientsXSeries->append(meanGradientsXSet);
-    explanationForm->gradientsPlotTop->initPlot(meanGradientsXSeries, BarPlot::Horizontal);
+    explanationForm->gradientsPlotTop->initPlot(meanGradientsXSeries, Qt::Horizontal);
 
     QHorizontalBarSeries *meanGradientsYSeries = new QHorizontalBarSeries();
     QBarSet *meanGradientsYSet = new QBarSet("Mean Gradients Y");
@@ -119,7 +119,7 @@ AppWindowBuilder& AppWindowBuilder::initializeExplanationPlots() {
         *meanGradientsYSet << value;
     }
     meanGradientsYSeries->append(meanGradientsYSet);
-    explanationForm->gradientsPlotBottom->initPlot(meanGradientsYSeries, BarPlot::Horizontal);
+    explanationForm->gradientsPlotBottom->initPlot(meanGradientsYSeries, Qt::Horizontal);
 
     QJsonArray gradients = jsonData.value("gradients").toArray();
     QList<QList<QList<qreal>>> gradientsList = JsonParser::jsonArrayToQList3D(gradients);
@@ -134,7 +134,7 @@ AppWindowBuilder& AppWindowBuilder::initializeExplanationPlots() {
         *meanMagnitudesSet << value;
     }
     meanMagnitudesSeries->append(meanMagnitudesSet);
-    explanationForm->magnitudesPlot->initPlot(meanMagnitudesSeries, BarPlot::Horizontal);
+    explanationForm->magnitudesPlot->initPlot(meanMagnitudesSeries, Qt::Horizontal);
 
     QJsonArray magnitudes = jsonData.value("magnitudes").toArray();
     QList<QList<qreal>> magnitudesList = JsonParser::jsonArrayToQList2D(magnitudes);
