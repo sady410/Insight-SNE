@@ -15,11 +15,12 @@ class SelectionManager : public QObject {
 public:
     struct Selection {
         int id;
+        bool state;
         QColor color;
         QList<int> indices;
 
-        Selection(int id = -1, const QColor& color = Qt::black, const QList<int>& indices = {})
-            : id(id), color(color), indices(indices) {}
+        Selection(int id = -1, const QColor& color = Qt::black, const QList<int>& indices = {}, const bool state = true)
+            : id(id), state(state), color(color), indices(indices) {}
     };
 
     explicit SelectionManager(QObject* parent = nullptr);
@@ -30,6 +31,8 @@ public slots:
 
     void findHoveredSelectionAndEmitSignal(int id);
 
+    void changeSelectionStateAndEmitSignal(int id);
+
 signals:
     void selectionCreated(int id, const QColor &color, const QList<int>& indices);
     void selectionRemoved(int id);
@@ -37,6 +40,10 @@ signals:
     // Signals used when hovering in MenuForm
     void startHighlightSelection(const QColor &color, const QList<int>& indices);
     void stopHighlightSelection();
+
+    // Signals used when changing a selection's state
+    void selectionEnabled(int id, const QColor &color, const QList<int>& indices);
+    void selectionDisabled(int id);
 
 private:
     QList<QColor> colorList;

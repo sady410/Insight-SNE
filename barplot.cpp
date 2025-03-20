@@ -217,7 +217,7 @@ void BarPlot::calculateDynamicRange(qreal &minValue, qreal &maxValue) const {
         maxValue = 0;
     }
 
-    qDebug() << "Dynamic range calculated: minValue =" << minValue << ", maxValue =" << maxValue;
+    // qDebug() << "Dynamic range calculated: minValue =" << minValue << ", maxValue =" << maxValue;
 }
 
 void BarPlot::handleBarClicked(int index, QBarSet *barSet) {

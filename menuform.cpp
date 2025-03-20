@@ -1,6 +1,8 @@
 #include "menuform.h"
 #include "ui_menuform.h"
-#include "selectionwidget.h"  // Include the new header file
+#include "selectionwidget.h"
+#include "colorcircle.h"
+
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
@@ -8,26 +10,6 @@
 #include <QPainter>
 #include <QStyleOption>
 
-// Helper class to draw a colored circle
-class ColorCircle : public QWidget {
-public:
-    ColorCircle(const QColor &color, QWidget *parent = nullptr)
-        : QWidget(parent), m_color(color) {
-        setFixedSize(20, 20); // Small circle size
-    }
-
-protected:
-    void paintEvent(QPaintEvent *) override {
-        QPainter painter(this);
-        painter.setRenderHint(QPainter::Antialiasing);
-        painter.setBrush(m_color);
-        painter.setPen(Qt::NoPen);
-        painter.drawEllipse(rect());
-    }
-
-private:
-    QColor m_color;
-};
 
 MenuForm::MenuForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::MenuForm) {
@@ -94,6 +76,10 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color) {
     // Connect the hover signals from the selectionWidget to the MenuForm signals
     connect(selectionWidget, &SelectionWidget::hovered, this, &MenuForm::selectionHovered);
     connect(selectionWidget, &SelectionWidget::left, this, &MenuForm::selectionLeft);
+
+    connect(circle, &ColorCircle::clicked, this, [this, id]() {
+        emit selectionStateChanged(id);
+    });
 }
 
 void MenuForm::removeSelectionWidget(int id) {

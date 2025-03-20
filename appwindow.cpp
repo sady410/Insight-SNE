@@ -32,7 +32,7 @@ class MenuForm* AppWindow::getMenuForm() const {
     return ui->menuForm;
 }
 
-void AppWindow::connectSignalsAndSlots() {
+void AppWindow::connectSignalsAndSlots() { // TODO REFACTOR FOR BARPLOTS
 
     // Selection creation
     connect(getTsneForm()->tsnePlot, &TsnePlot::pointsSelected, selectionManager, &SelectionManager::createSelection);
@@ -72,6 +72,21 @@ void AppWindow::connectSignalsAndSlots() {
 
     connect(selectionManager, &SelectionManager::startHighlightSelection, getExplanationForm()->gradientsPlotBottom, &BarPlot::startHighlightSelection);
     connect(selectionManager, &SelectionManager::stopHighlightSelection, getExplanationForm()->gradientsPlotBottom, &BarPlot::stopHighlightSelection);
+
+    // Enabling/Disabling selections
+    connect(getMenuForm(), &MenuForm::selectionStateChanged, selectionManager, &SelectionManager::changeSelectionStateAndEmitSignal);
+
+    connect(selectionManager, &SelectionManager::selectionEnabled, getFeaturesForm()->featuresPlot, &BarPlot::addValue);
+    connect(selectionManager, &SelectionManager::selectionDisabled, getFeaturesForm()->featuresPlot, &BarPlot::removeValue);
+
+    connect(selectionManager, &SelectionManager::selectionEnabled, getExplanationForm()->magnitudesPlot, &BarPlot::addValue);
+    connect(selectionManager, &SelectionManager::selectionDisabled, getExplanationForm()->magnitudesPlot, &BarPlot::removeValue);
+
+    connect(selectionManager, &SelectionManager::selectionEnabled, getExplanationForm()->gradientsPlotTop, &BarPlot::addValue);
+    connect(selectionManager, &SelectionManager::selectionDisabled, getExplanationForm()->gradientsPlotTop, &BarPlot::removeValue);
+
+    connect(selectionManager, &SelectionManager::selectionEnabled, getExplanationForm()->gradientsPlotBottom, &BarPlot::addValue);
+    connect(selectionManager, &SelectionManager::selectionDisabled, getExplanationForm()->gradientsPlotBottom, &BarPlot::removeValue);
 
     // Zoom
     connect(getTsneForm()->tsnePlot, &TsnePlot::zoomChanged, getOverviewForm()->overviewPlot, &OverviewPlot::updateZoomRectangle);

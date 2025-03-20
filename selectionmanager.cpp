@@ -12,6 +12,19 @@ SelectionManager::SelectionManager(QObject* parent) : QObject(parent), nextId(0)
     colorList = {Qt::red, Qt::blue, Qt::green, Qt::yellow};
 }
 
+void SelectionManager::changeSelectionStateAndEmitSignal(int id) {
+    qDebug() << id << "changed";
+    if (selections.contains(id)) {
+        Selection &sel = selections[id];
+        sel.state = !sel.state;
+        if (sel.state == true) {
+            emit selectionEnabled(id, sel.color, sel.indices);
+        } else {
+            emit selectionDisabled(id);
+        }
+    }
+}
+
 void SelectionManager::createSelection(const QList<int>& indices) {
     if (colorList.size() == usedColors.size()) {
         qWarning() << "No available colors for new selection!";

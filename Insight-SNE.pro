@@ -12,6 +12,7 @@ SOURCES += \
     appwindow.cpp \
     appwindowbuilder.cpp \
     barplot.cpp \
+    colorcircle.cpp \
     explanationform.cpp \
     featuresform.cpp \
     jsonparser.cpp \
@@ -30,6 +31,7 @@ HEADERS += \
     appwindow.h \
     appwindowbuilder.h \
     barplot.h \
+    colorcircle.h \
     explanationform.h \
     featuresform.h \
     jsonparser.h \

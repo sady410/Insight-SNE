@@ -2,6 +2,7 @@
 #define SELECTIONWIDGET_H
 
 #include <QWidget>
+#include <QLabel>
 
 class SelectionWidget : public QWidget {
     Q_OBJECT
@@ -18,6 +19,8 @@ protected:
     void leaveEvent(QEvent *event) override;
 
 private:
+    void updateLabelStyle();
+
     int m_id;  // The ID of the selection
 };
 

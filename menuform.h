@@ -25,6 +25,8 @@ signals:
     void selectionHovered(int id);
     void selectionLeft(int id);
 
+    void selectionStateChanged(int id);
+
 public slots:
     // Slot to add a new selection to the menu
     void addSelectionToMenu(int id, const QColor &color);
