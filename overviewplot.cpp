@@ -86,7 +86,7 @@ void OverviewPlot::updateZoomRectangle(qreal minX, qreal maxX, qreal minY, qreal
     QPointF bottomRight = chart()->mapToPosition(QPointF(maxX, minY));
 
     QRectF visibleArea(topLeft, bottomRight);
-    qDebug() << zoomRectItem;
-    qDebug() << visibleArea;
+    // qDebug() << zoomRectItem;
+    // qDebug() << visibleArea;
     zoomRectItem->setRect(visibleArea);
 }

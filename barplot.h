@@ -26,6 +26,11 @@ public slots:
     void startHighlightSelection(const QColor &color, const QList<int>& indices);
     void stopHighlightSelection();
 
+    void handleBarClicked(int index, QBarSet *barSet);
+
+signals:
+    void barClicked(const QString &label, int id);
+
 private:
     void updateAxisRange();
     void setupAxes(Qt::Orientation orientation);

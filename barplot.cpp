@@ -21,6 +21,14 @@ void BarPlot::initPlot(QAbstractBarSeries *series, Qt::Orientation orientation) 
     barSeries = series;
     chart()->addSeries(barSeries);
 
+    const QList<QBarSet *> barSets = barSeries->barSets();
+    for (auto it = barSets.begin(); it != barSets.end(); ++it) {
+        QBarSet *barSet = *it;
+        connect(barSet, &QBarSet::clicked, this, [this, barSet](int index) {
+            handleBarClicked(index, barSet);
+        });
+    }
+
     setupAxes(orientation);
     plotOrientation = orientation;
 }
@@ -72,6 +80,10 @@ void BarPlot::addValue(int id, const QColor &color, const QList<int> &indices) {
     initialBarSetColors[id] = color;
 
     idToBarSetMap[id] = newSet;
+
+    connect(newSet, &QBarSet::clicked, this, [this, newSet](int index) {
+        handleBarClicked(index, newSet);
+    });
 
     if (barSeries) {
         barSeries->append(newSet);
@@ -206,6 +218,33 @@ void BarPlot::calculateDynamicRange(qreal &minValue, qreal &maxValue) const {
     }
 
     qDebug() << "Dynamic range calculated: minValue =" << minValue << ", maxValue =" << maxValue;
+}
+
+void BarPlot::handleBarClicked(int index, QBarSet *barSet) {
+    if (index < 0 || index >= labels.size()) {
+        qDebug() << "Invalid index:" << index;
+        return;
+    }
+
+    QString label = labels[index];
+
+    // Find the id associated with the clicked bar set
+    int id = -1;
+    for (auto it = idToBarSetMap.begin(); it != idToBarSetMap.end(); ++it) {
+        if (it.value() == barSet) {
+            id = it.key();
+            break;
+        }
+    }
+
+    if (id == -1) {
+        qDebug() << "Bar set not found in idToBarSetMap";
+        return;
+    }
+
+    qDebug() << label << id;
+    // Emit the custom signal with the label and id
+    emit barClicked(label, id);
 }
 
 void BarPlot::startHighlightSelection(const QColor &color, const QList<int>& indices) {
