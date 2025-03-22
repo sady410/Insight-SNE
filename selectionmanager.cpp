@@ -9,11 +9,10 @@ inline size_t qHash(const QColor &color, size_t seed = 0)
 }
 
 SelectionManager::SelectionManager(QObject* parent) : QObject(parent), nextId(0) {
-    colorList = {Qt::red, Qt::blue, Qt::green, Qt::yellow};
+    colorList = {Qt::red, Qt::blue, Qt::green, Qt::yellow, Qt::cyan, Qt::magenta, Qt::gray, Qt::darkRed};
 }
 
 void SelectionManager::changeSelectionStateAndEmitSignal(int id) {
-    qDebug() << id << "changed";
     if (selections.contains(id)) {
         Selection &sel = selections[id];
         sel.state = !sel.state;
@@ -25,12 +24,17 @@ void SelectionManager::changeSelectionStateAndEmitSignal(int id) {
     }
 }
 
+void SelectionManager::createMultipleSelections(const QList<QList<int>> indicesList) {
+    for (const QList<int>& indices : indicesList) {
+        createSelection(indices);
+    }
+}
+
 void SelectionManager::createSelection(const QList<int>& indices) {
     if (colorList.size() == usedColors.size()) {
         qWarning() << "No available colors for new selection!";
         return;
     }
-
     int newId = generateUniqueId();
     QColor color = getAvailableColor();
 

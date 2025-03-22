@@ -32,6 +32,10 @@ class MenuForm* AppWindow::getMenuForm() const {
     return ui->menuForm;
 }
 
+SelectionManager* AppWindow::getSelectionManager() const {
+    return selectionManager;
+}
+
 void AppWindow::connectSignalsAndSlots() { // TODO REFACTOR FOR BARPLOTS
 
     // Selection creation

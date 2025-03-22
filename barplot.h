@@ -14,10 +14,9 @@ public:
     explicit BarPlot(QChart *chart, QWidget *parent = nullptr);
     ~BarPlot();
 
-    void initPlot(QAbstractBarSeries *series, Qt::Orientation orientation);
+    void initPlot(Qt::Orientation orientation);
     void setLabels(const QStringList &labels);
     void setValues(const QList<QList<qreal>> &values);
-    void setMeanValues(const QList<QList<qreal>> &meanValues);
 
 public slots:
     void addValue(int id, const QColor &color, const QList<int> &indices);
@@ -46,7 +45,8 @@ private:
 
     QStringList labels;
     QList<QList<qreal>> values;
-    QList<QList<qreal>> meanValues;
+
+    bool firstDataAdded;
 };
 
 #endif // BARPLOT_H

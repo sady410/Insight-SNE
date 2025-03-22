@@ -7,31 +7,13 @@
 #include <QDebug>
 
 BarPlot::BarPlot(QChart *chart, QWidget *parent)
-    : QChartView(chart, parent), barSeries(nullptr) {
+    : QChartView(chart, parent), barSeries(nullptr), firstDataAdded(false) {
     setRenderHint(QPainter::Antialiasing);
     chart->setAnimationOptions(QChart::SeriesAnimations);
     chart->setTheme(QChart::ChartThemeDark);
 }
 
 BarPlot::~BarPlot() {}
-
-void BarPlot::initPlot(QAbstractBarSeries *series, Qt::Orientation orientation) {
-    if (!series) return;
-
-    barSeries = series;
-    chart()->addSeries(barSeries);
-
-    const QList<QBarSet *> barSets = barSeries->barSets();
-    for (auto it = barSets.begin(); it != barSets.end(); ++it) {
-        QBarSet *barSet = *it;
-        connect(barSet, &QBarSet::clicked, this, [this, barSet](int index) {
-            handleBarClicked(index, barSet);
-        });
-    }
-
-    setupAxes(orientation);
-    plotOrientation = orientation;
-}
 
 void BarPlot::setLabels(const QStringList &labels) {
     this->labels = labels;
@@ -41,8 +23,13 @@ void BarPlot::setValues(const QList<QList<qreal>> &values) {
     this->values = values;
 }
 
-void BarPlot::setMeanValues(const QList<QList<qreal>> &meanValues) {
-    this->meanValues = meanValues;
+void BarPlot::initPlot(Qt::Orientation orientation) {
+    if (orientation == Qt::Horizontal) {
+        barSeries = new QHorizontalBarSeries();
+    } else {
+        barSeries = new QBarSeries();
+    }
+    plotOrientation = orientation;
 }
 
 void BarPlot::addValue(int id, const QColor &color, const QList<int> &indices) {
@@ -87,7 +74,12 @@ void BarPlot::addValue(int id, const QColor &color, const QList<int> &indices) {
 
     if (barSeries) {
         barSeries->append(newSet);
-        updateAxisRange(); // Update the axis range after adding new data
+        if (!firstDataAdded) {
+            chart()->addSeries(barSeries);
+            setupAxes(plotOrientation);
+            firstDataAdded = true;
+        }
+        updateAxisRange();
     } else {
         delete newSet;
     }
@@ -152,7 +144,7 @@ void BarPlot::setupAxes(Qt::Orientation orientation) {
 
     if (orientation == Qt::Horizontal) {
         QValueAxis *axisX = new QValueAxis();
-        axisX->setTitleText("Gradients");
+        axisX->setTitleText("Gradients"); // TODO
         axisX->setLabelFormat("%.2f");
         axisX->setTickCount(5);
         axisX->setRange(minValue, maxValue);

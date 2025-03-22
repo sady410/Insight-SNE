@@ -26,6 +26,8 @@ public:
     explicit SelectionManager(QObject* parent = nullptr);
 
 public slots:
+    void createMultipleSelections(const QList<QList<int>> indicesList);
+
     void createSelection(const QList<int>& indices);
     void removeSelection(int id);
 

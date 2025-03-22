@@ -29,6 +29,8 @@ public:
     class FeaturesForm* getFeaturesForm() const;
     class ExplanationForm* getExplanationForm() const;
 
+    SelectionManager* getSelectionManager() const;
+
     void connectSignalsAndSlots();
 
     void setInitialized(bool initialized) { isInitialized = initialized; }
