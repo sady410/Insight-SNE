@@ -39,7 +39,8 @@ SelectionManager* AppWindow::getSelectionManager() const {
 void AppWindow::connectSignalsAndSlots() { // TODO REFACTOR FOR BARPLOTS
 
     // Selection creation
-    connect(getTsneForm()->tsnePlot, &TsnePlot::pointsSelected, selectionManager, &SelectionManager::createSelection);
+    connect(getTsneForm()->tsnePlot, &TsnePlot::pointsSelected, selectionManager,
+            static_cast<void (SelectionManager::*)(const QList<int>&)>(&SelectionManager::createSelection));
 
     connect(selectionManager, &SelectionManager::selectionCreated, getMenuForm(), &MenuForm::addSelectionToMenu);
     connect(selectionManager, &SelectionManager::selectionCreated, getExplanationForm()->magnitudesPlot, &BarPlot::addValue);

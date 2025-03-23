@@ -29,7 +29,7 @@ MenuForm::~MenuForm() {
     delete ui;
 }
 
-void MenuForm::addSelectionToMenu(int id, const QColor &color) {
+void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>& indices, const bool enableDelete) {
     // Create a container widget for the selection
     SelectionWidget *selectionWidget = new SelectionWidget(id, this);
 
@@ -45,33 +45,36 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color) {
     QLabel *label = new QLabel("Selection " + QString::number(id), selectionWidget);
     selectionLayout->addWidget(label);
 
-    // Add the delete button (cross)
-    QPushButton *deleteButton = new QPushButton("×", selectionWidget);
-    deleteButton->setFixedSize(25, 25); // Larger button size
-    deleteButton->setStyleSheet(
-        "QPushButton { "
-        "   border: none; "
-        "   font-size: 30px; "
-        "   color: white; "
-        "   background-color: transparent; "
-        "}"
-        "QPushButton:hover { "
-        "   color: darkred; "
-        "}"
-        );
-    selectionLayout->addWidget(deleteButton);
+    if (enableDelete) {
+        // Add the delete button (cross)
+        QPushButton *deleteButton = new QPushButton("×", selectionWidget);
+        deleteButton->setFixedSize(25, 25); // Larger button size
+        deleteButton->setStyleSheet(
+            "QPushButton { "
+            "   border: none; "
+            "   font-size: 30px; "
+            "   color: white; "
+            "   background-color: transparent; "
+            "}"
+            "QPushButton:hover { "
+            "   color: darkred; "
+            "}"
+            );
+        selectionLayout->addWidget(deleteButton);
+
+        // Connect the delete button to a slot for deletion
+        connect(deleteButton, &QPushButton::clicked, this, [this, id]() {
+            emit requestRemoveSelection(id); // Emit signal to remove the selection
+            removeSelectionWidget(id);      // Remove the widget from the UI
+        });
+
+    }
 
     // Insert the selection widget at the top of the main layout
     verticalLayout->insertWidget(0, selectionWidget); // Insert at the top
 
     // Store the selection widget in the map
     selectionWidgets.insert(id, selectionWidget);
-
-    // Connect the delete button to a slot for deletion
-    connect(deleteButton, &QPushButton::clicked, this, [this, id]() {
-        emit requestRemoveSelection(id); // Emit signal to remove the selection
-        removeSelectionWidget(id);      // Remove the widget from the UI
-    });
 
     // Connect the hover signals from the selectionWidget to the MenuForm signals
     connect(selectionWidget, &SelectionWidget::hovered, this, &MenuForm::selectionHovered);

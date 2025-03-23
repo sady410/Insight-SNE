@@ -134,7 +134,7 @@ AppWindow* AppWindowBuilder::build() {
 
     appWindow->setInitialized(true);
     appWindow->connectSignalsAndSlots();
-    appWindow->getSelectionManager()->createMultipleSelections(indicesList);
+    appWindow->getSelectionManager()->createMultipleSelections(indicesList, false);
     appWindow->show();
     return appWindow;
 }

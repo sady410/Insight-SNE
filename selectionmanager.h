@@ -26,8 +26,9 @@ public:
     explicit SelectionManager(QObject* parent = nullptr);
 
 public slots:
-    void createMultipleSelections(const QList<QList<int>> indicesList);
+    void createMultipleSelections(const QList<QList<int>> indicesList, const bool enableDelete);
 
+    void createSelection(const QList<int>& indices, const bool enableDelete);
     void createSelection(const QList<int>& indices);
     void removeSelection(int id);
 
@@ -36,7 +37,7 @@ public slots:
     void changeSelectionStateAndEmitSignal(int id);
 
 signals:
-    void selectionCreated(int id, const QColor &color, const QList<int>& indices);
+    void selectionCreated(int id, const QColor &color, const QList<int>& indices, const bool enableDelete);
     void selectionRemoved(int id);
 
     // Signals used when hovering in MenuForm

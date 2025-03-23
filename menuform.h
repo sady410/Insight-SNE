@@ -29,7 +29,7 @@ signals:
 
 public slots:
     // Slot to add a new selection to the menu
-    void addSelectionToMenu(int id, const QColor &color);
+    void addSelectionToMenu(int id, const QColor &color, const QList<int>& indices, const bool enableDelete);
     void removeSelectionWidget(int id);
 
 private:

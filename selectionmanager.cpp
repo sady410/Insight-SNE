@@ -24,13 +24,18 @@ void SelectionManager::changeSelectionStateAndEmitSignal(int id) {
     }
 }
 
-void SelectionManager::createMultipleSelections(const QList<QList<int>> indicesList) {
+void SelectionManager::createMultipleSelections(const QList<QList<int>> indicesList, const bool enableDelete) {
     for (const QList<int>& indices : indicesList) {
-        createSelection(indices);
+        createSelection(indices, enableDelete);
     }
 }
 
 void SelectionManager::createSelection(const QList<int>& indices) {
+    createSelection(indices, true);  // Call the main function with default value
+}
+
+
+void SelectionManager::createSelection(const QList<int>& indices, const bool enableDelete) {
     if (colorList.size() == usedColors.size()) {
         qWarning() << "No available colors for new selection!";
         return;
@@ -44,7 +49,7 @@ void SelectionManager::createSelection(const QList<int>& indices) {
     Selection newSelection(newId, color, indices);
     selections.insert(newId, newSelection);
 
-    emit selectionCreated(newId, color, indices);
+    emit selectionCreated(newId, color, indices, enableDelete);
 }
 
 void SelectionManager::removeSelection(int id) {
