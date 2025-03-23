@@ -8,7 +8,7 @@
 class AppWindowBuilder {
 public:
     AppWindowBuilder(QJsonObject json, QWidget *parent = nullptr)
-        : jsonData(json), parent(parent) {}
+        : m_jsonData(json), m_parent(parent) {}
 
     void extracted(QList<QList<int>> &indicesList,
                    QMap<QString, QList<int>> &classIndicesMap);
@@ -19,10 +19,10 @@ public:
     AppWindow* build();
 
 private:
-    QList<QList<int>> indicesList;
-    QJsonObject jsonData;
-    QWidget* parent;
-    AppWindow* appWindow = nullptr;
+    QList<QList<int>> m_indicesList;
+    QJsonObject m_jsonData;
+    QWidget* m_parent;
+    AppWindow* m_appWindow = nullptr;
 };
 
 #endif // APPWINDOWBUILDER_H

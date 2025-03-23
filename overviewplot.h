@@ -15,8 +15,8 @@ public slots:
     void updateZoomRectangle(qreal minX, qreal maxX, qreal minY, qreal maxY);
 
 private:
-    QScatterSeries *scatterSeries;
-    QGraphicsRectItem *zoomRectItem;
+    QScatterSeries *m_scatterSeries;
+    QGraphicsRectItem *m_zoomRectItem;
 };
 
 #endif // OVERVIEWPLOT_H

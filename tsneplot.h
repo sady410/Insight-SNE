@@ -29,7 +29,7 @@ signals:
 
 public slots:
     void resetZoom();
-    void decreaseSelectionCount() { selectionCount--; }
+    void decreaseSelectionCount() { m_selectionCount--; }
 
     void startHighlightSelection(const QColor &color, const QList<int>& indices);
     void stopHighlightSelection();
@@ -56,26 +56,26 @@ private:
     void selectPointsInsideLasso();
     void clearLasso();
 
-    QMap<QString, QColor> labelColors;
-    QStringList labels;
-    QMap<QString, QScatterSeries *> scatterSeriesMap;
-    std::map<QPointF, int, QPointFComparator> pointIndexMap;
+    QMap<QString, QColor> m_labelColors;
+    QStringList m_labels;
+    QMap<QString, QScatterSeries *> m_scatterSeriesMap;
+    std::map<QPointF, int, QPointFComparator> m_pointIndexMap;
 
-    QScatterSeries *highlightedSeries;
+    QScatterSeries *m_highlightedSeries;
 
-    bool isDrawing;
-    QPainterPath path;
-    QGraphicsPathItem *pathItem;
-    QPointF firstPoint;
-    QList<QPointF> *selectedPoints;
-    QList<int> selectedIndices;
-    QTimer *lassoFadeTimer;
-    qreal lassoOpacity;
+    bool m_isDrawing;
+    QPainterPath m_path;
+    QGraphicsPathItem *m_pathItem;
+    QPointF m_firstPoint;
+    QList<QPointF> *m_selectedPoints;
+    QList<int> m_selectedIndices;
+    QTimer *m_lassoFadeTimer;
+    qreal m_lassoOpacity;
 
-    int selectionCount;
+    int m_selectionCount;
     static const int MAX_SELECTIONS = 4;
 
-    qreal initialMinX, initialMaxX, initialMinY, initialMaxY;
+    qreal m_initialMinX, m_initialMaxX, m_initialMinY, m_initialMaxY;
 };
 
 #endif // TSNEPLOT_H

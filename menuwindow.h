@@ -22,16 +22,16 @@ public:
 
 private:
     Ui::MenuWindow *ui;
-    QString partialOutput; // to handle terminal output
-    PythonExecutor *pythonExecutor;
+    QString m_partialOutput; // to handle terminal output
+    PythonExecutor *m_pythonExecutor;
 
     // File & Data Handling
-    QString csvFile;
-    QList<QList<QString>> data;
-    QStringList featureNames;
-    QStringList labels;
+    QString m_csvFile;
+    QList<QList<QString>> m_data;
+    QStringList m_featureNames;
+    QStringList m_labels;
 
-    QMap<int, int> iterationsMap; // Maps slider values to iterations
+    QMap<int, int> m_iterationsMap; // Maps slider values to iterations
 
     // Utility Functions
     void readCsvFile(const QString &filePath);

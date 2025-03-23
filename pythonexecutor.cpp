@@ -7,18 +7,18 @@
 
 PythonExecutor::PythonExecutor(QObject *parent)
     : QObject(parent),
-    process(new QProcess(this))
+    m_process(new QProcess(this))
 {
     // Connect signals from QProcess to our slots
-    connect(process, &QProcess::readyReadStandardOutput, this, &PythonExecutor::onReadyReadStandardOutput);
-    connect(process, &QProcess::finished, this, &PythonExecutor::onProcessFinished);
+    connect(m_process, &QProcess::readyReadStandardOutput, this, &PythonExecutor::onReadyReadStandardOutput);
+    connect(m_process, &QProcess::finished, this, &PythonExecutor::onProcessFinished);
 }
 
 PythonExecutor::~PythonExecutor()
 {
     // Ensure the process is cleaned up
-    if (process->state() == QProcess::Running) {
-        process->terminate();
+    if (m_process->state() == QProcess::Running) {
+        m_process->terminate();
     }
 }
 
@@ -43,10 +43,10 @@ void PythonExecutor::executeScript(const QString &scriptPath, const QStringList 
     QStringList params;
     params << scriptPath << arguments;
     // qDebug() << pythonExecutable << params;
-    process->start(pythonExecutable, params);
+    m_process->start(pythonExecutable, params);
 
     // Check if the process started successfully
-    if (!process->waitForStarted()) {
+    if (!m_process->waitForStarted()) {
         emit finished(false, "Failed to start the Python process.");
     }
 }
@@ -54,7 +54,7 @@ void PythonExecutor::executeScript(const QString &scriptPath, const QStringList 
 void PythonExecutor::onReadyReadStandardOutput()
 {
     // Read the output from the Python process
-    QString output = process->readAllStandardOutput();
+    QString output = m_process->readAllStandardOutput();
     emit outputReceived(output);  // Emit the output via the signal
 }
 

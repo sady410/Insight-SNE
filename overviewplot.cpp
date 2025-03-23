@@ -4,7 +4,7 @@
 #include <QValueAxis>
 
 OverviewPlot::OverviewPlot(QChart *chart, QWidget *parent)
-    : QChartView(chart, parent), zoomRectItem(nullptr) {
+    : QChartView(chart, parent), m_zoomRectItem(nullptr) {
     setRenderHint(QPainter::Antialiasing);
 
     chart->setAnimationOptions(QChart::SeriesAnimations);
@@ -15,15 +15,15 @@ void OverviewPlot::setScatterSeries(QScatterSeries *series) {
     if (!series || !chart()) return;
 
     // Remove the previous scatter series if it exists
-    if (scatterSeries && chart()->series().contains(scatterSeries)) {
-        chart()->removeSeries(scatterSeries);
+    if (m_scatterSeries && chart()->series().contains(m_scatterSeries)) {
+        chart()->removeSeries(m_scatterSeries);
     }
 
-    scatterSeries = series;
-    scatterSeries->setColor(Qt::gray);
-    scatterSeries->setMarkerShape(QScatterSeries::MarkerShapeCircle);
-    scatterSeries->setBorderColor(Qt::black);
-    chart()->addSeries(scatterSeries);
+    m_scatterSeries = series;
+    m_scatterSeries->setColor(Qt::gray);
+    m_scatterSeries->setMarkerShape(QScatterSeries::MarkerShapeCircle);
+    m_scatterSeries->setBorderColor(Qt::black);
+    chart()->addSeries(m_scatterSeries);
 
     // Compute min/max values dynamically
     qreal minX = std::numeric_limits<qreal>::max();
@@ -61,8 +61,8 @@ void OverviewPlot::setScatterSeries(QScatterSeries *series) {
         chart()->addAxis(axisY, Qt::AlignLeft);
 
         // Attach the series to the new axes
-        scatterSeries->attachAxis(axisX);
-        scatterSeries->attachAxis(axisY);
+        m_scatterSeries->attachAxis(axisX);
+        m_scatterSeries->attachAxis(axisY);
 
         chart()->legend()->hide();
     } catch (const std::bad_alloc& e) {
@@ -74,12 +74,12 @@ void OverviewPlot::setScatterSeries(QScatterSeries *series) {
 void OverviewPlot::updateZoomRectangle(qreal minX, qreal maxX, qreal minY, qreal maxY) {
     if (!chart() || !chart()->scene()) return;
 
-    if (!zoomRectItem) {
-        zoomRectItem = new QGraphicsRectItem();
+    if (!m_zoomRectItem) {
+        m_zoomRectItem = new QGraphicsRectItem();
         QPen pen(Qt::red);
         pen.setWidth(2);
-        zoomRectItem->setPen(pen);
-        chart()->scene()->addItem(zoomRectItem);
+        m_zoomRectItem->setPen(pen);
+        chart()->scene()->addItem(m_zoomRectItem);
     }
     // Convert data coordinates to scene coordinates
     QPointF topLeft = chart()->mapToPosition(QPointF(minX, maxY));
@@ -88,5 +88,5 @@ void OverviewPlot::updateZoomRectangle(qreal minX, qreal maxX, qreal minY, qreal
     QRectF visibleArea(topLeft, bottomRight);
     // qDebug() << zoomRectItem;
     // qDebug() << visibleArea;
-    zoomRectItem->setRect(visibleArea);
+    m_zoomRectItem->setRect(visibleArea);
 }

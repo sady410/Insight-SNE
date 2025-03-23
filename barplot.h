@@ -35,18 +35,18 @@ private:
     void setupAxes(Qt::Orientation orientation);
     void calculateDynamicRange(qreal &minValue, qreal &maxValue) const;
 
-    Qt::Orientation plotOrientation;
+    Qt::Orientation m_plotOrientation;
 
-    QAbstractBarSeries *barSeries;
-    QMap<int, QBarSet*> idToBarSetMap;
+    QAbstractBarSeries *m_barSeries;
+    QMap<int, QBarSet*> m_idToBarSetMap;
 
-    QMap<int, QColor> initialBarSetColors;
-    QMap<QBarSet*, QColor> originalBarSetColors;
+    QMap<int, QColor> m_initialBarSetColors;
+    QMap<QBarSet*, QColor> m_originalBarSetColors;
 
-    QStringList labels;
-    QList<QList<qreal>> values;
+    QStringList m_labels;
+    QList<QList<qreal>> m_values;
 
-    bool firstDataAdded;
+    bool m_firstDataAdded;
 };
 
 #endif // BARPLOT_H

@@ -6,7 +6,7 @@
 AppWindow::AppWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::AppWindow)
-    , selectionManager(new SelectionManager(this))
+    , m_selectionManager(new SelectionManager(this))
 {
     ui->setupUi(this);
     qDebug() << "AppWindow UI initialized.";
@@ -33,65 +33,65 @@ class MenuForm* AppWindow::getMenuForm() const {
 }
 
 SelectionManager* AppWindow::getSelectionManager() const {
-    return selectionManager;
+    return m_selectionManager;
 }
 
 void AppWindow::connectSignalsAndSlots() { // TODO REFACTOR FOR BARPLOTS
 
     // Selection creation
-    connect(getTsneForm()->tsnePlot, &TsnePlot::pointsSelected, selectionManager,
+    connect(getTsneForm()->tsnePlot, &TsnePlot::pointsSelected, m_selectionManager,
             static_cast<void (SelectionManager::*)(const QList<int>&)>(&SelectionManager::createSelection));
 
-    connect(selectionManager, &SelectionManager::selectionCreated, getMenuForm(), &MenuForm::addSelectionToMenu);
-    connect(selectionManager, &SelectionManager::selectionCreated, getExplanationForm()->magnitudesPlot, &BarPlot::addValue);
-    connect(selectionManager, &SelectionManager::selectionCreated, getExplanationForm()->gradientsPlotTop, &BarPlot::addValue);
-    connect(selectionManager, &SelectionManager::selectionCreated, getExplanationForm()->gradientsPlotBottom, &BarPlot::addValue);
-    connect(selectionManager, &SelectionManager::selectionCreated, getFeaturesForm()->featuresPlot, &BarPlot::addValue);
+    connect(m_selectionManager, &SelectionManager::selectionCreated, getMenuForm(), &MenuForm::addSelectionToMenu);
+    connect(m_selectionManager, &SelectionManager::selectionCreated, getExplanationForm()->magnitudesPlot, &BarPlot::addValue);
+    connect(m_selectionManager, &SelectionManager::selectionCreated, getExplanationForm()->gradientsPlotTop, &BarPlot::addValue);
+    connect(m_selectionManager, &SelectionManager::selectionCreated, getExplanationForm()->gradientsPlotBottom, &BarPlot::addValue);
+    connect(m_selectionManager, &SelectionManager::selectionCreated, getFeaturesForm()->featuresPlot, &BarPlot::addValue);
 
     // Selection removal
-    connect(getMenuForm(), &MenuForm::requestRemoveSelection, selectionManager, &SelectionManager::removeSelection);
+    connect(getMenuForm(), &MenuForm::requestRemoveSelection, m_selectionManager, &SelectionManager::removeSelection);
 
-    connect(selectionManager, &SelectionManager::selectionRemoved, getFeaturesForm()->featuresPlot, &BarPlot::removeValue);
-    connect(selectionManager, &SelectionManager::selectionRemoved, getExplanationForm()->magnitudesPlot, &BarPlot::removeValue);
-    connect(selectionManager, &SelectionManager::selectionRemoved, getExplanationForm()->gradientsPlotTop, &BarPlot::removeValue);
-    connect(selectionManager, &SelectionManager::selectionRemoved, getExplanationForm()->gradientsPlotBottom, &BarPlot::removeValue);
-    connect(selectionManager, &SelectionManager::selectionRemoved, this, [this](int) {
+    connect(m_selectionManager, &SelectionManager::selectionRemoved, getFeaturesForm()->featuresPlot, &BarPlot::removeValue);
+    connect(m_selectionManager, &SelectionManager::selectionRemoved, getExplanationForm()->magnitudesPlot, &BarPlot::removeValue);
+    connect(m_selectionManager, &SelectionManager::selectionRemoved, getExplanationForm()->gradientsPlotTop, &BarPlot::removeValue);
+    connect(m_selectionManager, &SelectionManager::selectionRemoved, getExplanationForm()->gradientsPlotBottom, &BarPlot::removeValue);
+    connect(m_selectionManager, &SelectionManager::selectionRemoved, this, [this](int) {
         ui->tsneForm->tsnePlot->decreaseSelectionCount();
     });
 
     // Hovering
-    connect(getMenuForm(), &MenuForm::selectionHovered, selectionManager, &SelectionManager::findHoveredSelectionAndEmitSignal);
-    connect(getMenuForm(), &MenuForm::selectionLeft, selectionManager, &SelectionManager::stopHighlightSelection);
+    connect(getMenuForm(), &MenuForm::selectionHovered, m_selectionManager, &SelectionManager::findHoveredSelectionAndEmitSignal);
+    connect(getMenuForm(), &MenuForm::selectionLeft, m_selectionManager, &SelectionManager::stopHighlightSelection);
 
-    connect(selectionManager, &SelectionManager::startHighlightSelection, getTsneForm()->tsnePlot, &TsnePlot::startHighlightSelection);
-    connect(selectionManager, &SelectionManager::stopHighlightSelection, getTsneForm()->tsnePlot, &TsnePlot::stopHighlightSelection);
+    connect(m_selectionManager, &SelectionManager::startHighlightSelection, getTsneForm()->tsnePlot, &TsnePlot::startHighlightSelection);
+    connect(m_selectionManager, &SelectionManager::stopHighlightSelection, getTsneForm()->tsnePlot, &TsnePlot::stopHighlightSelection);
 
-    connect(selectionManager, &SelectionManager::startHighlightSelection, getFeaturesForm()->featuresPlot, &BarPlot::startHighlightSelection);
-    connect(selectionManager, &SelectionManager::stopHighlightSelection, getFeaturesForm()->featuresPlot, &BarPlot::stopHighlightSelection);
+    connect(m_selectionManager, &SelectionManager::startHighlightSelection, getFeaturesForm()->featuresPlot, &BarPlot::startHighlightSelection);
+    connect(m_selectionManager, &SelectionManager::stopHighlightSelection, getFeaturesForm()->featuresPlot, &BarPlot::stopHighlightSelection);
 
-    connect(selectionManager, &SelectionManager::startHighlightSelection, getExplanationForm()->magnitudesPlot, &BarPlot::startHighlightSelection);
-    connect(selectionManager, &SelectionManager::stopHighlightSelection, getExplanationForm()->magnitudesPlot, &BarPlot::stopHighlightSelection);
+    connect(m_selectionManager, &SelectionManager::startHighlightSelection, getExplanationForm()->magnitudesPlot, &BarPlot::startHighlightSelection);
+    connect(m_selectionManager, &SelectionManager::stopHighlightSelection, getExplanationForm()->magnitudesPlot, &BarPlot::stopHighlightSelection);
 
-    connect(selectionManager, &SelectionManager::startHighlightSelection, getExplanationForm()->gradientsPlotTop, &BarPlot::startHighlightSelection);
-    connect(selectionManager, &SelectionManager::stopHighlightSelection, getExplanationForm()->gradientsPlotTop, &BarPlot::stopHighlightSelection);
+    connect(m_selectionManager, &SelectionManager::startHighlightSelection, getExplanationForm()->gradientsPlotTop, &BarPlot::startHighlightSelection);
+    connect(m_selectionManager, &SelectionManager::stopHighlightSelection, getExplanationForm()->gradientsPlotTop, &BarPlot::stopHighlightSelection);
 
-    connect(selectionManager, &SelectionManager::startHighlightSelection, getExplanationForm()->gradientsPlotBottom, &BarPlot::startHighlightSelection);
-    connect(selectionManager, &SelectionManager::stopHighlightSelection, getExplanationForm()->gradientsPlotBottom, &BarPlot::stopHighlightSelection);
+    connect(m_selectionManager, &SelectionManager::startHighlightSelection, getExplanationForm()->gradientsPlotBottom, &BarPlot::startHighlightSelection);
+    connect(m_selectionManager, &SelectionManager::stopHighlightSelection, getExplanationForm()->gradientsPlotBottom, &BarPlot::stopHighlightSelection);
 
     // Enabling/Disabling selections
-    connect(getMenuForm(), &MenuForm::selectionStateChanged, selectionManager, &SelectionManager::changeSelectionStateAndEmitSignal);
+    connect(getMenuForm(), &MenuForm::selectionStateChanged, m_selectionManager, &SelectionManager::changeSelectionStateAndEmitSignal);
 
-    connect(selectionManager, &SelectionManager::selectionEnabled, getFeaturesForm()->featuresPlot, &BarPlot::addValue);
-    connect(selectionManager, &SelectionManager::selectionDisabled, getFeaturesForm()->featuresPlot, &BarPlot::removeValue);
+    connect(m_selectionManager, &SelectionManager::selectionEnabled, getFeaturesForm()->featuresPlot, &BarPlot::addValue);
+    connect(m_selectionManager, &SelectionManager::selectionDisabled, getFeaturesForm()->featuresPlot, &BarPlot::removeValue);
 
-    connect(selectionManager, &SelectionManager::selectionEnabled, getExplanationForm()->magnitudesPlot, &BarPlot::addValue);
-    connect(selectionManager, &SelectionManager::selectionDisabled, getExplanationForm()->magnitudesPlot, &BarPlot::removeValue);
+    connect(m_selectionManager, &SelectionManager::selectionEnabled, getExplanationForm()->magnitudesPlot, &BarPlot::addValue);
+    connect(m_selectionManager, &SelectionManager::selectionDisabled, getExplanationForm()->magnitudesPlot, &BarPlot::removeValue);
 
-    connect(selectionManager, &SelectionManager::selectionEnabled, getExplanationForm()->gradientsPlotTop, &BarPlot::addValue);
-    connect(selectionManager, &SelectionManager::selectionDisabled, getExplanationForm()->gradientsPlotTop, &BarPlot::removeValue);
+    connect(m_selectionManager, &SelectionManager::selectionEnabled, getExplanationForm()->gradientsPlotTop, &BarPlot::addValue);
+    connect(m_selectionManager, &SelectionManager::selectionDisabled, getExplanationForm()->gradientsPlotTop, &BarPlot::removeValue);
 
-    connect(selectionManager, &SelectionManager::selectionEnabled, getExplanationForm()->gradientsPlotBottom, &BarPlot::addValue);
-    connect(selectionManager, &SelectionManager::selectionDisabled, getExplanationForm()->gradientsPlotBottom, &BarPlot::removeValue);
+    connect(m_selectionManager, &SelectionManager::selectionEnabled, getExplanationForm()->gradientsPlotBottom, &BarPlot::addValue);
+    connect(m_selectionManager, &SelectionManager::selectionDisabled, getExplanationForm()->gradientsPlotBottom, &BarPlot::removeValue);
 
     // Zoom
     connect(getTsneForm()->tsnePlot, &TsnePlot::zoomChanged, getOverviewForm()->overviewPlot, &OverviewPlot::updateZoomRectangle);
@@ -154,7 +154,7 @@ QList<QList<qreal>> AppWindow::getAxisGradient(const QList<QList<QList<qreal>>> 
 void AppWindow::resizeEvent(QResizeEvent *event) {
     QMainWindow::resizeEvent(event);
 
-    if (!isInitialized) {
+    if (!m_isInitialized) {
         return;
     }
 

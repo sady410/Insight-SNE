@@ -8,13 +8,13 @@ inline size_t qHash(const QColor &color, size_t seed = 0)
     return qHash(color.rgba(), seed); // Use the rgba value for hashing
 }
 
-SelectionManager::SelectionManager(QObject* parent) : QObject(parent), nextId(0) {
-    colorList = {Qt::red, Qt::blue, Qt::green, Qt::yellow, Qt::cyan, Qt::magenta, Qt::gray, Qt::darkRed};
+SelectionManager::SelectionManager(QObject* parent) : QObject(parent), m_nextId(0) {
+    m_colorList = {Qt::red, Qt::blue, Qt::green, Qt::yellow, Qt::cyan, Qt::magenta, Qt::gray, Qt::darkRed};
 }
 
 void SelectionManager::changeSelectionStateAndEmitSignal(int id) {
-    if (selections.contains(id)) {
-        Selection &sel = selections[id];
+    if (m_selections.contains(id)) {
+        Selection &sel = m_selections[id];
         sel.state = !sel.state;
         if (sel.state == true) {
             emit selectionEnabled(id, sel.color, sel.indices);
@@ -36,7 +36,7 @@ void SelectionManager::createSelection(const QList<int>& indices) {
 
 
 void SelectionManager::createSelection(const QList<int>& indices, const bool enableDelete) {
-    if (colorList.size() == usedColors.size()) {
+    if (m_colorList.size() == m_usedColors.size()) {
         qWarning() << "No available colors for new selection!";
         return;
     }
@@ -44,21 +44,21 @@ void SelectionManager::createSelection(const QList<int>& indices, const bool ena
     QColor color = getAvailableColor();
 
     // Add the color to usedColors
-    usedColors.insert(color);
+    m_usedColors.insert(color);
 
     Selection newSelection(newId, color, indices);
-    selections.insert(newId, newSelection);
+    m_selections.insert(newId, newSelection);
 
     emit selectionCreated(newId, color, indices, enableDelete);
 }
 
 void SelectionManager::removeSelection(int id) {
-    if (selections.contains(id)) {
+    if (m_selections.contains(id)) {
         // Release the color associated with the selection
-        releaseColor(selections.value(id).color);
+        releaseColor(m_selections.value(id).color);
 
-        selections.remove(id);
-        availableIds.push(id);
+        m_selections.remove(id);
+        m_availableIds.push(id);
         emit selectionRemoved(id);
         emit stopHighlightSelection();
     } else {
@@ -67,8 +67,8 @@ void SelectionManager::removeSelection(int id) {
 }
 
 void SelectionManager::findHoveredSelectionAndEmitSignal(int id) {
-    if (selections.contains(id)) {
-        Selection selection = selections.value(id);
+    if (m_selections.contains(id)) {
+        Selection selection = m_selections.value(id);
         emit startHighlightSelection(selection.color, selection.indices);
     } else {
         qWarning() << "Selection with ID" << id << "not found.";
@@ -76,15 +76,15 @@ void SelectionManager::findHoveredSelectionAndEmitSignal(int id) {
 }
 
 int SelectionManager::generateUniqueId() {
-    if (!availableIds.isEmpty()) {
-        return availableIds.pop(); // Reuse an available ID
+    if (!m_availableIds.isEmpty()) {
+        return m_availableIds.pop(); // Reuse an available ID
     }
-    return nextId++; // Otherwise, generate a new ID
+    return m_nextId++; // Otherwise, generate a new ID
 }
 
 QColor SelectionManager::getAvailableColor() {
-    for (const QColor& color : std::as_const(colorList)) {
-        if (!usedColors.contains(color)) {
+    for (const QColor& color : std::as_const(m_colorList)) {
+        if (!m_usedColors.contains(color)) {
             return color;
         }
     }
@@ -92,5 +92,5 @@ QColor SelectionManager::getAvailableColor() {
 }
 
 void SelectionManager::releaseColor(const QColor& color) {
-    usedColors.remove(color);
+    m_usedColors.remove(color);
 }

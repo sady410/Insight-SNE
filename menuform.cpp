@@ -16,13 +16,13 @@ MenuForm::MenuForm(QWidget *parent)
     ui->setupUi(this);
 
     // Initialize the vertical layout
-    verticalLayout = new QVBoxLayout(this);
-    verticalLayout->setSpacing(10); // Adjust spacing as needed
+    m_verticalLayout = new QVBoxLayout(this);
+    m_verticalLayout->setSpacing(10); // Adjust spacing as needed
 
     // Add a spacer to push content to the top
-    verticalLayout->addStretch(); // This will act as the spacer
+    m_verticalLayout->addStretch(); // This will act as the spacer
 
-    setLayout(verticalLayout);
+    setLayout(m_verticalLayout);
 }
 
 MenuForm::~MenuForm() {
@@ -71,10 +71,10 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>&
     }
 
     // Insert the selection widget at the top of the main layout
-    verticalLayout->insertWidget(0, selectionWidget); // Insert at the top
+    m_verticalLayout->insertWidget(0, selectionWidget); // Insert at the top
 
     // Store the selection widget in the map
-    selectionWidgets.insert(id, selectionWidget);
+    m_selectionWidgets.insert(id, selectionWidget);
 
     // Connect the hover signals from the selectionWidget to the MenuForm signals
     connect(selectionWidget, &SelectionWidget::hovered, this, &MenuForm::selectionHovered);
@@ -86,9 +86,9 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>&
 }
 
 void MenuForm::removeSelectionWidget(int id) {
-    if (selectionWidgets.contains(id)) {
-        QWidget *widget = selectionWidgets.take(id); // Remove the widget from the map
-        verticalLayout->removeWidget(widget);       // Remove the widget from the layout
+    if (m_selectionWidgets.contains(id)) {
+        QWidget *widget = m_selectionWidgets.take(id); // Remove the widget from the map
+        m_verticalLayout->removeWidget(widget);       // Remove the widget from the layout
         delete widget;                              // Delete the widget
     }
 }

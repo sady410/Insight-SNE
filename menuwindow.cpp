@@ -34,11 +34,11 @@ MenuWindow::MenuWindow(QWidget *parent)
     ui->perplexitySlider->setValue(15);
     connect(ui->perplexitySlider, &QSlider::valueChanged, this, &MenuWindow::updatePerplexityLabel);
 
-    iterationsMap = {
+    m_iterationsMap = {
         {0, 100}, {1, 200}, {2, 300}, {3, 400}, {4, 500},
         {5, 600}, {6, 700}, {7, 800}, {8, 900}, {9, 1000}
     };
-    ui->iterationsLabel->setText("Iterations: " + QString::number(iterationsMap[3]));
+    ui->iterationsLabel->setText("Iterations: " + QString::number(m_iterationsMap[3]));
 
     ui->iterationsSlider->setRange(0, 9);
     ui->iterationsSlider->setTickInterval(1);
@@ -52,10 +52,10 @@ MenuWindow::MenuWindow(QWidget *parent)
     connect(ui->runAppButton, &QPushButton::clicked, this, &MenuWindow::onRunAppButtonClicked);
 
     // Python Executor Instance
-    pythonExecutor = new class PythonExecutor(this);
+    m_pythonExecutor = new class PythonExecutor(this);
 
-    connect(pythonExecutor, &PythonExecutor::outputReceived, this, &MenuWindow::onOutputReceived);
-    connect(pythonExecutor, &PythonExecutor::finished, this, &MenuWindow::onScriptFinished);
+    connect(m_pythonExecutor, &PythonExecutor::outputReceived, this, &MenuWindow::onOutputReceived);
+    connect(m_pythonExecutor, &PythonExecutor::finished, this, &MenuWindow::onScriptFinished);
 }
 
 MenuWindow::~MenuWindow()
@@ -68,7 +68,7 @@ void MenuWindow::updatePerplexityLabel(int value) {
 }
 
 void MenuWindow::updateIterationsLabel(int value) {
-    int iterations = iterationsMap[value];
+    int iterations = m_iterationsMap[value];
     ui->iterationsLabel->setText("Iterations: " + QString::number(iterations));
 }
 
@@ -86,35 +86,35 @@ void MenuWindow::onRunAppButtonClicked()
 
     QStringList args = constructArgsString();
     // qDebug() << args;
-    pythonExecutor->executeScript(QDir(projectRoot).filePath("main.py"), args);
+    m_pythonExecutor->executeScript(QDir(projectRoot).filePath("main.py"), args);
 }
 
 void MenuWindow::onOutputReceived(const QString &output)
 {
-    partialOutput += output.trimmed();
+    m_partialOutput += output.trimmed();
     // qDebug() << partialOutput;
     // Try to parse JSON
-    if (partialOutput.endsWith("}") || partialOutput.endsWith("]")) {
-        QJsonDocument json = QJsonDocument::fromJson(partialOutput.toUtf8());
+    if (m_partialOutput.endsWith("}") || m_partialOutput.endsWith("]")) {
+        QJsonDocument json = QJsonDocument::fromJson(m_partialOutput.toUtf8());
         if (!json.isNull() && json.isObject()) {
             QJsonObject jsonObject = json.object();
 
             // Add feature names and labels
             QJsonArray featureNamesArray;
-            for (const QString &feature : std::as_const(featureNames)) {
+            for (const QString &feature : std::as_const(m_featureNames)) {
                 featureNamesArray.append(feature);
             }
             jsonObject["featureNames"] = featureNamesArray;
 
             QJsonArray labelsArray;
-            for (const QString &label : std::as_const(labels)) {
+            for (const QString &label : std::as_const(m_labels)) {
                 labelsArray.append(label);
             }
             jsonObject["labels"] = labelsArray;
 
             // Add data to JSON
             QJsonArray dataArray;
-            for (const QList<QString> &row : std::as_const(data)) {
+            for (const QList<QString> &row : std::as_const(m_data)) {
                 QJsonArray rowArray;
                 for (const QString &value : row) {
                     // Convert QString to qreal (double)
@@ -139,7 +139,7 @@ void MenuWindow::onOutputReceived(const QString &output)
                 .build();
 
             this->close();
-            partialOutput.clear();
+            m_partialOutput.clear();
         }
     } else {
         qDebug() << "Waiting for full JSON...";
@@ -160,9 +160,9 @@ void MenuWindow::selectCsvFile() {
 
     if (!fileName.isEmpty()) {
         ui->fileLabel->setText("Selected File: " + fileName);
-        csvFile = fileName;
-        readCsvFile(csvFile);
-        if (!data.isEmpty()) {
+        m_csvFile = fileName;
+        readCsvFile(m_csvFile);
+        if (!m_data.isEmpty()) {
             ui->runAppButton->setEnabled(true);
         }
     } else {
@@ -184,8 +184,8 @@ void MenuWindow::readCsvFile(const QString &filePath) {
 
     // Read the first line for feature names
     QString firstLine = in.readLine();
-    featureNames = firstLine.split(";");
-    featureNames.removeLast(); // TODO MAYBE DO IT SMARTER
+    m_featureNames = firstLine.split(";");
+    m_featureNames.removeLast(); // TODO MAYBE DO IT SMARTER
 
     // qDebug() << "Feature Names: " << featureNames;
 
@@ -206,8 +206,8 @@ void MenuWindow::readCsvFile(const QString &filePath) {
         label = fields.last();
 
         // Store the features and the label
-        data.append(features);
-        labels.append(label);
+        m_data.append(features);
+        m_labels.append(label);
     }
 
     file.close();
@@ -219,7 +219,7 @@ void MenuWindow::readCsvFile(const QString &filePath) {
 QStringList MenuWindow::constructArgsString() {
     QStringList formattedRows;
 
-    for (const QList<QString>& row : std::as_const(data)) {
+    for (const QList<QString>& row : std::as_const(m_data)) {
         QString formattedRow = "[" + row.join(",") + "]";
         formattedRows.append(formattedRow);
     }
@@ -227,7 +227,7 @@ QStringList MenuWindow::constructArgsString() {
     int perplexity = ui->perplexitySlider->value();
 
     int iterationsIndex = ui->iterationsSlider->value();
-    int iterations = iterationsMap[iterationsIndex];
+    int iterations = m_iterationsMap[iterationsIndex];
 
     QList<QString> args;
 

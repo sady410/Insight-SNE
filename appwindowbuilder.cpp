@@ -11,17 +11,17 @@
 #include <QBarSeries>
 
 AppWindowBuilder& AppWindowBuilder::initializeTsnePlot() {
-    if (!appWindow) {
-        appWindow = new AppWindow(parent);
+    if (!m_appWindow) {
+        m_appWindow = new AppWindow(m_parent);
     }
-    TsneForm* tsneForm = appWindow->getTsneForm();
-    QJsonArray labels = jsonData.value("labels").toArray();
+    TsneForm* tsneForm = m_appWindow->getTsneForm();
+    QJsonArray labels = m_jsonData.value("labels").toArray();
     QStringList labelsList;
     std::transform(labels.begin(), labels.end(), std::back_inserter(labelsList),
                    [](const QJsonValue &value) { return value.toString(); });
     tsneForm->tsnePlot->setLabels(labelsList);
 
-    QJsonArray embedding = jsonData.value("Y").toArray();
+    QJsonArray embedding = m_jsonData.value("Y").toArray();
     QScatterSeries *tsneSeries = new QScatterSeries();
     for (const QJsonValue &val : std::as_const(embedding)) {
         QJsonArray point = val.toArray();
@@ -44,20 +44,20 @@ AppWindowBuilder& AppWindowBuilder::initializeTsnePlot() {
         classIndicesMap[labelsList[i]].append(i);
     }
 
-    indicesList.append(allIndices);
+    m_indicesList.append(allIndices);
     for (const auto& indices : std::as_const(classIndicesMap)) {
-        indicesList.append(indices);
+        m_indicesList.append(indices);
     }
 
     return *this;
 }
 
 AppWindowBuilder& AppWindowBuilder::initializeOverviewPlot() {
-    if (!appWindow) {
-        appWindow = new AppWindow(parent);
+    if (!m_appWindow) {
+        m_appWindow = new AppWindow(m_parent);
     }
 
-    QJsonArray embedding = jsonData.value("Y").toArray();
+    QJsonArray embedding = m_jsonData.value("Y").toArray();
     QScatterSeries *overviewSeries = new QScatterSeries();
     for (const QJsonValue &val : std::as_const(embedding)) {
         QJsonArray point = val.toArray();
@@ -68,24 +68,24 @@ AppWindowBuilder& AppWindowBuilder::initializeOverviewPlot() {
         }
     }
     overviewSeries->setMarkerSize(8.0);
-    appWindow->getOverviewForm()->overviewPlot->setScatterSeries(overviewSeries);
+    m_appWindow->getOverviewForm()->overviewPlot->setScatterSeries(overviewSeries);
 
     return *this;
 }
 
 AppWindowBuilder& AppWindowBuilder::initializeFeaturesPlot() {
-    if (!appWindow) {
-        appWindow = new AppWindow(parent);
+    if (!m_appWindow) {
+        m_appWindow = new AppWindow(m_parent);
     }
-    FeaturesForm* featuresForm = appWindow->getFeaturesForm();
+    FeaturesForm* featuresForm = m_appWindow->getFeaturesForm();
 
-    QJsonArray featureNames = jsonData.value("featureNames").toArray();
+    QJsonArray featureNames = m_jsonData.value("featureNames").toArray();
     QStringList featureNamesList;
     std::transform(featureNames.begin(), featureNames.end(), std::back_inserter(featureNamesList),
                    [](const QJsonValue &value) { return value.toString(); });
     featuresForm->featuresPlot->setLabels(featureNamesList);
 
-    QJsonArray data = jsonData.value("data").toArray();
+    QJsonArray data = m_jsonData.value("data").toArray();
     QList<QList<qreal>> dataList = JsonParser::jsonArrayToQList2D(data);
     featuresForm->featuresPlot->setValues(dataList);
     featuresForm->featuresPlot->initPlot(Qt::Vertical);
@@ -94,13 +94,13 @@ AppWindowBuilder& AppWindowBuilder::initializeFeaturesPlot() {
 }
 
 AppWindowBuilder& AppWindowBuilder::initializeExplanationPlots() {
-    if (!appWindow) {
-        appWindow = new AppWindow(parent);
+    if (!m_appWindow) {
+        m_appWindow = new AppWindow(m_parent);
     }
-    ExplanationForm* explanationForm = appWindow->getExplanationForm();
+    ExplanationForm* explanationForm = m_appWindow->getExplanationForm();
 
     // Set labels
-    QJsonArray featureNames = jsonData.value("featureNames").toArray();
+    QJsonArray featureNames = m_jsonData.value("featureNames").toArray();
     QStringList featureNamesList;
     std::transform(featureNames.begin(), featureNames.end(), std::back_inserter(featureNamesList),
                    [](const QJsonValue &value) { return value.toString(); });
@@ -112,15 +112,15 @@ AppWindowBuilder& AppWindowBuilder::initializeExplanationPlots() {
     explanationForm->gradientsPlotTop->initPlot(Qt::Horizontal);
     explanationForm->gradientsPlotBottom->initPlot(Qt::Horizontal);
 
-    QJsonArray gradients = jsonData.value("gradients").toArray();
+    QJsonArray gradients = m_jsonData.value("gradients").toArray();
     QList<QList<QList<qreal>>> gradientsList = JsonParser::jsonArrayToQList3D(gradients);
-    explanationForm->gradientsPlotTop->setValues(appWindow->getAxisGradient(gradientsList, 0));
-    explanationForm->gradientsPlotBottom->setValues(appWindow->getAxisGradient(gradientsList, 1));
+    explanationForm->gradientsPlotTop->setValues(m_appWindow->getAxisGradient(gradientsList, 0));
+    explanationForm->gradientsPlotBottom->setValues(m_appWindow->getAxisGradient(gradientsList, 1));
 
     // Magnitudes plot
     explanationForm->magnitudesPlot->initPlot(Qt::Horizontal);
 
-    QJsonArray magnitudes = jsonData.value("magnitudes").toArray();
+    QJsonArray magnitudes = m_jsonData.value("magnitudes").toArray();
     QList<QList<qreal>> magnitudesList = JsonParser::jsonArrayToQList2D(magnitudes);
     explanationForm->magnitudesPlot->setValues(magnitudesList);
 
@@ -128,13 +128,13 @@ AppWindowBuilder& AppWindowBuilder::initializeExplanationPlots() {
 }
 
 AppWindow* AppWindowBuilder::build() {
-    if (!appWindow) {
-        appWindow = new AppWindow(parent);
+    if (!m_appWindow) {
+        m_appWindow = new AppWindow(m_parent);
     }
 
-    appWindow->setInitialized(true);
-    appWindow->connectSignalsAndSlots();
-    appWindow->getSelectionManager()->createMultipleSelections(indicesList, false);
-    appWindow->show();
-    return appWindow;
+    m_appWindow->setInitialized(true);
+    m_appWindow->connectSignalsAndSlots();
+    m_appWindow->getSelectionManager()->createMultipleSelections(m_indicesList, false);
+    m_appWindow->show();
+    return m_appWindow;
 }

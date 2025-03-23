@@ -34,8 +34,8 @@ public slots:
 
 private:
     Ui::MenuForm *ui;
-    QVBoxLayout *verticalLayout; // Vertical layout to hold selections
-    QMap<int, QWidget*> selectionWidgets;
+    QVBoxLayout *m_verticalLayout; // Vertical layout to hold selections
+    QMap<int, QWidget*> m_selectionWidgets;
 };
 
 #endif // MENUFORM_H

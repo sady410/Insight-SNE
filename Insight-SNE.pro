@@ -63,6 +63,3 @@ DISTFILES += \
     gradients.py \
     main.py \
     tsne.py
-
-RESOURCES += \
-    resources.qrc

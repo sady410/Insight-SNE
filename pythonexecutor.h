@@ -30,7 +30,7 @@ private slots:
     void onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
 
 private:
-    QProcess *process; // The QProcess that runs the Python script
+    QProcess *m_process; // The QProcess that runs the Python script
 };
 
 #endif // PYTHONEXECUTOR_H

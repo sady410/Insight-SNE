@@ -33,7 +33,7 @@ public:
 
     void connectSignalsAndSlots();
 
-    void setInitialized(bool initialized) { isInitialized = initialized; }
+    void setInitialized(bool initialized) { m_isInitialized = initialized; }
 
 protected:
     // Override the resizeEvent method
@@ -41,8 +41,8 @@ protected:
 
 private:
     Ui::AppWindow *ui; // UI components
-    SelectionManager *selectionManager;
-    bool isInitialized = false; // Flag to track initialization
+    SelectionManager *m_selectionManager;
+    bool m_isInitialized = false; // Flag to track initialization
 };
 
 #endif // APPWINDOW_H

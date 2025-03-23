@@ -22,7 +22,6 @@ public:
 
 private:
     Ui::TsneForm *ui;
-    QList<QColor> colorList;
 };
 
 #endif // TSNEFORM_H

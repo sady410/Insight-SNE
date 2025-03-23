@@ -49,12 +49,12 @@ signals:
     void selectionDisabled(int id);
 
 private:
-    QList<QColor> colorList;
-    QSet<QColor> usedColors;
+    QList<QColor> m_colorList;
+    QSet<QColor> m_usedColors;
 
-    QHash<int, Selection> selections; // Use QHash for efficient lookups by ID
-    QStack<int> availableIds; // Stack to store reusable IDs
-    int nextId; // Counter for generating new IDs
+    QHash<int, Selection> m_selections; // Use QHash for efficient lookups by ID
+    QStack<int> m_availableIds; // Stack to store reusable IDs
+    int m_nextId; // Counter for generating new IDs
 
     int generateUniqueId();
     QColor getAvailableColor();
