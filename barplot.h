@@ -19,7 +19,7 @@ public:
     void setValues(const QList<QList<qreal>> &values);
 
 public slots:
-    void addValue(int id, const QColor &color, const QList<int> &indices);
+    void addValue(int id, const QColor &color, const QList<int> &indices, const bool enableDelete, const bool state);
     void removeValue(int id);
 
     void startHighlightSelection(const QColor &color, const QList<int>& indices);

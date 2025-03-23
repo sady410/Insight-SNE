@@ -10,7 +10,7 @@ class ColorCircle : public QWidget {
     Q_OBJECT
 
 public:
-    ColorCircle(const QColor &color, QWidget *parent = nullptr);
+    ColorCircle(const QColor &color, const bool state, QWidget *parent = nullptr);
     void toggleState();
     bool isActive() const;
 

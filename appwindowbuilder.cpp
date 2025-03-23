@@ -134,7 +134,11 @@ AppWindow* AppWindowBuilder::build() {
 
     m_appWindow->setInitialized(true);
     m_appWindow->connectSignalsAndSlots();
-    m_appWindow->getSelectionManager()->createMultipleSelections(m_indicesList, false);
+
+    for (const QList<int>& indices : std::as_const(m_indicesList)) {
+        m_appWindow->getSelectionManager()->createSelection(indices, false, false);
+    }
+
     m_appWindow->show();
     return m_appWindow;
 }

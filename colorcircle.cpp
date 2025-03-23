@@ -1,7 +1,7 @@
 #include "colorcircle.h"
 
-ColorCircle::ColorCircle(const QColor &color, QWidget *parent)
-    : QWidget(parent), m_color(color), m_active(true) {
+ColorCircle::ColorCircle(const QColor &color, const bool state, QWidget *parent)
+    : QWidget(parent), m_color(color), m_active(state) {
     setFixedSize(20, 20); // Small circle size
 }
 

@@ -29,7 +29,8 @@ MenuForm::~MenuForm() {
     delete ui;
 }
 
-void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>& indices, const bool enableDelete) {
+void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>& indices, const bool enableDelete, const bool state) {
+    Q_UNUSED(indices);
     // Create a container widget for the selection
     SelectionWidget *selectionWidget = new SelectionWidget(id, this);
 
@@ -38,7 +39,7 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>&
     selectionLayout->setContentsMargins(0, 0, 0, 0); // Remove margins
 
     // Add the colored circle
-    ColorCircle *circle = new ColorCircle(color, selectionWidget);
+    ColorCircle *circle = new ColorCircle(color, state, selectionWidget);
     selectionLayout->addWidget(circle);
 
     // Add the label

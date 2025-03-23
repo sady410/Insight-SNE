@@ -32,7 +32,13 @@ void BarPlot::initPlot(Qt::Orientation orientation) {
     m_plotOrientation = orientation;
 }
 
-void BarPlot::addValue(int id, const QColor &color, const QList<int> &indices) {
+void BarPlot::addValue(int id, const QColor &color, const QList<int> &indices, const bool enableDelete, const bool state) {
+    Q_UNUSED(enableDelete);
+
+    if (!state) {
+        return;
+    }
+
     if (indices.isEmpty()) {
         qDebug() << "No indices provided";
         return;
@@ -240,6 +246,8 @@ void BarPlot::handleBarClicked(int index, QBarSet *barSet) {
 }
 
 void BarPlot::startHighlightSelection(const QColor &color, const QList<int>& indices) {
+    Q_UNUSED(indices);
+
     if (!m_barSeries) return;
 
     const auto &barSets = m_barSeries->barSets();

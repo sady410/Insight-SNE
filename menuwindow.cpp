@@ -1,27 +1,18 @@
 #include "menuwindow.h"
 #include "appwindowbuilder.h"
-#include "qjsonarray.h"
 #include "ui_menuwindow.h"
 
 #include <QDebug>
 #include <QFileDialog>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 
 MenuWindow::MenuWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MenuWindow)
 {
     ui->setupUi(this);
-
-    QFile styleFile(":/styles/styles.qss");
-    if (styleFile.open(QFile::ReadOnly)) {
-        QString styleSheet = QLatin1String(styleFile.readAll());
-        qApp->setStyleSheet(styleSheet);
-        styleFile.close();
-    } else {
-        qDebug() << "Failed to load stylesheet.";
-    }
 
     connect(ui->uploadCsvButton, &QPushButton::clicked, this, &MenuWindow::selectCsvFile);
 

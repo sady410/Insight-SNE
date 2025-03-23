@@ -17,25 +17,19 @@ void SelectionManager::changeSelectionStateAndEmitSignal(int id) {
         Selection &sel = m_selections[id];
         sel.state = !sel.state;
         if (sel.state == true) {
-            emit selectionEnabled(id, sel.color, sel.indices);
+            emit selectionEnabled(id, sel.color, sel.indices, true, sel.state);
         } else {
             emit selectionDisabled(id);
         }
     }
 }
 
-void SelectionManager::createMultipleSelections(const QList<QList<int>> indicesList, const bool enableDelete) {
-    for (const QList<int>& indices : indicesList) {
-        createSelection(indices, enableDelete);
-    }
-}
-
 void SelectionManager::createSelection(const QList<int>& indices) {
-    createSelection(indices, true);  // Call the main function with default value
+    createSelection(indices, true, true);  // Call the main function with default value
 }
 
 
-void SelectionManager::createSelection(const QList<int>& indices, const bool enableDelete) {
+void SelectionManager::createSelection(const QList<int>& indices, const bool enableDelete, const bool state) {
     if (m_colorList.size() == m_usedColors.size()) {
         qWarning() << "No available colors for new selection!";
         return;
@@ -46,10 +40,10 @@ void SelectionManager::createSelection(const QList<int>& indices, const bool ena
     // Add the color to usedColors
     m_usedColors.insert(color);
 
-    Selection newSelection(newId, color, indices);
+    Selection newSelection(newId, color, indices, state);
     m_selections.insert(newId, newSelection);
 
-    emit selectionCreated(newId, color, indices, enableDelete);
+    emit selectionCreated(newId, color, indices, enableDelete, state);
 }
 
 void SelectionManager::removeSelection(int id) {
