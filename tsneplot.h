@@ -67,8 +67,10 @@ private:
     QPainterPath m_path;
     QGraphicsPathItem *m_pathItem;
     QPointF m_firstPoint;
+
     QList<QPointF> *m_selectedPoints;
     QList<int> m_selectedIndices;
+
     QTimer *m_lassoFadeTimer;
     qreal m_lassoOpacity;
 

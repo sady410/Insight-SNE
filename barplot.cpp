@@ -240,8 +240,6 @@ void BarPlot::handleBarClicked(int index, QBarSet *barSet) {
         return;
     }
 
-    qDebug() << label << id;
-    // Emit the custom signal with the label and id
     emit barClicked(label, id);
 }
 

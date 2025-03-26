@@ -1,14 +1,40 @@
 #include "overviewplot.h"
 
 #include <QChart>
-#include <QValueAxis>
 
 OverviewPlot::OverviewPlot(QChart *chart, QWidget *parent)
     : QChartView(chart, parent), m_zoomRectItem(nullptr) {
     setRenderHint(QPainter::Antialiasing);
 
     chart->setAnimationOptions(QChart::SeriesAnimations);
-    chart->setTheme(QChart::ChartThemeDark);
+    // chart->setTheme(QChart::ChartThemeDark);
+
+    // Set the background color (#495759)
+    QColor backgroundColor(0x49, 0x57, 0x59);
+
+    // Chart background
+    chart->setBackgroundBrush(QBrush(backgroundColor));
+
+    // Plot area background
+    chart->setPlotAreaBackgroundBrush(QBrush(Qt::lightGray));
+    chart->setPlotAreaBackgroundVisible(true);
+
+    // View background (for areas outside the chart)
+    setBackgroundBrush(QBrush(backgroundColor));
+
+    // Force white text for all chart elements
+    QColor textColor = Qt::white;
+
+    // Chart title
+    chart->setTitleBrush(QBrush(textColor));
+
+    // Legend
+    if (chart->legend()) {
+        chart->legend()->setLabelColor(textColor);
+    }
+
+    m_axisX->setLabelsColor(Qt::white);  // This affects only the numbers
+    m_axisY->setLabelsColor(Qt::white);
 }
 
 void OverviewPlot::setScatterSeries(QScatterSeries *series) {
@@ -39,36 +65,28 @@ void OverviewPlot::setScatterSeries(QScatterSeries *series) {
         maxY = std::max(maxY, point.y());
     }
 
-    // Create and configure new axes
-    try {
-        QValueAxis *axisX = new QValueAxis();
-        QValueAxis *axisY = new QValueAxis();
-        axisX->setRange(minX - 1, maxX + 1); // Adding margins
-        axisY->setRange(minY - 1, maxY + 1);
-        axisX->setGridLineVisible(false);
-        axisY->setGridLineVisible(false);
+    m_axisX->setRange(minX - 1, maxX + 1); // Adding margins
+    m_axisY->setRange(minY - 1, maxY + 1);
+    m_axisX->setGridLineVisible(false);
+    m_axisY->setGridLineVisible(false);
 
-        // Remove existing axes if they exist
-        QList<QAbstractAxis *> existingAxes = chart()->axes();
-        for (QAbstractAxis *axis : std::as_const(existingAxes)) {
-            if (axis) {
-                chart()->removeAxis(axis);
-                delete axis;
-            }
+    // Remove existing axes if they exist
+    QList<QAbstractAxis *> existingAxes = chart()->axes();
+    for (QAbstractAxis *axis : std::as_const(existingAxes)) {
+        if (axis) {
+            chart()->removeAxis(axis);
+            delete axis;
         }
-
-        chart()->addAxis(axisX, Qt::AlignBottom);
-        chart()->addAxis(axisY, Qt::AlignLeft);
-
-        // Attach the series to the new axes
-        m_scatterSeries->attachAxis(axisX);
-        m_scatterSeries->attachAxis(axisY);
-
-        chart()->legend()->hide();
-    } catch (const std::bad_alloc& e) {
-        // Handle memory allocation failure
-        qWarning() << "Memory allocation failed:" << e.what();
     }
+
+    chart()->addAxis(m_axisX, Qt::AlignBottom);
+    chart()->addAxis(m_axisY, Qt::AlignLeft);
+
+    // Attach the series to the new axes
+    m_scatterSeries->attachAxis(m_axisX);
+    m_scatterSeries->attachAxis(m_axisY);
+
+    chart()->legend()->hide();
 }
 
 void OverviewPlot::updateZoomRectangle(qreal minX, qreal maxX, qreal minY, qreal maxY) {

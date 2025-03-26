@@ -14,7 +14,7 @@
    <string>MenuWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="3,2">
+   <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="4,2">
     <property name="spacing">
      <number>2</number>
     </property>

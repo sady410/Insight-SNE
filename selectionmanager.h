@@ -34,6 +34,8 @@ public slots:
 
     void changeSelectionStateAndEmitSignal(int id);
 
+    void selectionClickedInBarPlot(const QString &label, int id);
+
 signals:
     void selectionCreated(int id, const QColor &color, const QList<int>& indices, const bool enableDelete, const bool state);
     void selectionRemoved(int id);

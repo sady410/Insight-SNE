@@ -3,6 +3,7 @@
 
 #include <QtCharts/QChartView>
 #include <QScatterSeries>
+#include <QValueAxis>
 
 class OverviewPlot : public QChartView {
     Q_OBJECT
@@ -17,6 +18,10 @@ public slots:
 private:
     QScatterSeries *m_scatterSeries;
     QGraphicsRectItem *m_zoomRectItem;
+
+    QValueAxis *m_axisX = new QValueAxis();
+    QValueAxis *m_axisY = new QValueAxis();
+
 };
 
 #endif // OVERVIEWPLOT_H

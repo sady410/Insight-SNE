@@ -69,6 +69,10 @@ void SelectionManager::findHoveredSelectionAndEmitSignal(int id) {
     }
 }
 
+void SelectionManager::selectionClickedInBarPlot(const QString &label, int id) {
+    qDebug() << label << id;
+}
+
 int SelectionManager::generateUniqueId() {
     if (!m_availableIds.isEmpty()) {
         return m_availableIds.pop(); // Reuse an available ID

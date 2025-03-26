@@ -15,14 +15,63 @@ MenuForm::MenuForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::MenuForm) {
     ui->setupUi(this);
 
-    // Initialize the vertical layout
-    m_verticalLayout = new QVBoxLayout(this);
-    m_verticalLayout->setSpacing(10); // Adjust spacing as needed
+    // Main layout setup (unchanged)
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    mainLayout->setSpacing(10);
+    mainLayout->setContentsMargins(5, 5, 5, 5);
 
-    // Add a spacer to push content to the top
-    m_verticalLayout->addStretch(); // This will act as the spacer
+    // Top section
+    QFrame *topFrame = new QFrame();
+    topFrame->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
+    topFrame->setLineWidth(2);
+    topFrame->setStyleSheet("background-color: #495759;");
+    m_top_verticalLayout = new QVBoxLayout(topFrame);
+    m_top_verticalLayout->setContentsMargins(8, 8, 8, 8);
+    m_top_verticalLayout->setSpacing(6);
 
-    setLayout(m_verticalLayout);
+    // 1. FIRST add the title and separator
+    QLabel *topTitleLabel = new QLabel("Selections", topFrame);
+    topTitleLabel->setAlignment(Qt::AlignCenter);
+    topTitleLabel->setStyleSheet("font-weight: bold; color: white; font-size: 16px;");
+    m_top_verticalLayout->addWidget(topTitleLabel);
+
+    QFrame *separator = new QFrame();
+    separator->setFrameShape(QFrame::HLine);
+    separator->setFrameShadow(QFrame::Sunken);
+    separator->setStyleSheet("color: #888;");
+    m_top_verticalLayout->addWidget(separator);
+
+    // Bottom section
+    QFrame *bottomFrame = new QFrame();
+    bottomFrame->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
+    bottomFrame->setLineWidth(2);
+    bottomFrame->setStyleSheet("background-color: #495759;");
+    m_bottom_verticalLayout = new QVBoxLayout(bottomFrame);
+    m_bottom_verticalLayout->setContentsMargins(8, 8, 8, 8);
+    m_bottom_verticalLayout->setSpacing(6);
+
+    QLabel *bottomTitleLabel = new QLabel("Settings", topFrame);
+    bottomTitleLabel->setAlignment(Qt::AlignCenter);
+    bottomTitleLabel->setStyleSheet("font-weight: bold; color: white; font-size: 16px;");
+    m_bottom_verticalLayout->addWidget(bottomTitleLabel);
+
+    QFrame *separator2 = new QFrame();
+    separator2->setFrameShape(QFrame::HLine);
+    separator2->setFrameShadow(QFrame::Sunken);
+    separator2->setStyleSheet("color: #888;");
+    m_bottom_verticalLayout->addWidget(separator2);
+
+    QLabel *label = new QLabel("TODO...overlays, etc...");
+    m_bottom_verticalLayout->layout()->addWidget(label);
+
+    m_bottom_verticalLayout->addStretch();
+
+    mainLayout->addWidget(topFrame, 1);
+    mainLayout->addWidget(bottomFrame, 1);
+
+    // Optional: Set object names for CSS targeting if needed
+    // topFrame->setObjectName("topFrame");
+    // bottomFrame->setObjectName("bottomFrame");
 }
 
 MenuForm::~MenuForm() {
@@ -72,7 +121,15 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>&
     }
 
     // Insert the selection widget at the top of the main layout
-    m_verticalLayout->insertWidget(0, selectionWidget); // Insert at the top
+   // m_top_verticalLayout->addWidget(selectionWidget);
+
+    m_top_verticalLayout->insertWidget(2, selectionWidget); // Position 2 = after title+separator
+
+    // Ensure stretch exists at the bottom
+    if (!m_hasStretch) {
+        m_top_verticalLayout->addStretch();
+        m_hasStretch = true;
+    }
 
     // Store the selection widget in the map
     m_selectionWidgets.insert(id, selectionWidget);
@@ -89,7 +146,7 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>&
 void MenuForm::removeSelectionWidget(int id) {
     if (m_selectionWidgets.contains(id)) {
         QWidget *widget = m_selectionWidgets.take(id); // Remove the widget from the map
-        m_verticalLayout->removeWidget(widget);       // Remove the widget from the layout
+        m_top_verticalLayout->removeWidget(widget);       // Remove the widget from the layout
         delete widget;                              // Delete the widget
     }
 }

@@ -93,6 +93,11 @@ void AppWindow::connectSignalsAndSlots() { // TODO REFACTOR FOR BARPLOTS
     connect(m_selectionManager, &SelectionManager::selectionEnabled, getExplanationForm()->gradientsPlotBottom, &BarPlot::addValue);
     connect(m_selectionManager, &SelectionManager::selectionDisabled, getExplanationForm()->gradientsPlotBottom, &BarPlot::removeValue);
 
+    // Click on bar in explanations
+    connect(getExplanationForm()->gradientsPlotBottom, &BarPlot::barClicked, m_selectionManager, &SelectionManager::selectionClickedInBarPlot);
+    connect(getExplanationForm()->gradientsPlotTop, &BarPlot::barClicked, m_selectionManager, &SelectionManager::selectionClickedInBarPlot);
+    connect(getExplanationForm()->magnitudesPlot, &BarPlot::barClicked, m_selectionManager, &SelectionManager::selectionClickedInBarPlot);
+
     // Zoom
     connect(getTsneForm()->tsnePlot, &TsnePlot::zoomChanged, getOverviewForm()->overviewPlot, &OverviewPlot::updateZoomRectangle);
 }
