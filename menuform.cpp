@@ -9,7 +9,9 @@
 #include <QColor>
 #include <QPainter>
 #include <QStyleOption>
-
+#include <QDebug>
+#include <QStandardItemModel>
+#include <QTreeView>
 
 MenuForm::MenuForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::MenuForm) {
@@ -41,51 +43,37 @@ MenuForm::MenuForm(QWidget *parent)
     separator->setStyleSheet("color: #888;");
     m_top_verticalLayout->addWidget(separator);
 
-    // Bottom section
-    QFrame *bottomFrame = new QFrame();
-    bottomFrame->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
-    bottomFrame->setLineWidth(2);
-    bottomFrame->setStyleSheet("background-color: #495759;");
-    m_bottom_verticalLayout = new QVBoxLayout(bottomFrame);
-    m_bottom_verticalLayout->setContentsMargins(8, 8, 8, 8);
-    m_bottom_verticalLayout->setSpacing(6);
-
-    QLabel *bottomTitleLabel = new QLabel("Settings", topFrame);
-    bottomTitleLabel->setAlignment(Qt::AlignCenter);
-    bottomTitleLabel->setStyleSheet("font-weight: bold; color: white; font-size: 16px;");
-    m_bottom_verticalLayout->addWidget(bottomTitleLabel);
-
-    QFrame *separator2 = new QFrame();
-    separator2->setFrameShape(QFrame::HLine);
-    separator2->setFrameShadow(QFrame::Sunken);
-    separator2->setStyleSheet("color: #888;");
-    m_bottom_verticalLayout->addWidget(separator2);
-
-    QLabel *label = new QLabel("TODO...overlays, etc...");
-    m_bottom_verticalLayout->layout()->addWidget(label);
-
-    m_bottom_verticalLayout->addStretch();
+    // Initialize Tree View
+    setupTreeView();
 
     mainLayout->addWidget(topFrame, 1);
-    mainLayout->addWidget(bottomFrame, 1);
-
-    // Optional: Set object names for CSS targeting if needed
-    // topFrame->setObjectName("topFrame");
-    // bottomFrame->setObjectName("bottomFrame");
 }
 
-MenuForm::~MenuForm() {
-    delete ui;
+void MenuForm::setupTreeView() {
+    // Create tree view and model
+    treeView = new QTreeView(this);
+    model = new QStandardItemModel(this);
+
+    // Set column title
+    model->setColumnCount(1);
+    model->setHeaderData(0, Qt::Horizontal, "Available selections");
+
+    // Apply model to tree view
+    treeView->setModel(model);
+    treeView->setRootIsDecorated(true);
+    treeView->setHeaderHidden(false);
+
+    // Add the tree view to the layout
+    m_top_verticalLayout->addWidget(treeView);
 }
 
-void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>& indices, const bool enableDelete, const bool state) {
+void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>& indices, bool enableDelete, bool state) {
     Q_UNUSED(indices);
-    // Create a container widget for the selection
-    SelectionWidget *selectionWidget = new SelectionWidget(id, this);
 
-    // Create a horizontal layout for the selection
+    // Create a new SelectionWidget
+    SelectionWidget *selectionWidget = new SelectionWidget(id, this);
     QHBoxLayout *selectionLayout = new QHBoxLayout(selectionWidget);
-    selectionLayout->setContentsMargins(0, 0, 0, 0); // Remove margins
+    selectionLayout->setContentsMargins(0, 0, 0, 0);
 
     // Add the colored circle
     ColorCircle *circle = new ColorCircle(color, state, selectionWidget);
@@ -98,41 +86,40 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>&
     if (enableDelete) {
         // Add the delete button (cross)
         QPushButton *deleteButton = new QPushButton("×", selectionWidget);
-        deleteButton->setFixedSize(25, 25); // Larger button size
+        deleteButton->setFixedSize(25, 25);
         deleteButton->setStyleSheet(
-            "QPushButton { "
-            "   border: none; "
-            "   font-size: 30px; "
-            "   color: white; "
-            "   background-color: transparent; "
-            "}"
-            "QPushButton:hover { "
-            "   color: darkred; "
-            "}"
+            "QPushButton { border: none; font-size: 30px; color: white; background-color: transparent; }"
+            "QPushButton:hover { color: darkred; }"
             );
         selectionLayout->addWidget(deleteButton);
 
-        // Connect the delete button to a slot for deletion
         connect(deleteButton, &QPushButton::clicked, this, [this, id]() {
-            emit requestRemoveSelection(id); // Emit signal to remove the selection
-            removeSelectionWidget(id);      // Remove the widget from the UI
+            emit requestRemoveSelection(id);
+            removeSelectionWidget(id);
         });
-
     }
 
-    // Insert the selection widget at the top of the main layout
-   // m_top_verticalLayout->addWidget(selectionWidget);
-
-    m_top_verticalLayout->insertWidget(2, selectionWidget); // Position 2 = after title+separator
-
-    // Ensure stretch exists at the bottom
-    if (!m_hasStretch) {
-        m_top_verticalLayout->addStretch();
-        m_hasStretch = true;
-    }
-
-    // Store the selection widget in the map
+    // Store the selection widget
     m_selectionWidgets.insert(id, selectionWidget);
+
+    // Add an item to the model
+    QStandardItem *selectionItem = new QStandardItem();
+    model->appendRow(selectionItem);
+
+    // Set the SelectionWidget as the actual widget for the item
+    treeView->setIndexWidget(model->indexFromItem(selectionItem), selectionWidget);
+
+    // Add child items (checkboxes)
+    QStringList childNames = {"Option 1", "Option 2", "Option 3", "Option 4"};
+    for (const QString &childName : childNames) {
+        QStandardItem *childItem = new QStandardItem(childName);
+        childItem->setCheckable(true);
+        selectionItem->appendRow(childItem);
+    }
+
+    // Expand default behaviour
+    // treeView->expandAll();
+    // treeView->expand(model->indexFromItem(selectionItem));
 
     // Connect the hover signals from the selectionWidget to the MenuForm signals
     connect(selectionWidget, &SelectionWidget::hovered, this, &MenuForm::selectionHovered);
@@ -145,8 +132,19 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>&
 
 void MenuForm::removeSelectionWidget(int id) {
     if (m_selectionWidgets.contains(id)) {
-        QWidget *widget = m_selectionWidgets.take(id); // Remove the widget from the map
-        m_top_verticalLayout->removeWidget(widget);       // Remove the widget from the layout
-        delete widget;                              // Delete the widget
+        QWidget *widget = m_selectionWidgets.take(id);
+        delete widget;
     }
+
+    for (int row = 0; row < model->rowCount(); ++row) {
+        QStandardItem *item = model->item(row);
+        if (item && treeView->indexWidget(model->index(row, 0)) == m_selectionWidgets.value(id)) {
+            model->removeRow(row);
+            return;
+        }
+    }
+}
+
+MenuForm::~MenuForm() {
+    delete ui;
 }

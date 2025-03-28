@@ -41,7 +41,7 @@ void TsnePlot::initPlot(QScatterSeries *series) {
     m_scatterSeriesMap.clear();
     m_pointIndexMap.clear();  // Clear previous mapping
 
-    QStringList colorList = {"red", "blue", "green", "purple", "orange", "pink"};
+    QList<QColor> colorList = {Qt::red, Qt::blue, Qt::green, Qt::yellow};
     m_labelColors.clear(); // Clear previous label colors
     int colorIndex = 0;
 

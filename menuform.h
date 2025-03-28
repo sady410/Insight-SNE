@@ -6,6 +6,8 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QColor>
+#include <QTreeView>
+#include <QStandardItem>
 
 namespace Ui {
 class MenuForm;
@@ -38,6 +40,11 @@ private:
     QVBoxLayout *m_top_verticalLayout; // Vertical layout to hold selections
     QVBoxLayout *m_bottom_verticalLayout;
     QMap<int, QWidget*> m_selectionWidgets;
+
+    QTreeView *treeView;
+    QStandardItemModel *model;
+
+    void setupTreeView();
 };
 
 #endif // MENUFORM_H
