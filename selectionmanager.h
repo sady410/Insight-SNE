@@ -51,8 +51,8 @@ signals:
     void selectionDisabled(int id);
 
     // Add or remove arrows to tsne plot
-    void addArrows(const QList<int>& indices, const QString &featureName);
-    void removeArrows(const QList<int>& indices, const QString &featureName);
+    void addArrows(int selectionId, const QList<int>& indices, const QString &featureName);
+    void removeArrows(int selectionId, const QString &featureName);
 
 private:
     QList<QColor> m_colorList;

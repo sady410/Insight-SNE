@@ -36,7 +36,7 @@ public slots:
     void startHighlightSelection(const QColor &color, const QList<int>& indices);
     void stopHighlightSelection();
 
-    void addArrows(const QList<int>& indices, const QString &featureName);
+    void addArrows(int id, const QList<int>& indices, const QString &featureName);
     void removeArrows(int id);
 
 private slots:
@@ -69,8 +69,8 @@ private:
 
     QList<QList<QList<qreal>>> m_gradients;
 
-    QList<QGraphicsLineItem*> m_arrowItems;   // Stores arrow lines
-    QList<QGraphicsPolygonItem*> m_arrowHeads;  // Stores arrowheads
+    QMap<int, QList<QGraphicsLineItem*>> m_arrowItemsMap;     // Stores arrow lines by ID
+    QMap<int, QList<QGraphicsPolygonItem*>> m_arrowHeadsMap;  // Stores arrowheads by ID
 
     QScatterSeries *m_highlightedSeries;
 

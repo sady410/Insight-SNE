@@ -87,9 +87,9 @@ void SelectionManager::selectionFreatureArrowCheckboxChanged(int id, const QStri
         Selection &sel = m_selections[id];
         QList<int> indices = sel.indices;
         if (checked) {
-            emit addArrows(indices, featureName);
+            emit addArrows(id, indices, featureName);
         } else {
-            emit removeArrows(indices, featureName);
+            emit removeArrows(id, featureName);
         }
     }
 }

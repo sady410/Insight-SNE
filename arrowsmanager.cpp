@@ -7,25 +7,30 @@ ArrowsManager::ArrowsManager(QObject* parent) : QObject(parent)
 
 }
 
-void ArrowsManager::createArrowsField(const QList<int>& indices, const QString featureName) {
+void ArrowsManager::createArrowsField(int selectionId, const QList<int>& indices, const QString featureName) {
     int newId = generateUniqueId();
 
-    ArrowsField newArrowsField(newId, indices, featureName);
+    ArrowsField newArrowsField(newId, selectionId, indices, featureName);
     m_arrowsField.insert(newId, newArrowsField);
 
-    // TODO Create arrows drawable objects
-    // emit arrowsFieldCreated(newId, ArrowsList); // TODO in h file change int
+    emit arrowsFieldCreated(newId, indices, featureName);
 }
 
-void ArrowsManager::removeArrowsField(int id) {
-    if (m_arrowsField.contains(id)) {
+void ArrowsManager::removeArrowsField(int selectionId) {
+    int id = findIdBySelectionId(selectionId);
+    m_arrowsField.remove(id);
+    m_availableIds.push(id);
+    emit arrowsFieldRemoved(id);
+}
 
-        m_arrowsField.remove(id);
-        m_availableIds.push(id);
-        // emit arrowsFieldRemoved(id);
-    } else {
-        qWarning() << "ArrowsField with ID" << id << "not found.";
+int ArrowsManager::findIdBySelectionId(int selectionId) const
+{
+    for (auto it = m_arrowsField.constBegin(); it != m_arrowsField.constEnd(); ++it) {
+        if (it.value().selectionId == selectionId) {
+            return it.key(); // return the id (the key in the hash)
+        }
     }
+    return -1; // return -1 if not found
 }
 
 int ArrowsManager::generateUniqueId() {

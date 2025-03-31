@@ -321,11 +321,17 @@ void TsnePlot::updateOverviewRectangle() {
     emit zoomChanged(axisX->min(), axisX->max(), axisY->min(), axisY->max());
 }
 
-void TsnePlot::addArrows(int id, QList<QList<qreal>> vectors) {
+void TsnePlot::addArrows(int id, const QList<int> &indices, const QString &featureName) {
     if (!chart() || !chart()->scene()) {
         qDebug() << "Error: Chart or Scene is null!";
         return;
     }
+
+    // Clear any existing arrows with this ID first
+    removeArrows(id);
+
+    QList<QGraphicsLineItem*> arrowItems;
+    QList<QGraphicsPolygonItem*> arrowHeads;
 
     for (int index : indices) {
         if (index >= m_gradients.size()) {
@@ -368,7 +374,7 @@ void TsnePlot::addArrows(int id, QList<QList<qreal>> vectors) {
         QPen pen(Qt::cyan, 2);
         arrowLine->setPen(pen);
         chart()->scene()->addItem(arrowLine);
-        m_arrowItems.append(arrowLine);
+        arrowItems.append(arrowLine);
 
         // Correct the arrowhead orientation
         QPolygonF arrowHead;
@@ -386,28 +392,38 @@ void TsnePlot::addArrows(int id, QList<QList<qreal>> vectors) {
         QGraphicsPolygonItem *arrowHeadItem = new QGraphicsPolygonItem(arrowHead);
         arrowHeadItem->setBrush(Qt::cyan);
         chart()->scene()->addItem(arrowHeadItem);
-        m_arrowHeads.append(arrowHeadItem);
+        arrowHeads.append(arrowHeadItem);
+    }
+
+    // Store the arrows with their ID
+    if (!arrowItems.isEmpty()) {
+        m_arrowItemsMap[id] = arrowItems;
+        m_arrowHeadsMap[id] = arrowHeads;
     }
 }
 
 void TsnePlot::removeArrows(int id) {
-    // Remove arrow lines
-    for (QGraphicsLineItem* arrow : m_arrowItems) {
-        if (arrow) {
-            chart()->scene()->removeItem(arrow);
-            delete arrow;
+    // Remove arrow lines for this ID
+    if (m_arrowItemsMap.contains(id)) {
+        for (QGraphicsLineItem* arrow : m_arrowItemsMap[id]) {
+            if (arrow) {
+                chart()->scene()->removeItem(arrow);
+                delete arrow;
+            }
         }
+        m_arrowItemsMap.remove(id);
     }
-    m_arrowItems.clear();
 
-    // Remove arrowheads
-    for (QGraphicsPolygonItem* arrowHead : m_arrowHeads) {
-        if (arrowHead) {
-            chart()->scene()->removeItem(arrowHead);
-            delete arrowHead;
+    // Remove arrowheads for this ID
+    if (m_arrowHeadsMap.contains(id)) {
+        for (QGraphicsPolygonItem* arrowHead : m_arrowHeadsMap[id]) {
+            if (arrowHead) {
+                chart()->scene()->removeItem(arrowHead);
+                delete arrowHead;
+            }
         }
+        m_arrowHeadsMap.remove(id);
     }
-    m_arrowHeads.clear();
 }
 
 void TsnePlot::startHighlightSelection(const QColor &color, const QList<int>& indices) {

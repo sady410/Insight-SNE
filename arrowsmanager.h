@@ -14,22 +14,22 @@ public:
 
     struct ArrowsField {
         int id;
-        QColor color;
+        int selectionId;
         QList<int> indices;
         QString featureName;
-        ArrowsField(int id = -1, const QList<int>& indices = {}, const QString featureName = "")
-            : id(id), indices(indices), featureName(featureName) {}
+        ArrowsField(int id = -1, int selectionId = -1, const QList<int>& indices = {}, const QString featureName = "")
+            : id(id), selectionId(selectionId), indices(indices), featureName(featureName) {}
     };
 
     void setGradients(QList<QList<QList<qreal>>> gradients) { m_gradients = gradients; }
 
 signals:
-    void arrowsFieldCreated(int id, QList<int> arrows); // TODO not int
+    void arrowsFieldCreated(int id, QList<int> arrows, QString featureName);
     void arrowsFieldRemoved(int id);
 
 public slots:
-    void createArrowsField(const QList<int>& indices, const QString featureName);
-    void removeArrowsField(int id);
+    void createArrowsField(int selectionId, const QList<int>& indices, const QString featureName);
+    void removeArrowsField(int selectionId);
 
 private:
     QList<QList<QList<qreal>>> m_gradients;
@@ -39,6 +39,7 @@ private:
     int m_nextId; // Counter for generating new IDs
 
     int generateUniqueId();
+    int findIdBySelectionId(int selectionId) const;
 };
 
 #endif // ARROWSMANAGER_H
