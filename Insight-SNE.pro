@@ -11,6 +11,7 @@ CONFIG += c++17
 SOURCES += \
     appwindow.cpp \
     appwindowbuilder.cpp \
+    arrowsmanager.cpp \
     barplot.cpp \
     colorcircle.cpp \
     explanationform.cpp \
@@ -30,6 +31,7 @@ SOURCES += \
 HEADERS += \
     appwindow.h \
     appwindowbuilder.h \
+    arrowsmanager.h \
     barplot.h \
     colorcircle.h \
     explanationform.h \

@@ -21,6 +21,8 @@ public:
     explicit MenuForm(QWidget *parent = nullptr);
     ~MenuForm();
 
+    void setFeatureNames(QStringList featureNames) { m_featureNames = featureNames; }
+
 signals:
     void requestRemoveSelection(int id);
 
@@ -29,9 +31,13 @@ signals:
 
     void selectionStateChanged(int id);
 
+    void featureCheckStateChanged(int id, const QString &featureName, bool checked);
+
 public slots:
     // Slot to add a new selection to the menu
-    void addSelectionToMenu(int id, const QColor &color, const QList<int>& indices, const bool enableDelete, const bool state);
+    void addSelectionToMenu(int id, const QColor &color,
+                            const QList<int> &indices, const bool enableDelete,
+                            const bool state);
     void removeSelectionWidget(int id);
 
 private:
@@ -41,8 +47,10 @@ private:
     QVBoxLayout *m_bottom_verticalLayout;
     QMap<int, QWidget*> m_selectionWidgets;
 
-    QTreeView *treeView;
-    QStandardItemModel *model;
+    QStringList m_featureNames;
+
+    QTreeView *m_treeView;
+    QStandardItemModel *m_model;
 
     void setupTreeView();
 };

@@ -80,6 +80,20 @@ int SelectionManager::generateUniqueId() {
     return m_nextId++; // Otherwise, generate a new ID
 }
 
+void SelectionManager::selectionFreatureArrowCheckboxChanged(int id, const QString &featureName, const bool checked) {
+    // TODO maybe there is a problem how can I remove the arrows ? It should have an id no ? Add struct or class to manage arrows ?
+    // Maybe completly refactor the selection struct. Do a class and send objects directly
+    if (m_selections.contains(id)) {
+        Selection &sel = m_selections[id];
+        QList<int> indices = sel.indices;
+        if (checked) {
+            emit addArrows(indices, featureName);
+        } else {
+            emit removeArrows(indices, featureName);
+        }
+    }
+}
+
 QColor SelectionManager::getAvailableColor() {
     for (const QColor& color : std::as_const(m_colorList)) {
         if (!m_usedColors.contains(color)) {

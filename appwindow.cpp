@@ -1,4 +1,5 @@
 #include "appwindow.h"
+#include "arrowsmanager.h"
 #include "ui_appwindow.h"
 
 #include <QValueAxis>
@@ -6,7 +7,7 @@
 AppWindow::AppWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::AppWindow)
-    , m_selectionManager(new SelectionManager(this))
+    , m_selectionManager(new SelectionManager(this)), m_arrowsManager(new ArrowsManager(this))
 {
     ui->setupUi(this);
     qDebug() << "AppWindow UI initialized.";
@@ -97,6 +98,13 @@ void AppWindow::connectSignalsAndSlots() { // TODO REFACTOR FOR BARPLOTS
     connect(getExplanationForm()->gradientsPlotBottom, &BarPlot::barClicked, m_selectionManager, &SelectionManager::selectionClickedInBarPlot);
     connect(getExplanationForm()->gradientsPlotTop, &BarPlot::barClicked, m_selectionManager, &SelectionManager::selectionClickedInBarPlot);
     connect(getExplanationForm()->magnitudesPlot, &BarPlot::barClicked, m_selectionManager, &SelectionManager::selectionClickedInBarPlot);
+
+    // Feature arrow checkbox enable/disable
+    connect(getMenuForm(), &MenuForm::featureCheckStateChanged, m_selectionManager, &SelectionManager::selectionFreatureArrowCheckboxChanged);
+    connect(m_selectionManager, &SelectionManager::addArrows, m_arrowsManager, &ArrowsManager::createArrowsField);
+    connect(m_selectionManager, &SelectionManager::removeArrows, m_arrowsManager, &ArrowsManager::removeArrowsField);
+    connect(m_arrowsManager, &ArrowsManager::arrowsFieldCreated, getTsneForm()->tsnePlot, &TsnePlot::addArrows);
+    connect(m_arrowsManager, &ArrowsManager::arrowsFieldRemoved, getTsneForm()->tsnePlot, &TsnePlot::removeArrows);
 
     // Zoom
     connect(getTsneForm()->tsnePlot, &TsnePlot::zoomChanged, getOverviewForm()->overviewPlot, &OverviewPlot::updateZoomRectangle);

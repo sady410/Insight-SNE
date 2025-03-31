@@ -36,6 +36,8 @@ public slots:
 
     void selectionClickedInBarPlot(const QString &label, int id);
 
+    void selectionFreatureArrowCheckboxChanged(int id, const QString &featureName, const bool checked);
+
 signals:
     void selectionCreated(int id, const QColor &color, const QList<int>& indices, const bool enableDelete, const bool state);
     void selectionRemoved(int id);
@@ -47,6 +49,10 @@ signals:
     // Signals used when changing a selection's state
     void selectionEnabled(int id, const QColor &color, const QList<int>& indices, const bool enableDelete, const bool state);
     void selectionDisabled(int id);
+
+    // Add or remove arrows to tsne plot
+    void addArrows(const QList<int>& indices, const QString &featureName);
+    void removeArrows(const QList<int>& indices, const QString &featureName);
 
 private:
     QList<QColor> m_colorList;

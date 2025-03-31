@@ -22,6 +22,8 @@ public:
 
     void initPlot(QScatterSeries *series);
     void setLabels(const QStringList &labels);
+    void setGradients(const QList<QList<QList<qreal>>> gradients);
+    void setFeatureNames(const QStringList featureNames);
 
 signals:
     void zoomChanged(qreal minX, qreal maxX, qreal minY, qreal maxY);
@@ -33,6 +35,9 @@ public slots:
 
     void startHighlightSelection(const QColor &color, const QList<int>& indices);
     void stopHighlightSelection();
+
+    void addArrows(const QList<int>& indices, const QString &featureName);
+    void removeArrows(int id);
 
 private slots:
     void fadeLasso();
@@ -56,10 +61,16 @@ private:
     void selectPointsInsideLasso();
     void clearLasso();
 
+    QStringList m_featureNames;
     QMap<QString, QColor> m_labelColors;
     QStringList m_labels;
     QMap<QString, QScatterSeries *> m_scatterSeriesMap;
     std::map<QPointF, int, QPointFComparator> m_pointIndexMap;
+
+    QList<QList<QList<qreal>>> m_gradients;
+
+    QList<QGraphicsLineItem*> m_arrowItems;   // Stores arrow lines
+    QList<QGraphicsPolygonItem*> m_arrowHeads;  // Stores arrowheads
 
     QScatterSeries *m_highlightedSeries;
 
@@ -73,6 +84,8 @@ private:
 
     QTimer *m_lassoFadeTimer;
     qreal m_lassoOpacity;
+
+    QList<QGraphicsLineItem*> m_arrows;
 
     int m_selectionCount;
     static const int MAX_SELECTIONS = 4;

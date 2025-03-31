@@ -127,6 +127,7 @@ void MenuWindow::onOutputReceived(const QString &output)
                 .initializeOverviewPlot()
                 .initializeFeaturesPlot()
                 .initializeExplanationPlots()
+                .initializeMenuForm()
                 .build();
 
             this->close();

@@ -1,6 +1,7 @@
 #include "appwindowbuilder.h"
 #include "explanationform.h"
 #include "featuresform.h"
+#include "menuform.h"
 #include "overviewform.h"
 #include "tsneform.h"
 #include "jsonparser.h"
@@ -20,6 +21,16 @@ AppWindowBuilder& AppWindowBuilder::initializeTsnePlot() {
     std::transform(labels.begin(), labels.end(), std::back_inserter(labelsList),
                    [](const QJsonValue &value) { return value.toString(); });
     tsneForm->tsnePlot->setLabels(labelsList);
+
+    QJsonArray featureNames = m_jsonData.value("featureNames").toArray();
+    QStringList featureNamesList;
+    std::transform(featureNames.begin(), featureNames.end(), std::back_inserter(featureNamesList),
+                   [](const QJsonValue &value) { return value.toString(); });
+    tsneForm->tsnePlot->setFeatureNames(featureNamesList);
+
+    QJsonArray gradients = m_jsonData.value("gradients").toArray();
+    QList<QList<QList<qreal>>> gradientsList = JsonParser::jsonArrayToQList3D(gradients);
+    tsneForm->tsnePlot->setGradients(gradientsList);
 
     QJsonArray embedding = m_jsonData.value("Y").toArray();
     QScatterSeries *tsneSeries = new QScatterSeries();
@@ -123,6 +134,23 @@ AppWindowBuilder& AppWindowBuilder::initializeExplanationPlots() {
     QJsonArray magnitudes = m_jsonData.value("magnitudes").toArray();
     QList<QList<qreal>> magnitudesList = JsonParser::jsonArrayToQList2D(magnitudes);
     explanationForm->magnitudesPlot->setValues(magnitudesList);
+
+    return *this;
+}
+
+AppWindowBuilder& AppWindowBuilder::initializeMenuForm() {
+    if (!m_appWindow) {
+        m_appWindow = new AppWindow(m_parent);
+    }
+
+    QJsonArray featureNames = m_jsonData.value("featureNames").toArray();
+    QStringList featureNamesList;
+    std::transform(featureNames.begin(), featureNames.end(), std::back_inserter(featureNamesList),
+                   [](const QJsonValue &value) { return value.toString(); });
+
+    MenuForm* menuForm = m_appWindow->getMenuForm();
+
+    menuForm->setFeatureNames(featureNamesList);
 
     return *this;
 }

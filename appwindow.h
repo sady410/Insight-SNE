@@ -2,6 +2,7 @@
 #define APPWINDOW_H
 
 #include "selectionmanager.h"
+#include "arrowsmanager.h"
 
 #include <QMainWindow>
 #include <QJsonObject>
@@ -42,6 +43,7 @@ protected:
 private:
     Ui::AppWindow *ui; // UI components
     SelectionManager *m_selectionManager;
+    ArrowsManager *m_arrowsManager;
     bool m_isInitialized = false; // Flag to track initialization
 };
 

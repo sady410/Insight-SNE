@@ -24,6 +24,14 @@ TsnePlot::~TsnePlot() {
     delete m_selectedPoints;
 }
 
+void TsnePlot::setGradients(const QList<QList<QList<qreal>>> gradients) {
+    m_gradients = gradients;
+}
+
+void TsnePlot::setFeatureNames(const QStringList featureNames) {
+    m_featureNames = featureNames;
+}
+
 void TsnePlot::initPlot(QScatterSeries *series) {
     if (!series || series->count() == 0) {
         qDebug() << "Error: Empty series!";
@@ -311,6 +319,95 @@ void TsnePlot::updateOverviewRectangle() {
     }
 
     emit zoomChanged(axisX->min(), axisX->max(), axisY->min(), axisY->max());
+}
+
+void TsnePlot::addArrows(int id, QList<QList<qreal>> vectors) {
+    if (!chart() || !chart()->scene()) {
+        qDebug() << "Error: Chart or Scene is null!";
+        return;
+    }
+
+    for (int index : indices) {
+        if (index >= m_gradients.size()) {
+            qDebug() << "Error: Index out of bounds in gradients!";
+            continue;
+        }
+
+        const QList<QList<qreal>>& featureVectors = m_gradients[index];
+        int featureIndex = m_featureNames.indexOf(featureName);
+
+        if (featureIndex == -1 || featureIndex >= m_featureNames.size()) {
+            qDebug() << "Error: Feature name not found in labels!";
+            continue;
+        }
+
+        QPointF startPoint;
+        for (auto it = m_pointIndexMap.begin(); it != m_pointIndexMap.end(); ++it) {
+            if (it->second == index) {
+                startPoint = it->first;
+                break;
+            }
+        }
+
+        if (startPoint.isNull()) {
+            qDebug() << "Error: Could not find starting point!";
+            continue;
+        }
+
+        // Get gradient vector
+        qreal dx = featureVectors[0][featureIndex];
+        qreal dy = featureVectors[1][featureIndex];
+        QPointF endPoint = startPoint + QPointF(dx, dy);
+
+        // Convert to scene coordinates
+        QPointF startScene = chart()->mapToPosition(startPoint);
+        QPointF endScene = chart()->mapToPosition(endPoint);
+
+        // Draw the arrow line
+        QGraphicsLineItem *arrowLine = new QGraphicsLineItem(QLineF(startScene, endScene));
+        QPen pen(Qt::cyan, 2);
+        arrowLine->setPen(pen);
+        chart()->scene()->addItem(arrowLine);
+        m_arrowItems.append(arrowLine);
+
+        // Correct the arrowhead orientation
+        QPolygonF arrowHead;
+        qreal arrowSize = 10.0;
+        QLineF line(endScene, startScene); // Reverse direction to correct orientation
+        double angle = std::atan2(line.dy(), line.dx()); // Compute correct angle
+
+        QPointF arrowP1 = endScene + QPointF(std::cos(angle + M_PI / 6) * arrowSize,
+                                             std::sin(angle + M_PI / 6) * arrowSize);
+        QPointF arrowP2 = endScene + QPointF(std::cos(angle - M_PI / 6) * arrowSize,
+                                             std::sin(angle - M_PI / 6) * arrowSize);
+
+        arrowHead << endScene << arrowP1 << arrowP2;
+
+        QGraphicsPolygonItem *arrowHeadItem = new QGraphicsPolygonItem(arrowHead);
+        arrowHeadItem->setBrush(Qt::cyan);
+        chart()->scene()->addItem(arrowHeadItem);
+        m_arrowHeads.append(arrowHeadItem);
+    }
+}
+
+void TsnePlot::removeArrows(int id) {
+    // Remove arrow lines
+    for (QGraphicsLineItem* arrow : m_arrowItems) {
+        if (arrow) {
+            chart()->scene()->removeItem(arrow);
+            delete arrow;
+        }
+    }
+    m_arrowItems.clear();
+
+    // Remove arrowheads
+    for (QGraphicsPolygonItem* arrowHead : m_arrowHeads) {
+        if (arrowHead) {
+            chart()->scene()->removeItem(arrowHead);
+            delete arrowHead;
+        }
+    }
+    m_arrowHeads.clear();
 }
 
 void TsnePlot::startHighlightSelection(const QColor &color, const QList<int>& indices) {

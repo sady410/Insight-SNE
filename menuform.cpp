@@ -17,7 +17,7 @@ MenuForm::MenuForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::MenuForm) {
     ui->setupUi(this);
 
-    // Main layout setup (unchanged)
+    // Main layout setup
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(10);
     mainLayout->setContentsMargins(5, 5, 5, 5);
@@ -31,7 +31,7 @@ MenuForm::MenuForm(QWidget *parent)
     m_top_verticalLayout->setContentsMargins(8, 8, 8, 8);
     m_top_verticalLayout->setSpacing(6);
 
-    // 1. FIRST add the title and separator
+    // add the title and separator
     QLabel *topTitleLabel = new QLabel("Selections", topFrame);
     topTitleLabel->setAlignment(Qt::AlignCenter);
     topTitleLabel->setStyleSheet("font-weight: bold; color: white; font-size: 16px;");
@@ -51,20 +51,20 @@ MenuForm::MenuForm(QWidget *parent)
 
 void MenuForm::setupTreeView() {
     // Create tree view and model
-    treeView = new QTreeView(this);
-    model = new QStandardItemModel(this);
+    m_treeView = new QTreeView(this);
+    m_model = new QStandardItemModel(this);
 
     // Set column title
-    model->setColumnCount(1);
-    model->setHeaderData(0, Qt::Horizontal, "Available selections");
+    m_model->setColumnCount(1);
+    m_model->setHeaderData(0, Qt::Horizontal, "Available selections");
 
     // Apply model to tree view
-    treeView->setModel(model);
-    treeView->setRootIsDecorated(true);
-    treeView->setHeaderHidden(false);
+    m_treeView->setModel(m_model);
+    m_treeView->setRootIsDecorated(true);
+    m_treeView->setHeaderHidden(false);
 
     // Add the tree view to the layout
-    m_top_verticalLayout->addWidget(treeView);
+    m_top_verticalLayout->addWidget(m_treeView);
 }
 
 void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>& indices, bool enableDelete, bool state) {
@@ -104,17 +104,22 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>&
 
     // Add an item to the model
     QStandardItem *selectionItem = new QStandardItem();
-    model->appendRow(selectionItem);
+    m_model->appendRow(selectionItem);
 
     // Set the SelectionWidget as the actual widget for the item
-    treeView->setIndexWidget(model->indexFromItem(selectionItem), selectionWidget);
+    m_treeView->setIndexWidget(m_model->indexFromItem(selectionItem), selectionWidget);
 
-    // Add child items (checkboxes)
-    QStringList childNames = {"Option 1", "Option 2", "Option 3", "Option 4"};
-    for (const QString &childName : childNames) {
-        QStandardItem *childItem = new QStandardItem(childName);
+    for (const QString &featureName : std::as_const(m_featureNames)) {
+        QStandardItem *childItem = new QStandardItem(featureName);
         childItem->setCheckable(true);
         selectionItem->appendRow(childItem);
+
+        // Connect directly to the item's state change
+        connect(m_model, &QStandardItemModel::itemChanged, this, [this, id, childItem](QStandardItem *item) {
+            if (item == childItem) { // Ensure signal is for the correct item
+                emit featureCheckStateChanged(id, item->text(), item->checkState() == Qt::Checked);
+            }
+        });
     }
 
     // Expand default behaviour
@@ -136,10 +141,10 @@ void MenuForm::removeSelectionWidget(int id) {
         delete widget;
     }
 
-    for (int row = 0; row < model->rowCount(); ++row) {
-        QStandardItem *item = model->item(row);
-        if (item && treeView->indexWidget(model->index(row, 0)) == m_selectionWidgets.value(id)) {
-            model->removeRow(row);
+    for (int row = 0; row < m_model->rowCount(); ++row) {
+        QStandardItem *item = m_model->item(row);
+        if (item && m_treeView->indexWidget(m_model->index(row, 0)) == m_selectionWidgets.value(id)) {
+            m_model->removeRow(row);
             return;
         }
     }

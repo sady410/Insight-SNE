@@ -16,6 +16,7 @@ public:
     AppWindowBuilder& initializeOverviewPlot();
     AppWindowBuilder& initializeFeaturesPlot();
     AppWindowBuilder& initializeExplanationPlots();
+    AppWindowBuilder& initializeMenuForm();
     AppWindow* build();
 
 private:
