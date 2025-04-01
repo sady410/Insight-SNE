@@ -10,13 +10,16 @@ TsnePlot::TsnePlot(QChart *chart, QWidget *parent)
     setRenderHint(QPainter::Antialiasing);
     setMouseTracking(true);
 
-    chart->setAnimationOptions(QChart::SeriesAnimations);
+    // chart->setAnimationOptions(QChart::SeriesAnimations);
     chart->setTheme(QChart::ChartThemeDark);
 
     // Initialize the timer
     m_lassoFadeTimer = new QTimer(this);
     connect(m_lassoFadeTimer, &QTimer::timeout, this, &TsnePlot::fadeLasso);
     m_lassoOpacity = 1.0;
+
+    connect(chart, &QChart::plotAreaChanged, this, &TsnePlot::updateAllArrows);
+    connect(this, &TsnePlot::zoomChanged, this, &TsnePlot::handleZoomChanged);
 }
 
 TsnePlot::~TsnePlot() {
@@ -304,6 +307,10 @@ void TsnePlot::resetZoom() {
     updateOverviewRectangle();
 }
 
+void TsnePlot::handleZoomChanged() {
+    updateAllArrows();
+}
+
 void TsnePlot::updateOverviewRectangle() {
     if (!chart() || !chart()->scene()) {
         qDebug() << "Error: chart() or chart()->scene() is null!";
@@ -321,17 +328,9 @@ void TsnePlot::updateOverviewRectangle() {
     emit zoomChanged(axisX->min(), axisX->max(), axisY->min(), axisY->max());
 }
 
-void TsnePlot::addArrows(int id, const QList<int> &indices, const QString &featureName) {
-    if (!chart() || !chart()->scene()) {
-        qDebug() << "Error: Chart or Scene is null!";
-        return;
-    }
-
-    // Clear any existing arrows with this ID first
+void TsnePlot::addArrows(int id, const QList<int> &indices, const QString &featureName, const QColor &color) {
+    // First remove any existing arrows with this ID
     removeArrows(id);
-
-    QList<QGraphicsLineItem*> arrowItems;
-    QList<QGraphicsPolygonItem*> arrowHeads;
 
     for (int index : indices) {
         if (index >= m_gradients.size()) {
@@ -360,27 +359,56 @@ void TsnePlot::addArrows(int id, const QList<int> &indices, const QString &featu
             continue;
         }
 
-        // Get gradient vector
-        qreal dx = featureVectors[0][featureIndex];
-        qreal dy = featureVectors[1][featureIndex];
-        QPointF endPoint = startPoint + QPointF(dx, dy);
+        // Store the arrow data
+        ArrowData data;
+        data.id = id;
+        data.startPoint = startPoint;
+        data.vector = QPointF(featureVectors[0][featureIndex], featureVectors[1][featureIndex]);
+        data.featureName = featureName;
+        data.color = color;
+        m_arrowData.append(data);
+    }
 
-        // Convert to scene coordinates
-        QPointF startScene = chart()->mapToPosition(startPoint);
-        QPointF endScene = chart()->mapToPosition(endPoint);
+    // Draw the arrows
+    updateAllArrows();
+}
+
+// Add this new function:
+void TsnePlot::updateAllArrows() {
+    // Clear all existing arrow graphics items
+    for (auto it = m_arrowItemsMap.begin(); it != m_arrowItemsMap.end(); ++it) {
+        for (QGraphicsLineItem* arrow : it.value()) {
+            chart()->scene()->removeItem(arrow);
+            delete arrow;
+        }
+    }
+    m_arrowItemsMap.clear();
+
+    for (auto it = m_arrowHeadsMap.begin(); it != m_arrowHeadsMap.end(); ++it) {
+        for (QGraphicsPolygonItem* arrowHead : it.value()) {
+            chart()->scene()->removeItem(arrowHead);
+            delete arrowHead;
+        }
+    }
+    m_arrowHeadsMap.clear();
+
+    // Redraw all arrows based on current plot area
+    for (const ArrowData& data : m_arrowData) {
+        QPointF startScene = chart()->mapToPosition(data.startPoint);
+        QPointF endScene = chart()->mapToPosition(data.startPoint + data.vector);
 
         // Draw the arrow line
         QGraphicsLineItem *arrowLine = new QGraphicsLineItem(QLineF(startScene, endScene));
-        QPen pen(Qt::cyan, 2);
+        QPen pen(data.color, 2);
         arrowLine->setPen(pen);
         chart()->scene()->addItem(arrowLine);
-        arrowItems.append(arrowLine);
+        m_arrowItemsMap[data.id].append(arrowLine);
 
-        // Correct the arrowhead orientation
+        // Draw the arrowhead
         QPolygonF arrowHead;
         qreal arrowSize = 10.0;
-        QLineF line(endScene, startScene); // Reverse direction to correct orientation
-        double angle = std::atan2(line.dy(), line.dx()); // Compute correct angle
+        QLineF line(endScene, startScene); // Reverse direction for correct orientation
+        double angle = std::atan2(line.dy(), line.dx());
 
         QPointF arrowP1 = endScene + QPointF(std::cos(angle + M_PI / 6) * arrowSize,
                                              std::sin(angle + M_PI / 6) * arrowSize);
@@ -390,37 +418,35 @@ void TsnePlot::addArrows(int id, const QList<int> &indices, const QString &featu
         arrowHead << endScene << arrowP1 << arrowP2;
 
         QGraphicsPolygonItem *arrowHeadItem = new QGraphicsPolygonItem(arrowHead);
-        arrowHeadItem->setBrush(Qt::cyan);
+        arrowHeadItem->setBrush(data.color);
         chart()->scene()->addItem(arrowHeadItem);
-        arrowHeads.append(arrowHeadItem);
-    }
-
-    // Store the arrows with their ID
-    if (!arrowItems.isEmpty()) {
-        m_arrowItemsMap[id] = arrowItems;
-        m_arrowHeadsMap[id] = arrowHeads;
+        m_arrowHeadsMap[data.id].append(arrowHeadItem);
     }
 }
 
+// Modify removeArrows to also remove from m_arrowData:
 void TsnePlot::removeArrows(int id) {
-    // Remove arrow lines for this ID
+    // Remove from arrow data
+    for (int i = m_arrowData.size() - 1; i >= 0; --i) {
+        if (m_arrowData[i].id == id) {
+            m_arrowData.removeAt(i);
+        }
+    }
+
+    // Remove arrow lines
     if (m_arrowItemsMap.contains(id)) {
         for (QGraphicsLineItem* arrow : m_arrowItemsMap[id]) {
-            if (arrow) {
-                chart()->scene()->removeItem(arrow);
-                delete arrow;
-            }
+            chart()->scene()->removeItem(arrow);
+            delete arrow;
         }
         m_arrowItemsMap.remove(id);
     }
 
-    // Remove arrowheads for this ID
+    // Remove arrowheads
     if (m_arrowHeadsMap.contains(id)) {
         for (QGraphicsPolygonItem* arrowHead : m_arrowHeadsMap[id]) {
-            if (arrowHead) {
-                chart()->scene()->removeItem(arrowHead);
-                delete arrowHead;
-            }
+            chart()->scene()->removeItem(arrowHead);
+            delete arrowHead;
         }
         m_arrowHeadsMap.remove(id);
     }
@@ -428,7 +454,7 @@ void TsnePlot::removeArrows(int id) {
 
 void TsnePlot::startHighlightSelection(const QColor &color, const QList<int>& indices) {
 
-    chart()->setAnimationOptions(QChart::NoAnimation);
+    // chart()->setAnimationOptions(QChart::NoAnimation);
     // Clear any previous highlights
     // stopHighlightSelection();
 
@@ -473,7 +499,7 @@ void TsnePlot::startHighlightSelection(const QColor &color, const QList<int>& in
 
 void TsnePlot::stopHighlightSelection() {
 
-    chart()->setAnimationOptions(QChart::SeriesAnimations);
+    // chart()->setAnimationOptions(QChart::SeriesAnimations);
 
     if (m_highlightedSeries) {
         // Remove the series from the chart (the chart will handle deletion)

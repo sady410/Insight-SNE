@@ -46,6 +46,9 @@ AppWindowBuilder& AppWindowBuilder::initializeTsnePlot() {
 
     tsneForm->tsnePlot->initPlot(tsneSeries);
 
+    m_uniqueLabels = labelsList;
+    m_uniqueLabels.removeDuplicates();
+
     // Create the list of lists (indices)
     QMap<QString, QList<int>> classIndicesMap;
     QList<int> allIndices;
@@ -162,13 +165,15 @@ AppWindow* AppWindowBuilder::build() {
 
     m_appWindow->setInitialized(true);
     m_appWindow->connectSignalsAndSlots();
-
+    qDebug() << m_uniqueLabels;
     int i = 0;
     for (const QList<int>& indices : std::as_const(m_indicesList)) {
         if (i == 0) {
-            m_appWindow->getSelectionManager()->createSelection(indices, false, true);
+            m_appWindow->getSelectionManager()->createSelection(indices, false, true, "All points");
         } else {
-            m_appWindow->getSelectionManager()->createSelection(indices, false, false);
+            if (i-1 < m_uniqueLabels.size()) {
+                m_appWindow->getSelectionManager()->createSelection(indices, false, false, m_uniqueLabels[i-1]);
+            }
         }
         i++;
     }

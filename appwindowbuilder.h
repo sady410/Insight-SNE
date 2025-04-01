@@ -21,6 +21,7 @@ public:
 
 private:
     QList<QList<int>> m_indicesList;
+    QStringList m_uniqueLabels;
     QJsonObject m_jsonData;
     QWidget* m_parent;
     AppWindow* m_appWindow = nullptr;

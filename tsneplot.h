@@ -36,11 +36,13 @@ public slots:
     void startHighlightSelection(const QColor &color, const QList<int>& indices);
     void stopHighlightSelection();
 
-    void addArrows(int id, const QList<int>& indices, const QString &featureName);
+    void addArrows(int id, const QList<int>& indices, const QString &featureName, const QColor &color);
     void removeArrows(int id);
 
 private slots:
     void fadeLasso();
+    void handleZoomChanged();
+    void updateAllArrows();
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -68,7 +70,14 @@ private:
     std::map<QPointF, int, QPointFComparator> m_pointIndexMap;
 
     QList<QList<QList<qreal>>> m_gradients;
-
+    struct ArrowData {
+        int id;
+        QPointF startPoint;
+        QPointF vector;
+        QString featureName;
+        QColor color;
+    };
+    QList<ArrowData> m_arrowData;
     QMap<int, QList<QGraphicsLineItem*>> m_arrowItemsMap;     // Stores arrow lines by ID
     QMap<int, QList<QGraphicsPolygonItem*>> m_arrowHeadsMap;  // Stores arrowheads by ID
 
@@ -84,8 +93,6 @@ private:
 
     QTimer *m_lassoFadeTimer;
     qreal m_lassoOpacity;
-
-    QList<QGraphicsLineItem*> m_arrows;
 
     int m_selectionCount;
     static const int MAX_SELECTIONS = 4;

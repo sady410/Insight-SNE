@@ -25,11 +25,11 @@ void SelectionManager::changeSelectionStateAndEmitSignal(int id) {
 }
 
 void SelectionManager::createSelection(const QList<int>& indices) {
-    createSelection(indices, true, true);  // Call the main function with default value
+    createSelection(indices, true, true, "");  // Call the main function with default value
 }
 
 
-void SelectionManager::createSelection(const QList<int>& indices, const bool enableDelete, const bool state) {
+void SelectionManager::createSelection(const QList<int>& indices, const bool enableDelete, const bool state, const QString name) {
     if (m_colorList.size() == m_usedColors.size()) {
         qWarning() << "No available colors for new selection!";
         return;
@@ -40,10 +40,10 @@ void SelectionManager::createSelection(const QList<int>& indices, const bool ena
     // Add the color to usedColors
     m_usedColors.insert(color);
 
-    Selection newSelection(newId, color, indices, state);
+    Selection newSelection(newId, color, name, indices, state);
     m_selections.insert(newId, newSelection);
 
-    emit selectionCreated(newId, color, indices, enableDelete, state);
+    emit selectionCreated(newId, color, indices, enableDelete, state, name);
 }
 
 void SelectionManager::removeSelection(int id) {
@@ -81,8 +81,6 @@ int SelectionManager::generateUniqueId() {
 }
 
 void SelectionManager::selectionFreatureArrowCheckboxChanged(int id, const QString &featureName, const bool checked) {
-    // TODO maybe there is a problem how can I remove the arrows ? It should have an id no ? Add struct or class to manage arrows ?
-    // Maybe completly refactor the selection struct. Do a class and send objects directly
     if (m_selections.contains(id)) {
         Selection &sel = m_selections[id];
         QList<int> indices = sel.indices;

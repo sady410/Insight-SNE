@@ -17,18 +17,19 @@ public:
         int selectionId;
         QList<int> indices;
         QString featureName;
-        ArrowsField(int id = -1, int selectionId = -1, const QList<int>& indices = {}, const QString featureName = "")
-            : id(id), selectionId(selectionId), indices(indices), featureName(featureName) {}
+        QColor color;
+        ArrowsField(int id = -1, int selectionId = -1, const QList<int>& indices = {}, const QString featureName = "", const QColor color = Qt::red)
+            : id(id), selectionId(selectionId), indices(indices), featureName(featureName), color(color) {}
     };
 
     void setGradients(QList<QList<QList<qreal>>> gradients) { m_gradients = gradients; }
 
 signals:
-    void arrowsFieldCreated(int id, QList<int> arrows, QString featureName);
+    void arrowsFieldCreated(int id, const QList<int> &arrows, const QString &featureName, const QColor &color);
     void arrowsFieldRemoved(int id);
 
 public slots:
-    void createArrowsField(int selectionId, const QList<int>& indices, const QString featureName);
+    void createArrowsField(int selectionId, const QList<int> &indices, const QString &featureName);
     void removeArrowsField(int selectionId);
 
 private:

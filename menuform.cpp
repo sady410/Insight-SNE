@@ -12,6 +12,7 @@
 #include <QDebug>
 #include <QStandardItemModel>
 #include <QTreeView>
+#include <QLineEdit>
 
 MenuForm::MenuForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::MenuForm) {
@@ -67,24 +68,52 @@ void MenuForm::setupTreeView() {
     m_top_verticalLayout->addWidget(m_treeView);
 }
 
-void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>& indices, bool enableDelete, bool state) {
+void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>& indices, const bool enableDelete, const bool state, const QString name) {
     Q_UNUSED(indices);
 
-    // Create a new SelectionWidget
     SelectionWidget *selectionWidget = new SelectionWidget(id, this);
     QHBoxLayout *selectionLayout = new QHBoxLayout(selectionWidget);
     selectionLayout->setContentsMargins(0, 0, 0, 0);
 
-    // Add the colored circle
     ColorCircle *circle = new ColorCircle(color, state, selectionWidget);
     selectionLayout->addWidget(circle);
 
-    // Add the label
-    QLabel *label = new QLabel("Selection " + QString::number(id), selectionWidget);
-    selectionLayout->addWidget(label);
+    // Create QLineEdit (editable only if name is empty)
+    QLineEdit *lineEdit = new QLineEdit(selectionWidget);
+    if (name.isEmpty()) {
+        lineEdit->setText("Selection " + QString::number(id));
+        lineEdit->setReadOnly(false);  // Allow editing
+        lineEdit->setStyleSheet(
+            "QLineEdit {"
+            "   border: 1px solid transparent;"
+            "   background: transparent;"
+            "   color: white;"
+            "}"
+            "QLineEdit:hover { border: 1px solid gray; }"
+            );
+    } else {
+        lineEdit->setText(name);
+        lineEdit->setReadOnly(true); // Disable editing
+        lineEdit->setStyleSheet(
+            "QLineEdit {"
+            "   border: none;"
+            "   background: transparent;"
+            "   color: white;"
+            "}"
+            );
+    }
 
+    selectionLayout->addWidget(lineEdit);
+
+    // Maybe useful at some point
+    // if (name.isEmpty()) {
+    //     connect(lineEdit, &QLineEdit::editingFinished, this, [this, id, lineEdit]() {
+    //         emit selectionNameChanged(id, lineEdit->text());
+    //     });
+    // }
+
+    // Rest of the code (delete button, tree view, etc.)
     if (enableDelete) {
-        // Add the delete button (cross)
         QPushButton *deleteButton = new QPushButton("×", selectionWidget);
         deleteButton->setFixedSize(25, 25);
         deleteButton->setStyleSheet(
@@ -99,14 +128,10 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>&
         });
     }
 
-    // Store the selection widget
     m_selectionWidgets.insert(id, selectionWidget);
 
-    // Add an item to the model
     QStandardItem *selectionItem = new QStandardItem();
     m_model->appendRow(selectionItem);
-
-    // Set the SelectionWidget as the actual widget for the item
     m_treeView->setIndexWidget(m_model->indexFromItem(selectionItem), selectionWidget);
 
     for (const QString &featureName : std::as_const(m_featureNames)) {
@@ -114,19 +139,13 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>&
         childItem->setCheckable(true);
         selectionItem->appendRow(childItem);
 
-        // Connect directly to the item's state change
         connect(m_model, &QStandardItemModel::itemChanged, this, [this, id, childItem](QStandardItem *item) {
-            if (item == childItem) { // Ensure signal is for the correct item
+            if (item == childItem) {
                 emit featureCheckStateChanged(id, item->text(), item->checkState() == Qt::Checked);
             }
         });
     }
 
-    // Expand default behaviour
-    // treeView->expandAll();
-    // treeView->expand(model->indexFromItem(selectionItem));
-
-    // Connect the hover signals from the selectionWidget to the MenuForm signals
     connect(selectionWidget, &SelectionWidget::hovered, this, &MenuForm::selectionHovered);
     connect(selectionWidget, &SelectionWidget::left, this, &MenuForm::selectionLeft);
 

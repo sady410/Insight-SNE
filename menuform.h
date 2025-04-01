@@ -33,11 +33,13 @@ signals:
 
     void featureCheckStateChanged(int id, const QString &featureName, bool checked);
 
+    void selectionNameChanged(int id, const QString& newName);
+
 public slots:
     // Slot to add a new selection to the menu
     void addSelectionToMenu(int id, const QColor &color,
                             const QList<int> &indices, const bool enableDelete,
-                            const bool state);
+                            const bool state, const QString name);
     void removeSelectionWidget(int id);
 
 private:

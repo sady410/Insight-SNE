@@ -17,16 +17,17 @@ public:
         int id;
         bool state;
         QColor color;
+        QString name;
         QList<int> indices;
 
-        Selection(int id = -1, const QColor& color = Qt::black, const QList<int>& indices = {}, const bool state = true)
-            : id(id), state(state), color(color), indices(indices) {}
+        Selection(int id = -1, const QColor& color = Qt::black, const QString name = "", const QList<int>& indices = {}, const bool state = true)
+            : id(id), state(state), color(color), name(name), indices(indices) {}
     };
 
     explicit SelectionManager(QObject* parent = nullptr);
 
 public slots:
-    void createSelection(const QList<int>& indices, const bool enableDelete, const bool state);
+    void createSelection(const QList<int>& indices, const bool enableDelete, const bool state, const QString name = "");
     void createSelection(const QList<int>& indices);
     void removeSelection(int id);
 
@@ -39,7 +40,7 @@ public slots:
     void selectionFreatureArrowCheckboxChanged(int id, const QString &featureName, const bool checked);
 
 signals:
-    void selectionCreated(int id, const QColor &color, const QList<int>& indices, const bool enableDelete, const bool state);
+    void selectionCreated(int id, const QColor &color, const QList<int>& indices, const bool enableDelete, const bool state, const QString name);
     void selectionRemoved(int id);
 
     // Signals used when hovering in MenuForm

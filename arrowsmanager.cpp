@@ -7,13 +7,14 @@ ArrowsManager::ArrowsManager(QObject* parent) : QObject(parent)
 
 }
 
-void ArrowsManager::createArrowsField(int selectionId, const QList<int>& indices, const QString featureName) {
+void ArrowsManager::createArrowsField(int selectionId, const QList<int> &indices, const QString &featureName) {
     int newId = generateUniqueId();
-
-    ArrowsField newArrowsField(newId, selectionId, indices, featureName);
+    // TODO modify later
+    QColor color = Qt::red;
+    ArrowsField newArrowsField(newId, selectionId, indices, featureName, color);
     m_arrowsField.insert(newId, newArrowsField);
 
-    emit arrowsFieldCreated(newId, indices, featureName);
+    emit arrowsFieldCreated(newId, indices, featureName, color);
 }
 
 void ArrowsManager::removeArrowsField(int selectionId) {
