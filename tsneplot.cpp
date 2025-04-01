@@ -377,7 +377,8 @@ void TsnePlot::addArrows(int id, const QList<int> &indices, const QString &featu
 void TsnePlot::updateAllArrows() {
     // Clear all existing arrow graphics items
     for (auto it = m_arrowItemsMap.begin(); it != m_arrowItemsMap.end(); ++it) {
-        for (QGraphicsLineItem* arrow : it.value()) {
+        const QList<QGraphicsLineItem*>& arrows = it.value();
+        for (QGraphicsLineItem* arrow : arrows) {
             chart()->scene()->removeItem(arrow);
             delete arrow;
         }
@@ -385,7 +386,8 @@ void TsnePlot::updateAllArrows() {
     m_arrowItemsMap.clear();
 
     for (auto it = m_arrowHeadsMap.begin(); it != m_arrowHeadsMap.end(); ++it) {
-        for (QGraphicsPolygonItem* arrowHead : it.value()) {
+        const QList<QGraphicsPolygonItem*>& arrowHeads = it.value();
+        for (QGraphicsPolygonItem* arrowHead : arrowHeads) {
             chart()->scene()->removeItem(arrowHead);
             delete arrowHead;
         }
@@ -393,7 +395,7 @@ void TsnePlot::updateAllArrows() {
     m_arrowHeadsMap.clear();
 
     // Redraw all arrows based on current plot area
-    for (const ArrowData& data : m_arrowData) {
+    for (const ArrowData& data : std::as_const(m_arrowData)) {
         QPointF startScene = chart()->mapToPosition(data.startPoint);
         QPointF endScene = chart()->mapToPosition(data.startPoint + data.vector);
 

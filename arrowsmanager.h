@@ -30,7 +30,7 @@ signals:
 
 public slots:
     void createArrowsField(int selectionId, const QList<int> &indices, const QString &featureName);
-    void removeArrowsField(int selectionId);
+    void removeArrowsField(int selectionId, const QString &featureName);
 
 private:
     QList<QList<QList<qreal>>> m_gradients;
@@ -40,7 +40,7 @@ private:
     int m_nextId; // Counter for generating new IDs
 
     int generateUniqueId();
-    int findIdBySelectionId(int selectionId) const;
+    int findIdBySelectionIdAndFeatureName(int selectionId, const QString &featureName) const;
 };
 
 #endif // ARROWSMANAGER_H
