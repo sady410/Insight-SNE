@@ -13,6 +13,8 @@
 #include <QStandardItemModel>
 #include <QTreeView>
 #include <QLineEdit>
+#include <QColorDialog>
+#include <QToolTip>
 
 MenuForm::MenuForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::MenuForm) {
@@ -66,7 +68,35 @@ void MenuForm::setupTreeView() {
 
     // Add the tree view to the layout
     m_top_verticalLayout->addWidget(m_treeView);
+
+    m_treeView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_treeView, &QTreeView::customContextMenuRequested,
+            this, &MenuForm::onTreeViewContextMenu);
 }
+
+void MenuForm::onTreeViewContextMenu(const QPoint &pos) {
+    QModelIndex index = m_treeView->indexAt(pos);
+    if (!index.isValid())
+        return;
+
+    QStandardItem *item = m_model->itemFromIndex(index);
+    if (!item || !item->isCheckable())
+        return;
+
+    if (item->checkState() != Qt::Checked) {
+        QToolTip::showText(m_treeView->viewport()->mapToGlobal(pos),
+                           "Enable the checkbox first to change color.");
+        return;
+    }
+
+    QColor chosenColor = QColorDialog::getColor(Qt::white, this, "Select Feature Color");
+
+    if (chosenColor.isValid()) {
+        item->setBackground(chosenColor);
+        emit featureColorChanged(item->text(), chosenColor);
+    }
+}
+
 
 void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>& indices, const bool enableDelete, const bool state, const QString name) {
     Q_UNUSED(indices);
@@ -137,6 +167,7 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>&
     for (const QString &featureName : std::as_const(m_featureNames)) {
         QStandardItem *childItem = new QStandardItem(featureName);
         childItem->setCheckable(true);
+        childItem->setEditable(false);
         selectionItem->appendRow(childItem);
 
         connect(m_model, &QStandardItemModel::itemChanged, this, [this, id, childItem](QStandardItem *item) {

@@ -35,12 +35,17 @@ signals:
 
     void selectionNameChanged(int id, const QString& newName);
 
+    void featureColorChanged(const QString &featureName, const QColor &color);
+
 public slots:
     // Slot to add a new selection to the menu
     void addSelectionToMenu(int id, const QColor &color,
                             const QList<int> &indices, const bool enableDelete,
                             const bool state, const QString name);
     void removeSelectionWidget(int id);
+
+private slots:
+    void onTreeViewContextMenu(const QPoint &pos);
 
 private:
     Ui::MenuForm *ui;
