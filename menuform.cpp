@@ -15,6 +15,9 @@
 #include <QLineEdit>
 #include <QColorDialog>
 #include <QToolTip>
+#include <QButtonGroup>
+#include <QComboBox>
+#include <QRadioButton>
 
 MenuForm::MenuForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::MenuForm) {
@@ -25,7 +28,7 @@ MenuForm::MenuForm(QWidget *parent)
     mainLayout->setSpacing(10);
     mainLayout->setContentsMargins(5, 5, 5, 5);
 
-    // Top section
+    // ===== Top Frame =====
     QFrame *topFrame = new QFrame();
     topFrame->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
     topFrame->setLineWidth(2);
@@ -34,7 +37,7 @@ MenuForm::MenuForm(QWidget *parent)
     m_top_verticalLayout->setContentsMargins(8, 8, 8, 8);
     m_top_verticalLayout->setSpacing(6);
 
-    // add the title and separator
+    // Title and separator
     QLabel *topTitleLabel = new QLabel("Selections", topFrame);
     topTitleLabel->setAlignment(Qt::AlignCenter);
     topTitleLabel->setStyleSheet("font-weight: bold; color: white; font-size: 16px;");
@@ -46,10 +49,89 @@ MenuForm::MenuForm(QWidget *parent)
     separator->setStyleSheet("color: #888;");
     m_top_verticalLayout->addWidget(separator);
 
-    // Initialize Tree View
+    // Tree View setup
     setupTreeView();
 
-    mainLayout->addWidget(topFrame, 1);
+    // Add top frame to layout
+    mainLayout->addWidget(topFrame, 4);
+
+    // ===== Bottom Frame =====
+    QFrame *bottomFrame = new QFrame();
+    bottomFrame->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
+    bottomFrame->setLineWidth(2);
+    bottomFrame->setStyleSheet("background-color: #2e3a3c;");
+    m_bottomLayout = new QVBoxLayout(bottomFrame);
+    m_bottomLayout->setContentsMargins(8, 8, 8, 8);
+    m_bottomLayout->setSpacing(6);
+
+    // Title and separator for bottom frame
+    QLabel *bottomTitleLabel = new QLabel("Filters", bottomFrame);
+    bottomTitleLabel->setAlignment(Qt::AlignCenter);
+    bottomTitleLabel->setStyleSheet("font-weight: bold; color: white; font-size: 16px;");
+    m_bottomLayout->addWidget(bottomTitleLabel);
+
+    QFrame *bottomSeparator = new QFrame();
+    bottomSeparator->setFrameShape(QFrame::HLine);
+    bottomSeparator->setFrameShadow(QFrame::Sunken);
+    bottomSeparator->setStyleSheet("color: #888;");
+    m_bottomLayout->addWidget(bottomSeparator);
+
+    // Button group for mutual exclusivity
+    m_filterGroup = new QButtonGroup(this);
+    m_filterGroup->setExclusive(false); // Allow toggling
+
+    // List to hold the combo boxes so we can manage their enabled state
+    m_comboBoxes.clear();
+    m_radioButtons.clear();
+
+    // Track selected index
+    m_selectedIndex = new int(-1); // using a pointer to allow lambda capture
+
+    // Add filters to the menu using the new method
+    addFilterToMenu(0, "Filter 1", {"Option A", "Option B", "Option C"});
+    addFilterToMenu(1, "Filter 2", {"Option X", "Option Y", "Option Z"});
+    addFilterToMenu(2, "Filter 3", {"Option 1", "Option 2", "Option 3"});
+
+    // Add bottom frame to layout
+    mainLayout->addWidget(bottomFrame, 2);
+}
+
+void MenuForm::addFilterToMenu(int filterIndex, const QString &filterLabel, const QStringList &comboItems) {
+    QHBoxLayout *filterRowLayout = new QHBoxLayout();
+
+    // Create the radio button
+    QRadioButton *radioButton = new QRadioButton(filterLabel);
+    radioButton->setStyleSheet("color: white;");
+    m_filterGroup->addButton(radioButton, filterIndex);
+    m_radioButtons.append(radioButton);
+
+    // Create the combo box
+    QComboBox *comboBox = new QComboBox();
+    comboBox->addItems(comboItems);
+    comboBox->setEnabled(false);  // Initially disabled
+    m_comboBoxes.append(comboBox);
+
+    // Add widgets to the layout
+    filterRowLayout->addWidget(radioButton);
+    filterRowLayout->addWidget(comboBox);
+    m_bottomLayout->addLayout(filterRowLayout);
+
+    // Handle radio button click behavior (toggle enabled state of the combo box)
+    connect(radioButton, &QRadioButton::clicked, this, [=]() {
+        if (*m_selectedIndex == filterIndex) {
+            // If already selected, disable it (toggle off)
+            radioButton->setChecked(false);
+            comboBox->setEnabled(false);
+            *m_selectedIndex = -1; // Reset selection
+        } else {
+            // Select new filter
+            for (int j = 0; j < m_radioButtons.size(); ++j) {
+                m_radioButtons[j]->setChecked(j == filterIndex);
+                m_comboBoxes[j]->setEnabled(j == filterIndex);
+            }
+            *m_selectedIndex = filterIndex;
+        }
+    });
 }
 
 void MenuForm::setupTreeView() {
@@ -96,7 +178,6 @@ void MenuForm::onTreeViewContextMenu(const QPoint &pos) {
         emit featureColorChanged(item->text(), chosenColor);
     }
 }
-
 
 void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>& indices, const bool enableDelete, const bool state, const QString name) {
     Q_UNUSED(indices);

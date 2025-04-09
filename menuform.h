@@ -8,6 +8,8 @@
 #include <QColor>
 #include <QTreeView>
 #include <QStandardItem>
+#include <QRadioButton>
+#include <QComboBox>
 
 namespace Ui {
 class MenuForm;
@@ -42,6 +44,7 @@ public slots:
     void addSelectionToMenu(int id, const QColor &color,
                             const QList<int> &indices, const bool enableDelete,
                             const bool state, const QString name);
+    void addFilterToMenu(int filterIndex, const QString &filterLabel, const QStringList &comboItems);
     void removeSelectionWidget(int id);
 
 private slots:
@@ -53,6 +56,12 @@ private:
     QVBoxLayout *m_top_verticalLayout; // Vertical layout to hold selections
     QVBoxLayout *m_bottom_verticalLayout;
     QMap<int, QWidget*> m_selectionWidgets;
+
+    QButtonGroup *m_filterGroup;
+    QList<QRadioButton*> m_radioButtons;
+    QList<QComboBox*> m_comboBoxes;
+    int *m_selectedIndex;
+    QVBoxLayout *m_bottomLayout;
 
     QStringList m_featureNames;
 
