@@ -1,9 +1,7 @@
 #ifndef TSNEPLOT_H
 #define TSNEPLOT_H
 
-#include <QtCharts/QChartView>
-#include <QtCharts/QScatterSeries>
-#include <QGraphicsPathItem>
+#include "qcustomplot.h"
 #include <QMouseEvent>
 #include <QPainterPath>
 #include <QPen>
@@ -12,16 +10,18 @@
 #include <QStringList>
 #include <QToolTip>
 #include <QTimer>
+#include <QVector>
 
-class TsnePlot : public QChartView {
+class TsnePlot : public QCustomPlot {
     Q_OBJECT
 
 public:
-    explicit TsnePlot(QChart *chart, QWidget *parent = nullptr);
+    explicit TsnePlot(QWidget *parent = nullptr);
     ~TsnePlot();
 
-    void initPlot(QScatterSeries *series);
+    void initPlot(const QVector<double> &x, const QVector<double> &y);
     void setLabels(const QStringList &labels);
+    void setZValues(const QList<QList<qreal>> zValues);
     void setGradients(const QList<QList<QList<qreal>>> gradients);
     void setFeatureNames(const QStringList featureNames);
 
@@ -33,22 +33,27 @@ public slots:
     void resetZoom();
     void decreaseSelectionCount() { m_selectionCount--; }
 
+    // Highlighting
     void startHighlightSelection(const QColor &color, const QList<int>& indices);
     void stopHighlightSelection();
 
+    // Arrows
     void addArrows(int id, const QList<int>& indices, const QString &featureName, const QColor &color);
     void removeArrows(int id);
 
-private slots:
-    void fadeLasso();
-    void handleZoomChanged();
-    void updateAllArrows();
+    // Contour
+    void drawContourPlot(const QString &featureName);
+    void clearContourPlot();
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
+
+private slots:
+    void fadeLasso();
+    void handleZoomChanged(const QCPRange &newRange);
 
 private:
     struct QPointFComparator {
@@ -58,18 +63,27 @@ private:
         }
     };
 
-    void setupAxes(qreal minX, qreal maxX, qreal minY, qreal maxY);
     void updateOverviewRectangle();
     void selectPointsInsideLasso();
     void clearLasso();
+    QPointF coordsToPixels(double x, double y) const;
 
     QStringList m_featureNames;
     QMap<QString, QColor> m_labelColors;
     QStringList m_labels;
-    QMap<QString, QScatterSeries *> m_scatterSeriesMap;
+    QMap<QString, QCPGraph*> m_scatterGraphsMap;
     std::map<QPointF, int, QPointFComparator> m_pointIndexMap;
-
     QList<QList<QList<qreal>>> m_gradients;
+
+    // For contour plotting
+    QCPColorMap *m_colorMap;
+    QCPColorScale *m_colorScale;
+    QCPColorMapData *createContourData(const QString &featureName);
+    void updateContourPlot();
+    QString m_currentContourFeature;
+    QList<QList<qreal>> m_zValues;
+
+    // For arrows
     struct ArrowData {
         int id;
         QPointF startPoint;
@@ -78,22 +92,19 @@ private:
         QColor color;
     };
     QList<ArrowData> m_arrowData;
-    QMap<int, QList<QGraphicsLineItem*>> m_arrowItemsMap;     // Stores arrow lines by ID
-    QMap<int, QList<QGraphicsPolygonItem*>> m_arrowHeadsMap;  // Stores arrowheads by ID
+    QList<QCPItemLine*> m_arrowItems;
 
-    QScatterSeries *m_highlightedSeries;
+    // For highlighting
+    QCPGraph *m_highlightedGraph;
 
+    // For lasso selection
     bool m_isDrawing;
-    QPainterPath m_path;
-    QGraphicsPathItem *m_pathItem;
-    QPointF m_firstPoint;
-
+    QVector<QPoint> m_lassoPoints;
+    QCPCurve* m_lassoCurve;
     QList<QPointF> *m_selectedPoints;
     QList<int> m_selectedIndices;
-
     QTimer *m_lassoFadeTimer;
     qreal m_lassoOpacity;
-
     int m_selectionCount;
     static const int MAX_SELECTIONS = 4;
 

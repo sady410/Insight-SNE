@@ -1,27 +1,34 @@
 #ifndef OVERVIEWPLOT_H
 #define OVERVIEWPLOT_H
 
-#include <QtCharts/QChartView>
-#include <QScatterSeries>
-#include <QValueAxis>
+#include "qcustomplot.h"
+#include <QVector>
 
-class OverviewPlot : public QChartView {
+class OverviewPlot : public QCustomPlot {
     Q_OBJECT
 public:
-    explicit OverviewPlot(QChart *chart, QWidget *parent = nullptr);
+    explicit OverviewPlot(QWidget *parent = nullptr);
 
-    void setScatterSeries(QScatterSeries *series);
+    // Set scatter plot data
+    void setScatterData(const QVector<double> &x, const QVector<double> &y);
 
 public slots:
-    void updateZoomRectangle(qreal minX, qreal maxX, qreal minY, qreal maxY);
+    // Update the zoom rectangle visualization
+    void updateZoomRectangle(double minX, double maxX, double minY, double maxY);
+
+protected:
+    virtual void resizeEvent(QResizeEvent *event) override;
 
 private:
-    QScatterSeries *m_scatterSeries;
-    QGraphicsRectItem *m_zoomRectItem;
+    // Private helper methods
+    void setupPlotAppearance();
 
-    QValueAxis *m_axisX = new QValueAxis();
-    QValueAxis *m_axisY = new QValueAxis();
+    // Zoom rectangle item
+    QCPItemRect *m_zoomRect = nullptr;
 
+    // Drag state variables
+    bool m_dragging = false;
+    QPoint m_dragStart;
 };
 
 #endif // OVERVIEWPLOT_H

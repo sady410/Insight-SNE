@@ -1,6 +1,6 @@
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets charts
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets charts printsupport
 
 CONFIG += c++17
 
@@ -9,6 +9,7 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    qcustomplot.cpp \
     appwindow.cpp \
     appwindowbuilder.cpp \
     arrowsmanager.cpp \
@@ -29,6 +30,7 @@ SOURCES += \
     tsneplot.cpp
 
 HEADERS += \
+    qcustomplot.h \
     appwindow.h \
     appwindowbuilder.h \
     arrowsmanager.h \

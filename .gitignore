@@ -83,3 +83,7 @@ CMakeLists.txt.user*
 
 # Python
 /venv
+
+# QCustomPlot
+qcustomplot.cpp
+qcustomplot.h

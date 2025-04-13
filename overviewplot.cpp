@@ -1,110 +1,81 @@
 #include "overviewplot.h"
+#include <QDebug>
+#include <QPainter>
 
-#include <QChart>
+OverviewPlot::OverviewPlot(QWidget *parent)
+    : QCustomPlot(parent), m_zoomRect(nullptr)
+{
+    // Setup plot appearance
+    setupPlotAppearance();
+}
 
-OverviewPlot::OverviewPlot(QChart *chart, QWidget *parent)
-    : QChartView(chart, parent), m_zoomRectItem(nullptr) {
-    setRenderHint(QPainter::Antialiasing);
-
-    chart->setAnimationOptions(QChart::SeriesAnimations);
-    // chart->setTheme(QChart::ChartThemeDark);
-
-    // Set the background color (#495759)
+void OverviewPlot::setupPlotAppearance()
+{
+    // Dark theme setup
     QColor backgroundColor(0x49, 0x57, 0x59);
+    setBackground(backgroundColor);
 
-    // Chart background
-    chart->setBackgroundBrush(QBrush(backgroundColor));
+    // Axis setup
+    // QPen axisPen(Qt::white, 1);
+    // xAxis->setBasePen(axisPen);
+    // yAxis->setBasePen(axisPen);
+    // xAxis->setTickPen(axisPen);
+    // yAxis->setTickPen(axisPen);
+    // xAxis->setSubTickPen(axisPen);
+    // yAxis->setSubTickPen(axisPen);
+    // xAxis->setTickLabelColor(Qt::white);
+    // yAxis->setTickLabelColor(Qt::white);
 
-    // Plot area background
-    chart->setPlotAreaBackgroundBrush(QBrush(Qt::lightGray));
-    chart->setPlotAreaBackgroundVisible(true);
+    xAxis->setVisible(false);
+    yAxis->setVisible(false);
 
-    // View background (for areas outside the chart)
-    setBackgroundBrush(QBrush(backgroundColor));
+    layer("grid")->setVisible(false);
 
-    // Force white text for all chart elements
-    QColor textColor = Qt::white;
-
-    // Chart title
-    chart->setTitleBrush(QBrush(textColor));
-
-    // Legend
-    if (chart->legend()) {
-        chart->legend()->setLabelColor(textColor);
-    }
-
-    m_axisX->setLabelsColor(Qt::white);  // This affects only the numbers
-    m_axisY->setLabelsColor(Qt::white);
+    // Hide legend
+    legend->setVisible(false);
 }
 
-void OverviewPlot::setScatterSeries(QScatterSeries *series) {
-    if (!series || !chart()) return;
+void OverviewPlot::setScatterData(const QVector<double> &x, const QVector<double> &y) {
+    clearPlottables(); // Clear existing data
 
-    // Remove the previous scatter series if it exists
-    if (m_scatterSeries && chart()->series().contains(m_scatterSeries)) {
-        chart()->removeSeries(m_scatterSeries);
-    }
+    // Create and configure scatter plot
+    QCPGraph *scatterPlot = addGraph();
+    scatterPlot->setData(x, y);
+    scatterPlot->setLineStyle(QCPGraph::lsNone);
+    scatterPlot->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 5));
+    scatterPlot->setPen(QPen(Qt::gray));
+    scatterPlot->setBrush(QBrush(Qt::gray));
 
-    m_scatterSeries = series;
-    m_scatterSeries->setColor(Qt::gray);
-    m_scatterSeries->setMarkerShape(QScatterSeries::MarkerShapeCircle);
-    m_scatterSeries->setBorderColor(Qt::black);
-    chart()->addSeries(m_scatterSeries);
+    // Calculate and set axis ranges with padding
+    auto [xMin, xMax] = std::minmax_element(x.constBegin(), x.constEnd());
+    auto [yMin, yMax] = std::minmax_element(y.constBegin(), y.constEnd());
 
-    // Compute min/max values dynamically
-    qreal minX = std::numeric_limits<qreal>::max();
-    qreal maxX = std::numeric_limits<qreal>::min();
-    qreal minY = std::numeric_limits<qreal>::max();
-    qreal maxY = std::numeric_limits<qreal>::min();
+    double xPadding = (*xMax - *xMin) * 0.2;
+    double yPadding = (*yMax - *yMin) * 0.2;
 
-    for (int i = 0; i < series->count(); ++i) {
-        QPointF point = series->at(i);
-        minX = std::min(minX, point.x());
-        maxX = std::max(maxX, point.x());
-        minY = std::min(minY, point.y());
-        maxY = std::max(maxY, point.y());
-    }
+    xAxis->setRange(*xMin - xPadding, *xMax + xPadding);
+    yAxis->setRange(*yMin - yPadding, *yMax + yPadding);
 
-    m_axisX->setRange(minX - 1, maxX + 1); // Adding margins
-    m_axisY->setRange(minY - 1, maxY + 1);
-    m_axisX->setGridLineVisible(false);
-    m_axisY->setGridLineVisible(false);
-
-    // Remove existing axes if they exist
-    QList<QAbstractAxis *> existingAxes = chart()->axes();
-    for (QAbstractAxis *axis : std::as_const(existingAxes)) {
-        if (axis) {
-            chart()->removeAxis(axis);
-            delete axis;
-        }
-    }
-
-    chart()->addAxis(m_axisX, Qt::AlignBottom);
-    chart()->addAxis(m_axisY, Qt::AlignLeft);
-
-    // Attach the series to the new axes
-    m_scatterSeries->attachAxis(m_axisX);
-    m_scatterSeries->attachAxis(m_axisY);
-
-    chart()->legend()->hide();
+    replot();
 }
 
-void OverviewPlot::updateZoomRectangle(qreal minX, qreal maxX, qreal minY, qreal maxY) {
-    if (!chart() || !chart()->scene()) return;
-
-    if (!m_zoomRectItem) {
-        m_zoomRectItem = new QGraphicsRectItem();
-        QPen pen(Qt::red);
-        pen.setWidth(2);
-        m_zoomRectItem->setPen(pen);
-        chart()->scene()->addItem(m_zoomRectItem);
+void OverviewPlot::updateZoomRectangle(double minX, double maxX, double minY, double maxY)
+{
+    if (!m_zoomRect) {
+        m_zoomRect = new QCPItemRect(this);
+        m_zoomRect->setPen(QPen(Qt::red, 2));
+        m_zoomRect->setBrush(QBrush(QColor(255, 0, 0, 50)));
     }
-    // Convert data coordinates to scene coordinates
-    QPointF topLeft = chart()->mapToPosition(QPointF(minX, maxY));
-    QPointF bottomRight = chart()->mapToPosition(QPointF(maxX, minY));
 
-    QRectF visibleArea(topLeft, bottomRight);
-    // qDebug() << zoomRectItem;
-    // qDebug() << visibleArea;
-    m_zoomRectItem->setRect(visibleArea);
+    m_zoomRect->topLeft->setCoords(minX, maxY);
+    m_zoomRect->bottomRight->setCoords(maxX, minY);
+
+    replot();
+}
+
+void OverviewPlot::resizeEvent(QResizeEvent *event)
+{
+    QCustomPlot::resizeEvent(event);
+    // Maintain aspect ratio if needed
+    // xAxis->setScaleRatio(yAxis, 1.0);
 }

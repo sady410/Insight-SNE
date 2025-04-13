@@ -16,36 +16,46 @@ AppWindowBuilder& AppWindowBuilder::initializeTsnePlot() {
         m_appWindow = new AppWindow(m_parent);
     }
     TsneForm* tsneForm = m_appWindow->getTsneForm();
+
+    // Get labels
     QJsonArray labels = m_jsonData.value("labels").toArray();
     QStringList labelsList;
     std::transform(labels.begin(), labels.end(), std::back_inserter(labelsList),
                    [](const QJsonValue &value) { return value.toString(); });
     tsneForm->tsnePlot->setLabels(labelsList);
 
+    // Get feature names
     QJsonArray featureNames = m_jsonData.value("featureNames").toArray();
     QStringList featureNamesList;
     std::transform(featureNames.begin(), featureNames.end(), std::back_inserter(featureNamesList),
                    [](const QJsonValue &value) { return value.toString(); });
     tsneForm->tsnePlot->setFeatureNames(featureNamesList);
 
+    // Get gradients
     QJsonArray gradients = m_jsonData.value("gradients").toArray();
     QList<QList<QList<qreal>>> gradientsList = JsonParser::jsonArrayToQList3D(gradients);
     tsneForm->tsnePlot->setGradients(gradientsList);
 
+    // Get ZValues
+    QJsonArray zValues = m_jsonData.value("data").toArray();
+    QList<QList<qreal>> zValuesList = JsonParser::jsonArrayToQList2D(zValues);
+    tsneForm->tsnePlot->setZValues(zValuesList);
+
+    // Get embedding data and convert to QVector<double>
     QJsonArray embedding = m_jsonData.value("Y").toArray();
-    QScatterSeries *tsneSeries = new QScatterSeries();
+    QVector<double> xData, yData;
     for (const QJsonValue &val : std::as_const(embedding)) {
         QJsonArray point = val.toArray();
         if (point.size() == 2) {
-            qreal x = point[0].toDouble();
-            qreal y = point[1].toDouble();
-            tsneSeries->append(x, y);
+            xData.append(point[0].toDouble());
+            yData.append(point[1].toDouble());
         }
     }
-    tsneSeries->setMarkerSize(8.0);
 
-    tsneForm->tsnePlot->initPlot(tsneSeries);
+    // Initialize plot with the vectors directly
+    tsneForm->tsnePlot->initPlot(xData, yData);
 
+    // Process labels and indices
     m_uniqueLabels = labelsList;
     m_uniqueLabels.removeDuplicates();
 
@@ -72,17 +82,23 @@ AppWindowBuilder& AppWindowBuilder::initializeOverviewPlot() {
     }
 
     QJsonArray embedding = m_jsonData.value("Y").toArray();
-    QScatterSeries *overviewSeries = new QScatterSeries();
+    QVector<double> xData, yData;
+
+    // Reserve space for better performance with large datasets
+    xData.reserve(embedding.size());
+    yData.reserve(embedding.size());
+
+    // Extract data from JSON
     for (const QJsonValue &val : std::as_const(embedding)) {
         QJsonArray point = val.toArray();
         if (point.size() == 2) {
-            qreal x = point[0].toDouble();
-            qreal y = point[1].toDouble();
-            overviewSeries->append(x, y);
+            xData.append(point[0].toDouble());
+            yData.append(point[1].toDouble());
         }
     }
-    overviewSeries->setMarkerSize(8.0);
-    m_appWindow->getOverviewForm()->overviewPlot->setScatterSeries(overviewSeries);
+
+    // Set the data to the overview plot
+    m_appWindow->getOverviewForm()->overviewPlot->setScatterData(xData, yData);
 
     return *this;
 }

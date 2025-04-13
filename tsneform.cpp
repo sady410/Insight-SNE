@@ -13,9 +13,7 @@ TsneForm::TsneForm(QWidget *parent)
 {
     ui->setupUi(this);
 
-    QChart *tsneChart = new QChart();
-    tsneChart->setTitle("Tsne Plot");
-    tsnePlot = new TsnePlot(tsneChart, nullptr);
+    tsnePlot = new TsnePlot(nullptr);
 
     QPushButton *resetZoomButton = new QPushButton("Reset Zoom");
     resetZoomButton->setFixedSize(80, 30); // Fixed size for Reset Zoom button
@@ -27,6 +25,13 @@ TsneForm::TsneForm(QWidget *parent)
     topBarLayout->addStretch();
     // Add the Reset Zoom button to the right
     topBarLayout->addWidget(resetZoomButton);
+
+    QPushButton *testButton = new QPushButton("test contour");
+    testButton->setFixedSize(80, 30);
+    topBarLayout->addWidget(testButton);
+    connect(testButton, &QPushButton::clicked, this, [this]() {
+        tsnePlot->drawContourPlot("PetalLengthCm");
+    });
 
     // Main layout for the form
     QVBoxLayout *mainLayout = new QVBoxLayout(this);

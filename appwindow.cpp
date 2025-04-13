@@ -2,8 +2,6 @@
 #include "arrowsmanager.h"
 #include "ui_appwindow.h"
 
-#include <QValueAxis>
-
 AppWindow::AppWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::AppWindow)
@@ -171,11 +169,11 @@ void AppWindow::resizeEvent(QResizeEvent *event) {
         return;
     }
 
-    // Force OverviewPlot to update zoom rectangle
-    QValueAxis *axisX = qobject_cast<QValueAxis *>(ui->tsneForm->tsnePlot->chart()->axes(Qt::Horizontal).first());
-    QValueAxis *axisY = qobject_cast<QValueAxis *>(ui->tsneForm->tsnePlot->chart()->axes(Qt::Vertical).first());
-
-    if (axisX && axisY) {
-        emit ui->tsneForm->tsnePlot->zoomChanged(axisX->min(), axisX->max(), axisY->min(), axisY->max());
+    // Get current axis ranges from QCustomPlot
+    TsnePlot* tsnePlot = ui->tsneForm->tsnePlot;
+    if (tsnePlot) {
+        QCPRange xRange = tsnePlot->xAxis->range();
+        QCPRange yRange = tsnePlot->yAxis->range();
+        emit tsnePlot->zoomChanged(xRange.lower, xRange.upper, yRange.lower, yRange.upper);
     }
 }

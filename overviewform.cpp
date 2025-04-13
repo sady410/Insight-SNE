@@ -9,10 +9,7 @@ OverviewForm::OverviewForm(QWidget *parent)
 {
     ui->setupUi(this);
 
-    QChart *overviewChart = new QChart();
-    overviewChart->setTitle("Overview Plot");
-
-    overviewPlot = new OverviewPlot(overviewChart, nullptr);
+    overviewPlot = new OverviewPlot(nullptr);
 
     // Create vertical layout for plot and buttons
     QVBoxLayout *layout = new QVBoxLayout(this);
