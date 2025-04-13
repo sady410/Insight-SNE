@@ -181,7 +181,7 @@ AppWindow* AppWindowBuilder::build() {
 
     m_appWindow->setInitialized(true);
     m_appWindow->connectSignalsAndSlots();
-    qDebug() << m_uniqueLabels;
+
     int i = 0;
     for (const QList<int>& indices : std::as_const(m_indicesList)) {
         if (i == 0) {

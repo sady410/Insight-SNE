@@ -515,78 +515,52 @@ void TsnePlot::stopHighlightSelection()
 
 void TsnePlot::drawContourPlot(const QString &featureName)
 {
+    // Clear existing plot first
+    clearContourPlot();
+
     int featureIndex = m_featureNames.indexOf(featureName);
     if (featureIndex == -1) {
         qDebug() << "Feature not found for contour plot:" << featureName;
         return;
     }
 
-    // Clear existing contour plot if any
-    clearContourPlot();
-
-    // Set the current contour feature
     m_currentContourFeature = featureName;
-
-    // Switch to background layer
     setCurrentLayer("backgroundItems");
 
-    // Create a color map
+    // Create and configure color map
     m_colorMap = new QCPColorMap(xAxis, yAxis);
-    m_colorMap->setLayer("backgroundItems"); // Ensure it's in the background layer
-
-    // Set interpolation for smooth contours
+    m_colorMap->setLayer("backgroundItems");
     m_colorMap->setInterpolate(true);
 
-    // Generate data for the contour plot
     QCPColorMapData *contourData = createContourData(featureName);
-    if (contourData) {
-        m_colorMap->setData(contourData);
-        delete contourData; // QCPColorMap takes ownership of the data
-
-        // Set up the color gradient
-        m_colorMap->setGradient(QCPColorGradient::gpGrayscale);
-
-        // Rescale the data
-        m_colorMap->rescaleDataRange(true);
-
-        // Create a color scale
-        m_colorScale = new QCPColorScale(this);
-        plotLayout()->addElement(1, 0, m_colorScale);
-        m_colorScale->setType(QCPAxis::atRight);
-        m_colorMap->setColorScale(m_colorScale);
-        m_colorScale->axis()->setLabel(featureName);
-
-        // Adjust layout for color scale
-        plotLayout()->setColumnStretchFactor(1, 0.2);
-
-        // Create contour lines
-        QCPColorMap *contourLines = new QCPColorMap(xAxis, yAxis);
-        contourLines->setLayer("backgroundItems");
-        contourLines->data()->setSize(m_colorMap->data()->keySize(), m_colorMap->data()->valueSize());
-        contourLines->data()->setRange(m_colorMap->data()->keyRange(), m_colorMap->data()->valueRange());
-
-        // Copy data from colorMap
-        for (int x = 0; x < m_colorMap->data()->keySize(); ++x) {
-            for (int y = 0; y < m_colorMap->data()->valueSize(); ++y) {
-                contourLines->data()->setCell(x, y, m_colorMap->data()->cell(x, y));
-            }
-        }
-
-        // Set up contour lines properties
-        contourLines->setInterpolate(true);
-        contourLines->setTightBoundary(true);
-        contourLines->setGradient(QCPColorGradient::gpGrayscale);
-        contourLines->setVisible(true);
-
-        // Make the main color map semi-transparent
-        m_colorMap->setInterpolate(true);
-        m_colorMap->setTightBoundary(true);
-        QBrush brush = m_colorMap->brush();
-        QColor color = brush.color();
-        color.setAlphaF(0.6); // 60% opacity
-        brush.setColor(color);
-        m_colorMap->setBrush(brush);
+    if (!contourData) {
+        qDebug() << "Failed to create contour data for feature:" << featureName;
+        delete m_colorMap;
+        m_colorMap = nullptr;
+        return;
     }
+
+    m_colorMap->setData(contourData, true); // true = take ownership of data
+    m_colorMap->setGradient(QCPColorGradient::gpNight);
+    m_colorMap->rescaleDataRange(true);
+
+    // Create color scale if needed
+    if (!m_colorScale) {
+        m_colorScale = new QCPColorScale(this);
+        plotLayout()->addElement(0, 1, m_colorScale);
+        m_colorScale->setType(QCPAxis::atRight);
+        plotLayout()->setColumnStretchFactor(1, 0.2);
+    }
+
+    m_colorScale->axis()->setLabel(featureName);
+    m_colorMap->setColorScale(m_colorScale);
+
+    // Set transparency
+    QBrush brush = m_colorMap->brush();
+    QColor color = brush.color();
+    color.setAlphaF(0.6);
+    brush.setColor(color);
+    m_colorMap->setBrush(brush);
 
     replot();
 }
@@ -595,60 +569,75 @@ QCPColorMapData* TsnePlot::createContourData(const QString &featureName)
 {
     int featureIndex = m_featureNames.indexOf(featureName);
     if (featureIndex == -1 || m_zValues.isEmpty()) {
+        qDebug() << "Feature not found or no z-values available:" << featureName;
         return nullptr;
     }
 
-    // Determine grid size based on the amount of data
-    int gridSize = qMin(300, qMax(50, static_cast<int>(sqrt(m_zValues.size()) * 2)));
+    // Determine grid size - ensure it's reasonable
+    int gridSize = qBound(50, static_cast<int>(sqrt(m_zValues.size()) * 2), 300);
 
-    // Create data structure for contour map
-    QCPColorMapData *data = new QCPColorMapData(gridSize, gridSize, QCPRange(m_initialMinX, m_initialMaxX), QCPRange(m_initialMinY, m_initialMaxY));
+    // Create data structure with valid ranges
+    QCPRange xRange(m_initialMinX, m_initialMaxX);
+    QCPRange yRange(m_initialMinY, m_initialMaxY);
 
-    // Get all data points
+    // Validate ranges
+    if (xRange.size() <= 0 || yRange.size() <= 0) {
+        qDebug() << "Invalid data ranges for contour plot";
+        return nullptr;
+    }
+
+    QCPColorMapData *data = new QCPColorMapData(gridSize, gridSize, xRange, yRange);
+
+    // Collect valid data points
     QVector<QPointF> dataPoints;
     QVector<double> zValues;
+    dataPoints.reserve(m_zValues.size());
+    zValues.reserve(m_zValues.size());
 
     for (auto it = m_pointIndexMap.begin(); it != m_pointIndexMap.end(); ++it) {
-        int index = it->second;
-        if (index >= 0 && index < m_zValues.size() && featureIndex < m_zValues[index].size()) {
+        int pointIndex = it->second;
+        if (pointIndex >= 0 && pointIndex < m_zValues.size() &&
+            featureIndex < m_zValues[pointIndex].size()) {
             dataPoints << it->first;
-            zValues << m_zValues[index][featureIndex];
+            zValues << m_zValues[pointIndex][featureIndex];
         }
     }
 
     if (dataPoints.isEmpty()) {
+        qDebug() << "No valid data points found for contour plot";
         delete data;
         return nullptr;
     }
 
-    // Interpolate z values to grid points
+    // Calculate min/max z values for normalization
+    double minZ = *std::min_element(zValues.constBegin(), zValues.constEnd());
+    double maxZ = *std::max_element(zValues.constBegin(), zValues.constEnd());
+    if (minZ == maxZ) {
+        maxZ = minZ + 1.0; // Avoid division by zero
+    }
+
+    // Fill the grid with interpolated values
     for (int xIndex = 0; xIndex < gridSize; ++xIndex) {
         for (int yIndex = 0; yIndex < gridSize; ++yIndex) {
-            double x = data->keyRange().lower + (data->keyRange().upper - data->keyRange().lower) * xIndex / (gridSize - 1);
-            double y = data->valueRange().lower + (data->valueRange().upper - data->valueRange().lower) * yIndex / (gridSize - 1);
+            double x = xRange.lower + (xRange.upper - xRange.lower) * xIndex / (gridSize - 1);
+            double y = yRange.lower + (yRange.upper - yRange.lower) * yIndex / (gridSize - 1);
 
-            // Calculate an interpolated value using inverse distance weighting
             double totalWeight = 0;
             double weightedSum = 0;
 
             for (int i = 0; i < dataPoints.size(); ++i) {
                 double distance = QLineF(x, y, dataPoints[i].x(), dataPoints[i].y()).length();
-
                 if (distance < 1e-6) {
-                    // We've hit an exact point, use that value
                     weightedSum = zValues[i];
                     totalWeight = 1;
                     break;
                 }
-
-                // Inverse distance weighting
                 double weight = 1.0 / (distance * distance);
                 weightedSum += weight * zValues[i];
                 totalWeight += weight;
             }
 
-            // Set the interpolated value
-            double value = (totalWeight > 0) ? weightedSum / totalWeight : 0;
+            double value = (totalWeight > 0) ? (weightedSum / totalWeight - minZ) / (maxZ - minZ) : 0;
             data->setCell(xIndex, yIndex, value);
         }
     }
@@ -666,11 +655,12 @@ void TsnePlot::clearContourPlot()
 
     // Remove color scale
     if (m_colorScale) {
-        plotLayout()->remove(m_colorScale);
+        // Check if the color scale is at position (0,1) in the layout
+        if (plotLayout()->element(0, 1) == m_colorScale) {
+            plotLayout()->take(m_colorScale);
+        }
+        delete m_colorScale;
         m_colorScale = nullptr;
-
-        // Reset layout
-        plotLayout()->simplify();
     }
 
     m_currentContourFeature.clear();
