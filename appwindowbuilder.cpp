@@ -36,10 +36,14 @@ AppWindowBuilder& AppWindowBuilder::initializeTsnePlot() {
     QList<QList<QList<qreal>>> gradientsList = JsonParser::jsonArrayToQList3D(gradients);
     tsneForm->tsnePlot->setGradients(gradientsList);
 
+    QJsonArray magnitudes = m_jsonData.value("magnitudes").toArray();
+    QList<QList<qreal>> magnitudesList = JsonParser::jsonArrayToQList2D(magnitudes);
+    tsneForm->tsnePlot->setMagnitudes(magnitudesList);
+
     // Get ZValues
-    QJsonArray zValues = m_jsonData.value("data").toArray();
-    QList<QList<qreal>> zValuesList = JsonParser::jsonArrayToQList2D(zValues);
-    tsneForm->tsnePlot->setZValues(zValuesList);
+    QJsonArray attributes = m_jsonData.value("data").toArray();
+    QList<QList<qreal>> attributesList = JsonParser::jsonArrayToQList2D(attributes);
+    tsneForm->tsnePlot->setAttributes(attributesList);
 
     // Get embedding data and convert to QVector<double>
     QJsonArray embedding = m_jsonData.value("Y").toArray();
@@ -170,6 +174,10 @@ AppWindowBuilder& AppWindowBuilder::initializeMenuForm() {
     MenuForm* menuForm = m_appWindow->getMenuForm();
 
     menuForm->setFeatureNames(featureNamesList);
+
+    // Add filters to the menu
+    menuForm->addFilterToMenu(0, "Magnitudes", featureNamesList);
+    menuForm->addFilterToMenu(1, "Attributes", featureNamesList);
 
     return *this;
 }

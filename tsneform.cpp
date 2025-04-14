@@ -26,13 +26,6 @@ TsneForm::TsneForm(QWidget *parent)
     // Add the Reset Zoom button to the right
     topBarLayout->addWidget(resetZoomButton);
 
-    QPushButton *testButton = new QPushButton("test contour");
-    testButton->setFixedSize(80, 30);
-    topBarLayout->addWidget(testButton);
-    connect(testButton, &QPushButton::clicked, this, [this]() {
-        tsnePlot->drawContourPlot("PetalLengthCm");
-    });
-
     // Main layout for the form
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->addLayout(topBarLayout); // Add the top bar layout

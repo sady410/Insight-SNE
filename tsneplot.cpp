@@ -2,7 +2,7 @@
 
 TsnePlot::TsnePlot(QWidget *parent)
     : QCustomPlot(parent), m_colorMap(nullptr), m_colorScale(nullptr),
-    m_highlightedGraph(nullptr), m_isDrawing(false),m_selectedPoints(new QList<QPointF>()), m_selectionCount(0)
+    m_zValues(), m_highlightedGraph(nullptr),m_isDrawing(false), m_selectedPoints(new QList<QPointF>()), m_selectionCount(0)
 {
     setInteractions(QCP::iRangeZoom);
     setMouseTracking(true);
@@ -47,14 +47,19 @@ TsnePlot::~TsnePlot()
     delete m_selectedPoints;
 }
 
-void TsnePlot::setZValues(const QList<QList<qreal>> zValues)
+void TsnePlot::setAttributes(const QList<QList<qreal>> attributes)
 {
-    m_zValues = zValues;
+    m_attributes = attributes;
 }
 
 void TsnePlot::setGradients(const QList<QList<QList<qreal>>> gradients)
 {
     m_gradients = gradients;
+}
+
+void TsnePlot::setMagnitudes(const QList<QList<qreal>> magnitudes)
+{
+    m_magnitudes = magnitudes;
 }
 
 void TsnePlot::setFeatureNames(const QStringList featureNames)
@@ -513,7 +518,7 @@ void TsnePlot::stopHighlightSelection()
     }
 }
 
-void TsnePlot::drawContourPlot(const QString &featureName)
+void TsnePlot::drawContourPlot(const QString &featureName, const QString &attributesOrMagnitudes)
 {
     // Clear existing plot first
     clearContourPlot();
@@ -524,6 +529,13 @@ void TsnePlot::drawContourPlot(const QString &featureName)
         return;
     }
 
+    if (attributesOrMagnitudes == "Attributes") {
+        m_zValues = m_attributes;
+    } else {
+        m_zValues = m_magnitudes;
+    }
+
+    m_currentContourType = attributesOrMagnitudes;
     m_currentContourFeature = featureName;
     setCurrentLayer("backgroundItems");
 
@@ -541,7 +553,7 @@ void TsnePlot::drawContourPlot(const QString &featureName)
     }
 
     m_colorMap->setData(contourData, true); // true = take ownership of data
-    m_colorMap->setGradient(QCPColorGradient::gpNight);
+    m_colorMap->setGradient(QCPColorGradient::gpThermal);
     m_colorMap->rescaleDataRange(true);
 
     // Create color scale if needed
@@ -671,6 +683,6 @@ void TsnePlot::updateContourPlot()
 {
     // If we have an active contour plot, redraw it with current view
     if (!m_currentContourFeature.isEmpty()) {
-        drawContourPlot(m_currentContourFeature);
+        drawContourPlot(m_currentContourFeature, m_currentContourType);
     }
 }

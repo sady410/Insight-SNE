@@ -104,6 +104,10 @@ void AppWindow::connectSignalsAndSlots() { // TODO REFACTOR FOR BARPLOTS
     connect(m_arrowsManager, &ArrowsManager::arrowsFieldCreated, getTsneForm()->tsnePlot, &TsnePlot::addArrows);
     connect(m_arrowsManager, &ArrowsManager::arrowsFieldRemoved, getTsneForm()->tsnePlot, &TsnePlot::removeArrows);
 
+    // Contours
+    connect(getMenuForm(), &MenuForm::addContour, getTsneForm()->tsnePlot, &TsnePlot::drawContourPlot);
+    connect(getMenuForm(), &MenuForm::clearContour, getTsneForm()->tsnePlot, &TsnePlot::clearContourPlot);
+
     // Zoom
     connect(getTsneForm()->tsnePlot, &TsnePlot::zoomChanged, getOverviewForm()->overviewPlot, &OverviewPlot::updateZoomRectangle);
 }

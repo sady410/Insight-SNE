@@ -39,6 +39,9 @@ signals:
 
     void featureColorChanged(const QString &featureName, const QColor &color);
 
+    void addContour(const QString &comboValue, const QString &filterName);
+    void clearContour();
+
 public slots:
     // Slot to add a new selection to the menu
     void addSelectionToMenu(int id, const QColor &color,

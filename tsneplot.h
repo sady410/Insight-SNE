@@ -21,8 +21,9 @@ public:
 
     void initPlot(const QVector<double> &x, const QVector<double> &y);
     void setLabels(const QStringList &labels);
-    void setZValues(const QList<QList<qreal>> zValues);
+    void setAttributes(const QList<QList<qreal>> attributes);
     void setGradients(const QList<QList<QList<qreal>>> gradients);
+    void setMagnitudes(const QList<QList<qreal>> magnitudes);
     void setFeatureNames(const QStringList featureNames);
 
 signals:
@@ -42,7 +43,7 @@ public slots:
     void removeArrows(int id);
 
     // Contour
-    void drawContourPlot(const QString &featureName);
+    void drawContourPlot(const QString &featureName, const QString &attributesOrMagnitudes);
     void clearContourPlot();
 
 protected:
@@ -81,7 +82,10 @@ private:
     QCPColorMapData *createContourData(const QString &featureName);
     void updateContourPlot();
     QString m_currentContourFeature;
+    QString m_currentContourType;
     QList<QList<qreal>> m_zValues;
+    QList<QList<qreal>> m_attributes;
+    QList<QList<qreal>> m_magnitudes;
 
     // For arrows
     struct ArrowData {

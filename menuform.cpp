@@ -87,11 +87,6 @@ MenuForm::MenuForm(QWidget *parent)
     // Track selected index
     m_selectedIndex = new int(-1); // using a pointer to allow lambda capture
 
-    // Add filters to the menu using the new method
-    addFilterToMenu(0, "Filter 1", {"Option A", "Option B", "Option C"});
-    addFilterToMenu(1, "Filter 2", {"Option X", "Option Y", "Option Z"});
-    addFilterToMenu(2, "Filter 3", {"Option 1", "Option 2", "Option 3"});
-
     // Add bottom frame to layout
     mainLayout->addWidget(bottomFrame, 2);
 }
@@ -123,6 +118,7 @@ void MenuForm::addFilterToMenu(int filterIndex, const QString &filterLabel, cons
             radioButton->setChecked(false);
             comboBox->setEnabled(false);
             *m_selectedIndex = -1; // Reset selection
+            emit clearContour(); // Emit clear signal when deselected
         } else {
             // Select new filter
             for (int j = 0; j < m_radioButtons.size(); ++j) {
@@ -130,8 +126,18 @@ void MenuForm::addFilterToMenu(int filterIndex, const QString &filterLabel, cons
                 m_comboBoxes[j]->setEnabled(j == filterIndex);
             }
             *m_selectedIndex = filterIndex;
+            // Emit add signal with the filter name and current combo box value
+            emit addContour(comboBox->currentText(), filterLabel);
         }
     });
+
+    // Also connect combo box changes to emit addContour when the value changes
+    connect(comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            [=](int index) {
+                if (radioButton->isChecked()) {
+                    emit addContour(comboBox->itemText(index), filterLabel);
+                }
+            });
 }
 
 void MenuForm::setupTreeView() {
