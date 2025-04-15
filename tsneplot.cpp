@@ -519,7 +519,11 @@ void TsnePlot::stopHighlightSelection()
 }
 
 void TsnePlot::drawContourPlot(const QString &featureName, const QString &attributesOrMagnitudes) {
+    // Make sure we completely clean up first
     clearContourPlot();
+
+    // Add a small delay to ensure UI is updated properly
+    QApplication::processEvents();
 
     int featureIndex = m_featureNames.indexOf(featureName);
     if (featureIndex == -1) {
@@ -537,7 +541,7 @@ void TsnePlot::drawContourPlot(const QString &featureName, const QString &attrib
     m_colorMap = new QCPColorMap(xAxis, yAxis);
     m_colorMap->setInterpolate(true);
 
-    // Assign data (with RAW values)
+    // Assign data
     QCPColorMapData *contourData = createContourData(featureName);
     if (!contourData) {
         qDebug() << "Failed to create contour data";
@@ -546,7 +550,7 @@ void TsnePlot::drawContourPlot(const QString &featureName, const QString &attrib
         return;
     }
 
-    // Get the actual range from the contour data we just created
+    // Get actual range from contour data
     double minCellValue = std::numeric_limits<double>::max();
     double maxCellValue = std::numeric_limits<double>::lowest();
     for (int x = 0; x < contourData->keySize(); ++x) {
@@ -558,37 +562,39 @@ void TsnePlot::drawContourPlot(const QString &featureName, const QString &attrib
     }
     qDebug() << "Using contour data range:" << minCellValue << "to" << maxCellValue;
 
-    // Assign the data to the color map
+    // Assign data to color map
     m_colorMap->setData(contourData, true);
 
-    // Set the gradient BEFORE setting the data range
+    // Set up gradient
     QCPColorGradient gradient(QCPColorGradient::gpJet);
     m_colorMap->setGradient(gradient);
 
-    // Set data range using the ACTUAL values from the contour data
+    // Set data range
     double range = maxCellValue - minCellValue;
     if (range < 1e-6) {
-        qDebug() << "WARNING: Contour data range too small, adding artificial range";
         range = 1.0;
     }
     m_colorMap->setDataRange(QCPRange(minCellValue, maxCellValue));
 
-    // Add color scale
-    if (!m_colorScale) {
-        m_colorScale = new QCPColorScale(this);
-        plotLayout()->addElement(0, 1, m_colorScale);
-        m_colorScale->setType(QCPAxis::atRight);
+    // Make sure we have space for the color scale in the layout
+    if (plotLayout()->elementCount() > 1 && plotLayout()->hasElement(0, 1)) {
+        // If position is occupied, add another column
+        plotLayout()->insertColumn(1);
     }
-    m_colorScale->axis()->setLabel(featureName);
 
-    // Make sure the color scale uses the same gradient and range
+    // Create and set up color scale
+    m_colorScale = new QCPColorScale(this);
+    plotLayout()->addElement(0, 1, m_colorScale);
+    m_colorScale->setType(QCPAxis::atRight);
+    m_colorScale->axis()->setLabel(featureName);
     m_colorScale->setGradient(gradient);
     m_colorScale->setDataRange(QCPRange(minCellValue, maxCellValue));
 
-    // Connect the color map to the scale
+    // Connect color map to scale
     m_colorMap->setColorScale(m_colorScale);
 
-    replot();
+    // Force complete replot
+    replot(QCustomPlot::rpQueuedReplot);
 }
 
 QCPColorMapData* TsnePlot::createContourData(const QString &featureName) {
@@ -702,18 +708,28 @@ void TsnePlot::clearContourPlot()
         m_colorMap = nullptr;
     }
 
-    // Remove color scale
+    // Remove color scale more carefully
     if (m_colorScale) {
-        // Check if the color scale is at position (0,1) in the layout
-        if (plotLayout()->element(0, 1) == m_colorScale) {
-            plotLayout()->take(m_colorScale);
+        // Check if the color scale is still in the layout before removing it
+        for (int i = 0; i < plotLayout()->elementCount(); ++i) {
+            if (plotLayout()->elementAt(i) == m_colorScale) {
+                plotLayout()->take(m_colorScale);
+                break;
+            }
         }
         delete m_colorScale;
         m_colorScale = nullptr;
     }
 
+    // Reset the current contour feature
     m_currentContourFeature.clear();
-    replot();
+    m_currentContourType.clear();
+
+    // Make sure to reset any layout settings that might have been changed
+    plotLayout()->simplify();
+
+    // Force a complete replot
+    replot(QCustomPlot::rpQueuedReplot);
 }
 
 void TsnePlot::updateContourPlot()
