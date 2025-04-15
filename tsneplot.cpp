@@ -1,8 +1,9 @@
 #include "tsneplot.h"
 
 TsnePlot::TsnePlot(QWidget *parent)
-    : QCustomPlot(parent), m_colorMap(nullptr), m_colorScale(nullptr),
-    m_zValues(), m_highlightedGraph(nullptr),m_isDrawing(false), m_selectedPoints(new QList<QPointF>()), m_selectionCount(0)
+    : QCustomPlot(parent), m_isPanning(false), m_panStartPos(),
+    m_colorMap(nullptr), m_colorScale(nullptr),m_zValues(), m_highlightedGraph(nullptr),
+    m_isDrawing(false), m_selectedPoints(new QList<QPointF>()), m_selectionCount(0)
 {
     setInteractions(QCP::iRangeZoom);
     setMouseTracking(true);
@@ -158,7 +159,15 @@ QPointF TsnePlot::coordsToPixels(double x, double y) const
 
 void TsnePlot::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton && m_selectionCount < MAX_SELECTIONS) {
+    if (event->button() == Qt::RightButton) {
+        // Start panning
+        m_isPanning = true;
+        m_panStartPos = event->pos();
+        setCursor(Qt::ClosedHandCursor); // Change cursor to indicate panning
+        event->accept();
+        return;
+    }
+    else if (event->button() == Qt::LeftButton && m_selectionCount < MAX_SELECTIONS) {
         clearLasso();
 
         m_isDrawing = true;
@@ -191,8 +200,63 @@ void TsnePlot::mousePressEvent(QMouseEvent *event)
 
 void TsnePlot::mouseMoveEvent(QMouseEvent *event)
 {
-    if (m_isDrawing && m_lassoCurve) {
-        // Convert screen position to data coordinates
+    if (m_isPanning) {
+        // Calculate how much the mouse has moved by
+        QPoint delta = event->pos() - m_panStartPos;
+
+        // Convert pixel movement to coordinate movement
+        double deltaX = xAxis->pixelToCoord(m_panStartPos.x()) - xAxis->pixelToCoord(m_panStartPos.x() + delta.x());
+        double deltaY = yAxis->pixelToCoord(m_panStartPos.y()) - yAxis->pixelToCoord(m_panStartPos.y() + delta.y());
+
+        // Calculate new range values
+        double newLower = xAxis->range().lower + deltaX;
+        double newUpper = xAxis->range().upper + deltaX;
+        double newLowerY = yAxis->range().lower + deltaY;
+        double newUpperY = yAxis->range().upper + deltaY;
+
+        // Check X boundaries
+        if (newLower < m_initialMinX) {
+            // Adjust both to maintain range size
+            double adjustment = m_initialMinX - newLower;
+            newLower = m_initialMinX;
+            newUpper += adjustment;
+        }
+
+        if (newUpper > m_initialMaxX) {
+            // Adjust both to maintain range size
+            double adjustment = newUpper - m_initialMaxX;
+            newUpper = m_initialMaxX;
+            newLower -= adjustment;
+        }
+
+        // Check Y boundaries
+        if (newLowerY < m_initialMinY) {
+            // Adjust both to maintain range size
+            double adjustment = m_initialMinY - newLowerY;
+            newLowerY = m_initialMinY;
+            newUpperY += adjustment;
+        }
+
+        if (newUpperY > m_initialMaxY) {
+            // Adjust both to maintain range size
+            double adjustment = newUpperY - m_initialMaxY;
+            newUpperY = m_initialMaxY;
+            newLowerY -= adjustment;
+        }
+
+        // Set the new ranges
+        xAxis->setRange(newLower, newUpper);
+        yAxis->setRange(newLowerY, newUpperY);
+
+        // Update the start position for the next move event
+        m_panStartPos = event->pos();
+
+        // Update the plot
+        replot();
+        updateOverviewRectangle();
+        return;
+    }
+    else if (m_isDrawing && m_lassoCurve) {
         double xCoord = xAxis->pixelToCoord(event->pos().x());
         double yCoord = yAxis->pixelToCoord(event->pos().y());
 
@@ -234,7 +298,14 @@ void TsnePlot::mouseMoveEvent(QMouseEvent *event)
 
 void TsnePlot::mouseReleaseEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton && m_isDrawing) {
+    if (event->button() == Qt::RightButton && m_isPanning) {
+        // End panning
+        m_isPanning = false;
+        setCursor(Qt::ArrowCursor); // Reset cursor
+        event->accept();
+        return;
+    }
+    else if (event->button() == Qt::LeftButton && m_isDrawing) {
         m_isDrawing = false;
 
         if (m_lassoPoints.size() > 2) {
@@ -362,6 +433,7 @@ void TsnePlot::wheelEvent(QWheelEvent *event)
     if (xUpper > xLower && yUpper > yLower) {
         xAxis->setRange(xLower, xUpper);
         yAxis->setRange(yLower, yUpper);
+
         replot();
         updateOverviewRectangle();
     }
@@ -380,11 +452,7 @@ void TsnePlot::handleZoomChanged(const QCPRange &newRange)
     Q_UNUSED(newRange)
     updateOverviewRectangle();
 
-    // If we have an active contour feature, we may want to update the contour plot
-    // with better resolution for the current view
-    // For performance reasons, we might want to use a timer here to prevent too frequent updates
-    // For now, we'll just call updateContourPlot directly
-    updateContourPlot();
+    // updateContourPlot();
 }
 
 void TsnePlot::updateOverviewRectangle()
@@ -566,7 +634,7 @@ void TsnePlot::drawContourPlot(const QString &featureName, const QString &attrib
     m_colorMap->setData(contourData, true);
 
     // Set up gradient
-    QCPColorGradient gradient(QCPColorGradient::gpJet);
+    QCPColorGradient gradient(QCPColorGradient::gpGrayscale);
     m_colorMap->setGradient(gradient);
 
     // Set data range
@@ -735,7 +803,123 @@ void TsnePlot::clearContourPlot()
 void TsnePlot::updateContourPlot()
 {
     // If we have an active contour plot, redraw it with current view
-    if (!m_currentContourFeature.isEmpty()) {
-        drawContourPlot(m_currentContourFeature, m_currentContourType);
+    if (!m_currentContourFeature.isEmpty() && m_colorMap != nullptr) {
+        // Instead of completely redrawing, just update the data for the current view
+        int featureIndex = m_featureNames.indexOf(m_currentContourFeature);
+        if (featureIndex == -1) return;
+
+        // Get current axis ranges
+        QCPRange xRange = xAxis->range();
+        QCPRange yRange = yAxis->range();
+
+        // Create new contour data with current view bounds
+        QCPColorMapData *newData = createContourDataForView(m_currentContourFeature, xRange, yRange);
+        if (!newData) return;
+
+        // Update the color map with new data
+        m_colorMap->setData(newData, true);
+
+        // No need to change the data range, gradient or color scale
+        // Just replot to show the updated view
+        replot();
     }
+}
+
+QCPColorMapData* TsnePlot::createContourDataForView(const QString &featureName, const QCPRange &xRange, const QCPRange &yRange)
+{
+    int featureIndex = m_featureNames.indexOf(featureName);
+    if (featureIndex == -1 || m_zValues.isEmpty()) {
+        return nullptr;
+    }
+
+    // Use higher resolution for zoomed views
+    int gridSize = 100;
+
+    // Create data structure with current view ranges
+    QCPColorMapData *data = new QCPColorMapData(
+        gridSize, gridSize,
+        xRange, yRange
+        );
+
+    // Collect data points and z-values for interpolation
+    QVector<QPointF> dataPoints;
+    QVector<double> zValues;
+
+    for (auto it = m_pointIndexMap.begin(); it != m_pointIndexMap.end(); ++it) {
+        int pointIndex = it->second;
+
+        // Only include points that are within or near the current view
+        // to improve performance and quality
+        if (pointIndex >= 0 && pointIndex < m_zValues.size() &&
+            featureIndex < m_zValues[pointIndex].size()) {
+
+            // Add padding to include points just outside view for better interpolation
+            const double padding = 0.2; // 20% padding
+            double padXRange = xRange.size() * padding;
+            double padYRange = yRange.size() * padding;
+
+            if (it->first.x() >= xRange.lower - padXRange &&
+                it->first.x() <= xRange.upper + padXRange &&
+                it->first.y() >= yRange.lower - padYRange &&
+                it->first.y() <= yRange.upper + padYRange) {
+
+                dataPoints << it->first;
+                zValues << m_zValues[pointIndex][featureIndex];
+            }
+        }
+    }
+
+    if (zValues.isEmpty()) {
+        qDebug() << "No valid data points for contour plot in current view";
+        delete data;
+        return nullptr;
+    }
+
+    // Fill grid with interpolated values
+    for (int xIndex = 0; xIndex < gridSize; ++xIndex) {
+        for (int yIndex = 0; yIndex < gridSize; ++yIndex) {
+            double x = data->keyRange().lower + xIndex * data->keyRange().size() / (gridSize - 1);
+            double y = data->valueRange().lower + yIndex * data->valueRange().size() / (gridSize - 1);
+
+            double totalWeight = 0.0;
+            double weightedSum = 0.0;
+            double minDist = std::numeric_limits<double>::max();
+            double nearestValue = 0.0;
+
+            for (int i = 0; i < dataPoints.size(); ++i) {
+                double distance = QLineF(x, y, dataPoints[i].x(), dataPoints[i].y()).length();
+
+                // Keep track of nearest point as fallback
+                if (distance < minDist) {
+                    minDist = distance;
+                    nearestValue = zValues[i];
+                }
+
+                if (distance < 1e-6) {
+                    // Direct hit on a point
+                    weightedSum = zValues[i];
+                    totalWeight = 1.0;
+                    break;
+                }
+
+                // Use inverse distance weighting
+                double weight = 1.0 / (distance * distance);
+                weightedSum += weight * zValues[i];
+                totalWeight += weight;
+            }
+
+            // Assign interpolated value
+            double value;
+            if (totalWeight > 0) {
+                value = weightedSum / totalWeight;
+            } else {
+                // Fallback to nearest point if weights are zero
+                value = nearestValue;
+            }
+
+            data->setCell(xIndex, yIndex, value);
+        }
+    }
+
+    return data;
 }

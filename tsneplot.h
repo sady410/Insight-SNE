@@ -76,10 +76,15 @@ private:
     std::map<QPointF, int, QPointFComparator> m_pointIndexMap;
     QList<QList<QList<qreal>>> m_gradients;
 
+    // For Panning
+    bool m_isPanning;
+    QPoint m_panStartPos;
+
     // For contour plotting
     QCPColorMap *m_colorMap;
     QCPColorScale *m_colorScale;
-    QCPColorMapData *createContourData(const QString &featureName);
+    QCPColorMapData* createContourData(const QString &featureName);
+    QCPColorMapData* createContourDataForView(const QString &featureName, const QCPRange &xRange, const QCPRange &yRange);
     void updateContourPlot();
     QString m_currentContourFeature;
     QString m_currentContourType;
