@@ -12,8 +12,7 @@ OverviewPlot::OverviewPlot(QWidget *parent)
 void OverviewPlot::setupPlotAppearance()
 {
     // Dark theme setup
-    QColor backgroundColor(0x49, 0x57, 0x59);
-    setBackground(backgroundColor);
+    setBackground(QColor(53, 53, 53));
 
     // Axis setup
     // QPen axisPen(Qt::white, 1);

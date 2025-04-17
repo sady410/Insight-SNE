@@ -122,8 +122,9 @@ void MenuWindow::onOutputReceived(const QString &output)
             }
             jsonObject["data"] = dataArray;
 
-            AppWindowBuilder builder(jsonObject);
-            builder.initializeTsnePlot()
+            AppWindowBuilder builder;
+            builder.setJsonData(jsonObject)  // This also parses the JSON data
+                .initializeTsnePlot()
                 .initializeOverviewPlot()
                 .initializeFeaturesPlot()
                 .initializeExplanationPlots()

@@ -32,7 +32,7 @@ MenuForm::MenuForm(QWidget *parent)
     QFrame *topFrame = new QFrame();
     topFrame->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
     topFrame->setLineWidth(2);
-    topFrame->setStyleSheet("background-color: #495759;");
+    topFrame->setStyleSheet("background-color: #535353;");
     m_top_verticalLayout = new QVBoxLayout(topFrame);
     m_top_verticalLayout->setContentsMargins(8, 8, 8, 8);
     m_top_verticalLayout->setSpacing(6);
@@ -59,7 +59,7 @@ MenuForm::MenuForm(QWidget *parent)
     QFrame *bottomFrame = new QFrame();
     bottomFrame->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
     bottomFrame->setLineWidth(2);
-    bottomFrame->setStyleSheet("background-color: #2e3a3c;");
+    bottomFrame->setStyleSheet("background-color: #535353;");
     m_bottomLayout = new QVBoxLayout(bottomFrame);
     m_bottomLayout->setContentsMargins(8, 8, 8, 8);
     m_bottomLayout->setSpacing(6);
