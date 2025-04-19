@@ -637,10 +637,8 @@ void TsnePlot::drawContourPlot(const QString &featureName, const QString &attrib
     QCPColorGradient gradient(QCPColorGradient::gpGrayscale);
     m_colorMap->setGradient(gradient);
 
-    // Set data range
-    double range = maxCellValue - minCellValue;
-    if (range < 1e-6) {
-        range = 1.0;
+    if (qAbs(maxCellValue - minCellValue) < 1e-6) {
+        maxCellValue = minCellValue + 1.0;
     }
     m_colorMap->setDataRange(QCPRange(minCellValue, maxCellValue));
 

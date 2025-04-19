@@ -131,8 +131,8 @@ void MenuForm::addFilterToMenu(int filterIndex, const QString &filterLabel, cons
         }
     });
 
-    // Also connect combo box changes to emit addContour when the value changes
     connect(comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this,
             [=](int index) {
                 if (radioButton->isChecked()) {
                     emit addContour(comboBox->itemText(index), filterLabel);
