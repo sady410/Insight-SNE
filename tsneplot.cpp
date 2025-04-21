@@ -544,6 +544,57 @@ void TsnePlot::removeArrows(int id)
     replot();
 }
 
+void TsnePlot::changeArrowsColor(int id, const QColor &newColor)
+{
+    // First, check if there are any arrows with this ID
+    bool arrowsFound = false;
+    for (int i = 0; i < m_arrowData.size(); ++i) {
+        if (m_arrowData[i].id == id) {
+            arrowsFound = true;
+            break;
+        }
+    }
+
+    if (!arrowsFound) {
+        qDebug() << "No arrows found with id:" << id;
+        return;
+    }
+
+    // Collect all arrow data with this ID and update their color
+    QList<ArrowData> arrowsToRedraw;
+    for (int i = 0; i < m_arrowData.size(); ++i) {
+        if (m_arrowData[i].id == id) {
+            // Update the color in the data structure
+            m_arrowData[i].color = newColor;
+            arrowsToRedraw.append(m_arrowData[i]);
+        }
+    }
+
+    // Remove all existing arrow items with this ID
+    for (int i = m_arrowItems.size() - 1; i >= 0; --i) {
+        if (i < m_arrowData.size() && m_arrowData[i].id == id) {
+            QCPItemLine* arrow = m_arrowItems[i];
+            removeItem(arrow);
+            m_arrowItems.removeAt(i);
+        }
+    }
+
+    // Redraw all arrows with the new color
+    setCurrentLayer("arrows");
+    for (const ArrowData &data : arrowsToRedraw) {
+        QCPItemLine *arrow = new QCPItemLine(this);
+        arrow->start->setCoords(data.startPoint);
+        arrow->end->setCoords(data.startPoint + data.vector);
+        arrow->setHead(QCPLineEnding::esSpikeArrow);
+        arrow->setPen(QPen(newColor, 2));
+        arrow->setLayer("arrows");
+        m_arrowItems.append(arrow);
+    }
+
+    // Replot to show the changes
+    replot();
+}
+
 void TsnePlot::startHighlightSelection(const QColor &color, const QList<int>& indices)
 {
     // Remove previous highlight if exists
@@ -628,7 +679,7 @@ void TsnePlot::drawContourPlot(const QString &featureName, const QString &attrib
             maxCellValue = qMax(maxCellValue, cellValue);
         }
     }
-    qDebug() << "Using contour data range:" << minCellValue << "to" << maxCellValue;
+    // qDebug() << "Using contour data range:" << minCellValue << "to" << maxCellValue;
 
     // Assign data to color map
     m_colorMap->setData(contourData, true);
@@ -701,7 +752,7 @@ QCPColorMapData* TsnePlot::createContourData(const QString &featureName) {
         }
     }
 
-    qDebug() << "Original Z value range:" << minZ << "to" << maxZ;
+    // qDebug() << "Original Z value range:" << minZ << "to" << maxZ;
 
     if (zValues.isEmpty()) {
         qDebug() << "No valid data points for contour plot";

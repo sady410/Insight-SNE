@@ -2,15 +2,14 @@
 
 #include <QDebug>
 
-ArrowsManager::ArrowsManager(QObject* parent) : QObject(parent)
+ArrowsManager::ArrowsManager(QObject* parent) : QObject(parent), m_nextId(0)
 {
 
 }
 
 void ArrowsManager::createArrowsField(int selectionId, const QList<int> &indices, const QString &featureName) {
     int newId = generateUniqueId();
-    // TODO modify later color
-    QColor color = Qt::red;
+    QColor color = Qt::red; // TODO modify later color
     ArrowsField newArrowsField(newId, selectionId, indices, featureName, color);
     m_arrowsField.insert(newId, newArrowsField);
 
@@ -22,13 +21,27 @@ void ArrowsManager::removeArrowsField(int selectionId, const QString &featureNam
     int id = findIdBySelectionIdAndFeatureName(selectionId, featureName);
     if (id == -1) {
         qDebug() << "Error: No arrows field found for selectionId" << selectionId;
-        return; // Prevent invalid operations
+        return;
     }
 
     m_arrowsField.remove(id);
     m_availableIds.push(id);
     qDebug() << m_arrowsField.keys();
     emit arrowsFieldRemoved(id);
+}
+
+void ArrowsManager::changeArrowsFieldColor(int selectionId, const QString &featureName, const QColor &newColor) {
+    int id = findIdBySelectionIdAndFeatureName(selectionId, featureName);
+    if (id == -1) {
+        qDebug() << "Error: No arrows field found for selectionId" << selectionId << "and feature" << featureName;
+        return;
+    }
+
+    m_arrowsField[id].color = newColor;
+    qDebug() << "Changed color of arrows field" << id << "to" << newColor;
+
+    // Emit a signal to notify listeners about the color change
+    emit arrowsFieldColorChanged(id, newColor);
 }
 
 int ArrowsManager::findIdBySelectionIdAndFeatureName(int selectionId, const QString &featureName) const

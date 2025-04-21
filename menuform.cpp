@@ -177,11 +177,37 @@ void MenuForm::onTreeViewContextMenu(const QPoint &pos) {
         return;
     }
 
-    QColor chosenColor = QColorDialog::getColor(Qt::white, this, "Select Feature Color");
+    QColor chosenColor = QColorDialog::getColor(Qt::red, this, "Select Feature Color");
 
     if (chosenColor.isValid()) {
-        item->setBackground(chosenColor);
-        emit featureColorChanged(item->text(), chosenColor);
+        // item->setBackground(chosenColor);
+
+        // Find the parent item to get the selection widget
+        QStandardItem *parentItem = item->parent();
+        if (parentItem) {
+            QModelIndex parentIndex = m_model->indexFromItem(parentItem);
+            SelectionWidget *selectionWidget = qobject_cast<SelectionWidget*>(m_treeView->indexWidget(parentIndex));
+
+            if (selectionWidget) {
+                // Find the selectionId by looking up the widget in our map
+                int selectionId = -1;
+                for (auto it = m_selectionWidgets.begin(); it != m_selectionWidgets.end(); ++it) {
+                    if (it.value() == selectionWidget) {
+                        selectionId = it.key();
+                        break;
+                    }
+                }
+
+                if (selectionId != -1) {
+                    QString featureName = item->text();
+
+                    // Emit the signal for color change to the ArrowsManager
+                    emit arrowsFieldColorChangeRequested(selectionId, featureName, chosenColor);
+                    // TODO to show color in menu form
+                    // emit featureColorChanged(item->text(), chosenColor);
+                }
+            }
+        }
     }
 }
 
@@ -229,7 +255,6 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>&
     //     });
     // }
 
-    // Rest of the code (delete button, tree view, etc.)
     if (enableDelete) {
         QPushButton *deleteButton = new QPushButton("×", selectionWidget);
         deleteButton->setFixedSize(25, 25);
@@ -259,7 +284,18 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int>&
 
         connect(m_model, &QStandardItemModel::itemChanged, this, [this, id, childItem](QStandardItem *item) {
             if (item == childItem) {
-                emit featureCheckStateChanged(id, item->text(), item->checkState() == Qt::Checked);
+                // Check if this was triggered by a check state change
+                static QHash<QStandardItem*, Qt::CheckState> lastCheckStates;
+
+                Qt::CheckState currentState = item->checkState();
+                Qt::CheckState lastState = lastCheckStates.value(item, Qt::Unchecked);
+
+                if (currentState != lastState) {
+                    // The check state has changed, update our stored state
+                    lastCheckStates[item] = currentState;
+                    qDebug() << "Check state changed";
+                    emit featureCheckStateChanged(id, item->text(), currentState == Qt::Checked);
+                }
             }
         });
     }

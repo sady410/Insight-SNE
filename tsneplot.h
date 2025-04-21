@@ -41,6 +41,7 @@ public slots:
     // Arrows
     void addArrows(int id, const QList<int>& indices, const QString &featureName, const QColor &color);
     void removeArrows(int id);
+    void changeArrowsColor(int id, const QColor &newColor);
 
     // Contour
     void drawContourPlot(const QString &featureName, const QString &attributesOrMagnitudes);

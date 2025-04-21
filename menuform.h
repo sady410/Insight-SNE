@@ -38,6 +38,7 @@ signals:
     void selectionNameChanged(int id, const QString& newName);
 
     void featureColorChanged(const QString &featureName, const QColor &color);
+    void arrowsFieldColorChangeRequested(int selectionId, const QString &featureName, const QColor &newColor);
 
     void addContour(const QString &comboValue, const QString &filterName);
     void clearContour();

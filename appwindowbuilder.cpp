@@ -121,7 +121,7 @@ AppWindowBuilder& AppWindowBuilder::initializeTsnePlot() {
         }
 
         m_indicesList.append(allIndices);
-        for (const auto& label : m_uniqueLabels) {
+        for (const auto& label : std::as_const(m_uniqueLabels)) {
             m_indicesList.append(classIndicesMap[label]);
         }
     }

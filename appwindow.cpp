@@ -104,6 +104,10 @@ void AppWindow::connectSignalsAndSlots() { // TODO REFACTOR FOR BARPLOTS
     connect(m_arrowsManager, &ArrowsManager::arrowsFieldCreated, getTsneForm()->tsnePlot, &TsnePlot::addArrows);
     connect(m_arrowsManager, &ArrowsManager::arrowsFieldRemoved, getTsneForm()->tsnePlot, &TsnePlot::removeArrows);
 
+    // Feature arrow change color
+    connect(getMenuForm(), &MenuForm::arrowsFieldColorChangeRequested, m_arrowsManager, &ArrowsManager::changeArrowsFieldColor);
+    connect(m_arrowsManager, &ArrowsManager::arrowsFieldColorChanged, getTsneForm()->tsnePlot, &TsnePlot::changeArrowsColor);
+
     // Contours
     connect(getMenuForm(), &MenuForm::addContour, getTsneForm()->tsnePlot, &TsnePlot::drawContourPlot);
     connect(getMenuForm(), &MenuForm::clearContour, getTsneForm()->tsnePlot, &TsnePlot::clearContourPlot);

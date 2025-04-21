@@ -27,10 +27,12 @@ public:
 signals:
     void arrowsFieldCreated(int id, const QList<int> &arrows, const QString &featureName, const QColor &color);
     void arrowsFieldRemoved(int id);
+    void arrowsFieldColorChanged(int id, const QColor &newColor);
 
 public slots:
     void createArrowsField(int selectionId, const QList<int> &indices, const QString &featureName);
     void removeArrowsField(int selectionId, const QString &featureName);
+    void changeArrowsFieldColor(int selectionId, const QString &featureName, const QColor &newColor);
 
 private:
     QList<QList<QList<qreal>>> m_gradients;
