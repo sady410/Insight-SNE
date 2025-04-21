@@ -106,6 +106,15 @@ void MenuForm::setupListView()
     // Add the list view to the layout
     m_top_verticalLayout->addWidget(m_listView);
 
+    // Connect itemChanged signal
+    connect(m_model, &QStandardItemModel::itemChanged, this,
+            [this](QStandardItem *item) {
+                if (item && item->isCheckable() && !item->data(Qt::UserRole + 1).toBool()) {
+                    int id = item->data(Qt::UserRole).toInt();
+                    emit featureCheckStateChanged(id, item->text(), item->checkState() == Qt::Checked);
+                }
+            });
+
     m_listView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_listView, &QListView::customContextMenuRequested,
             this, &MenuForm::onListViewContextMenu);
@@ -135,6 +144,48 @@ void MenuForm::onListViewContextMenu(const QPoint &pos)
 
         if (selectionId != -1) {
             emit arrowsFieldColorChangeRequested(selectionId, featureName, chosenColor);
+        }
+    }
+}
+
+void MenuForm::uncheckAllFeaturesForSelection(int selectionId)
+{
+    // Temporarily disconnect the itemChanged signal
+    disconnect(m_model, &QStandardItemModel::itemChanged, this, nullptr);
+
+    // Uncheck all features
+    for (int row = 0; row < m_model->rowCount(); ++row) {
+        QStandardItem *item = m_model->item(row);
+        if (item &&
+            item->data(Qt::UserRole).toInt() == selectionId &&
+            !item->data(Qt::UserRole + 1).toBool())
+        {
+            item->setCheckState(Qt::Unchecked);
+        }
+    }
+
+    // Reconnect the itemChanged signal
+    connect(m_model, &QStandardItemModel::itemChanged, this,
+            [this](QStandardItem *item) {
+                if (item && item->isCheckable() && !item->data(Qt::UserRole + 1).toBool()) {
+                    int id = item->data(Qt::UserRole).toInt();
+                    emit featureCheckStateChanged(id, item->text(), item->checkState() == Qt::Checked);
+                }
+            });
+
+    // Emit state changes
+    emitFeatureStateChangesForSelection(selectionId, false);
+}
+
+void MenuForm::emitFeatureStateChangesForSelection(int selectionId, bool state)
+{
+    for (int row = 0; row < m_model->rowCount(); ++row) {
+        QStandardItem *item = m_model->item(row);
+        if (item &&
+            item->data(Qt::UserRole).toInt() == selectionId &&
+            !item->data(Qt::UserRole + 1).toBool())
+        {
+            emit featureCheckStateChanged(selectionId, item->text(), state);
         }
     }
 }
@@ -210,6 +261,7 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int> 
         selectionLayout->addWidget(deleteButton);
 
         connect(deleteButton, &QPushButton::clicked, this, [this, id]() {
+            emitFeatureStateChangesForSelection(id, false); // Emit false for all features
             emit requestRemoveSelection(id);
             removeSelectionWidget(id);
         });
@@ -229,18 +281,7 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int> 
         m_model->appendRow(featureItem);
         featureRows.append(m_model->indexFromItem(featureItem).row());
 
-        connect(m_model, &QStandardItemModel::itemChanged, this, [this, id, featureItem](QStandardItem *item) {
-            if (item == featureItem) {
-                static QHash<QStandardItem*, Qt::CheckState> lastCheckStates;
-                Qt::CheckState currentState = item->checkState();
-                Qt::CheckState lastState = lastCheckStates.value(item, Qt::Unchecked);
 
-                if (currentState != lastState) {
-                    lastCheckStates[item] = currentState;
-                    emit featureCheckStateChanged(id, item->text(), currentState == Qt::Checked);
-                }
-            }
-        });
     }
 
     // Initially hide features if enableDelete is false
@@ -279,8 +320,12 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int> 
     // Connect other signals
     connect(selectionWidget, &SelectionWidget::hovered, this, &MenuForm::selectionHovered);
     connect(selectionWidget, &SelectionWidget::left, this, &MenuForm::selectionLeft);
-    connect(circle, &ColorCircle::clicked, this, [this, id]() {
+    connect(circle, &ColorCircle::clicked, this, [this, id, circle]() {
         emit selectionStateChanged(id);
+
+        if (!circle->isActive()) {
+            uncheckAllFeaturesForSelection(id);
+        }
     });
 }
 

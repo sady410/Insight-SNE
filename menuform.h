@@ -71,6 +71,8 @@ private:
     QListView *m_listView;
     QStandardItemModel *m_model;
 
+    void emitFeatureStateChangesForSelection(int selectionId, bool state);
+    void uncheckAllFeaturesForSelection(int selectionId);
     void setupListView();
 };
 
