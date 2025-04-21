@@ -221,7 +221,7 @@ AppWindow* AppWindowBuilder::build() {
         i++;
     }
 
-    m_appWindow->show();
+    m_appWindow->showMaximized();
     return m_appWindow;
 }
 

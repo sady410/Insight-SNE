@@ -4,8 +4,6 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QSpacerItem>
-#include <QChartView>
 
 TsneForm::TsneForm(QWidget *parent)
     : QWidget(parent)
@@ -15,25 +13,25 @@ TsneForm::TsneForm(QWidget *parent)
 
     tsnePlot = new TsnePlot(nullptr);
 
-    QPushButton *resetZoomButton = new QPushButton("Reset Zoom");
-    resetZoomButton->setFixedSize(80, 30); // Fixed size for Reset Zoom button
+    // Create the reset zoom button
+    QPushButton *resetZoomButton = new QPushButton("Reset Zoom", tsnePlot);
+    resetZoomButton->setFixedSize(80, 30);
+    resetZoomButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: rgba(255, 255, 255, 150);"
+        "   border: 1px solid black;"
+        "}"
+        );
 
-    // Create a horizontal layout for the top bar (reset zoom)
-    QHBoxLayout *topBarLayout = new QHBoxLayout();
+    const int topMargin = 5;
+    const int leftMargin = 5;
+    resetZoomButton->move(leftMargin, topMargin);
 
-    // Add a stretchable spacer to push the Reset Zoom button to the right
-    topBarLayout->addStretch();
-    // Add the Reset Zoom button to the right
-    topBarLayout->addWidget(resetZoomButton);
-
-    // Main layout for the form
+    // Main layout
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
-    mainLayout->addLayout(topBarLayout); // Add the top bar layout
-    mainLayout->addWidget(tsnePlot);    // Add the plot below the top bar
-
+    mainLayout->addWidget(tsnePlot);
     setLayout(mainLayout);
 
-    // Connect signals and slots
     connect(resetZoomButton, &QPushButton::clicked, tsnePlot, &TsnePlot::resetZoom);
 }
 

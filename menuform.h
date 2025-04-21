@@ -6,7 +6,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QColor>
-#include <QTreeView>
+#include <QListView>
 #include <QStandardItem>
 #include <QRadioButton>
 #include <QComboBox>
@@ -44,7 +44,6 @@ signals:
     void clearContour();
 
 public slots:
-    // Slot to add a new selection to the menu
     void addSelectionToMenu(int id, const QColor &color,
                             const QList<int> &indices, const bool enableDelete,
                             const bool state, const QString name);
@@ -52,7 +51,7 @@ public slots:
     void removeSelectionWidget(int id);
 
 private slots:
-    void onTreeViewContextMenu(const QPoint &pos);
+    void onListViewContextMenu(const QPoint &pos);
 
 private:
     Ui::MenuForm *ui;
@@ -69,10 +68,10 @@ private:
 
     QStringList m_featureNames;
 
-    QTreeView *m_treeView;
+    QListView *m_listView;
     QStandardItemModel *m_model;
 
-    void setupTreeView();
+    void setupListView();
 };
 
 #endif // MENUFORM_H

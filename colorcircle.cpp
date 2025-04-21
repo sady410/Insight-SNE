@@ -2,7 +2,7 @@
 
 ColorCircle::ColorCircle(const QColor &color, const bool state, QWidget *parent)
     : QWidget(parent), m_color(color), m_active(state) {
-    setFixedSize(20, 20); // Small circle size
+    setFixedSize(15, 15); // Small circle size
 }
 
 void ColorCircle::toggleState() {

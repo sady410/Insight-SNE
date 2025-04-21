@@ -4,8 +4,6 @@
 #include "tsneplot.h"
 
 #include <QWidget>
-#include <QScatterSeries>
-#include <QVBoxLayout>
 
 namespace Ui {
 class TsneForm;
