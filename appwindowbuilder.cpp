@@ -109,7 +109,7 @@ AppWindowBuilder& AppWindowBuilder::initializeTsnePlot() {
         // Create unique labels
         QSet<QString> seenLabels;
         m_uniqueLabels.clear();
-        for (const QString& label : m_labelsList) {
+        for (const QString& label : std::as_const(m_labelsList)) {
             if (!seenLabels.contains(label)) {
                 seenLabels.insert(label);
                 m_uniqueLabels.append(label);

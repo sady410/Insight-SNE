@@ -21,7 +21,8 @@ public:
     AppWindowBuilder& parseJsonData();
 
     // Initialize different components
-    AppWindowBuilder& initializeTsnePlot();
+    void extracted(QSet<QString> &seenLabels);
+    AppWindowBuilder &initializeTsnePlot();
     AppWindowBuilder& initializeOverviewPlot();
     AppWindowBuilder& initializeFeaturesPlot();
     AppWindowBuilder& initializeExplanationPlots();

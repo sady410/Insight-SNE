@@ -603,38 +603,101 @@ void TsnePlot::startHighlightSelection(const QColor &color, const QList<int>& in
         m_highlightedGraph = nullptr;
     }
 
-    QVector<double> x, y;
-    for (auto it = m_pointIndexMap.begin(); it != m_pointIndexMap.end(); ++it) {
-        if (indices.contains(it->second)) {
-            x << it->first.x();
-            y << it->first.y();
-        }
+    m_highlightedIndices = indices;
+    m_highlightColor = color;
+
+    // First, we'll create temporary shadowed graphs for each original graph
+    QMap<QString, QCPGraph*> shadowGraphs;
+    for (auto it = m_scatterGraphsMap.begin(); it != m_scatterGraphsMap.end(); ++it) {
+        QString label = it.key();
+        QCPGraph *originalGraph = it.value();
+
+        // Create a new graph for shadowed points (with same data)
+        QCPGraph *shadowGraph = addGraph();
+        shadowGraph->setData(originalGraph->data());
+        shadowGraph->setLineStyle(QCPGraph::lsNone);
+
+        // Create a shadowed style
+        QCPScatterStyle shadowStyle = originalGraph->scatterStyle();
+        QColor shadowColor = m_labelColors[label];
+        shadowColor.setAlphaF(0.3); // Reduce opacity
+        shadowStyle.setPen(QPen(shadowColor));
+        shadowStyle.setBrush(QBrush(shadowColor));
+        shadowGraph->setScatterStyle(shadowStyle);
+
+        // Hide shadowed graph from legend
+        shadowGraph->removeFromLegend();
+
+        shadowGraphs[label] = shadowGraph;
+
+        // Hide the original graph
+        originalGraph->setVisible(false);
     }
 
-    if (x.isEmpty()) return;
+    // Store the shadow graphs
+    m_shadowGraphs = shadowGraphs;
 
-    setCurrentLayer("highlights");
+    // Create highlighted points graph for each category
+    for (auto it = m_scatterGraphsMap.begin(); it != m_scatterGraphsMap.end(); ++it) {
+        QString label = it.key();
+        QCPGraph *originalGraph = it.value();
 
-    m_highlightedGraph = addGraph();
-    m_highlightedGraph->setData(x, y);
-    m_highlightedGraph->setLineStyle(QCPGraph::lsNone);
-    m_highlightedGraph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 10));
-    m_highlightedGraph->setPen(QPen(color));
-    m_highlightedGraph->setBrush(QBrush(color));
+        // Collect highlighted points for this category
+        QVector<double> x, y;
+        for (int i = 0; i < originalGraph->dataCount(); ++i) {
+            QPointF point(originalGraph->dataMainKey(i), originalGraph->dataMainValue(i));
+            auto indexIt = m_pointIndexMap.find(point);
+            if (indexIt != m_pointIndexMap.end() && indices.contains(indexIt->second)) {
+                x << point.x();
+                y << point.y();
+            }
+        }
 
-    // Hide from legend
-    m_highlightedGraph->removeFromLegend();
+        if (!x.isEmpty()) {
+            // Create a new graph for highlighted points
+            QCPGraph *highlightGraph = addGraph();
+            highlightGraph->setData(x, y);
+            highlightGraph->setLineStyle(QCPGraph::lsNone);
+
+            // Use original style but with the highlight color
+            QCPScatterStyle highlightStyle = originalGraph->scatterStyle();
+            highlightStyle.setPen(QPen(color));
+            highlightStyle.setBrush(QBrush(color));
+            highlightGraph->setScatterStyle(highlightStyle);
+
+            // Hide from legend
+            highlightGraph->removeFromLegend();
+
+            // Store for later cleanup
+            m_highlightGraphs.append(highlightGraph);
+        }
+    }
 
     replot();
 }
 
 void TsnePlot::stopHighlightSelection()
 {
-    if (m_highlightedGraph) {
-        removePlottable(m_highlightedGraph);
-        m_highlightedGraph = nullptr;
-        replot();
+    // Remove highlighted graphs
+    for (QCPGraph* graph : m_highlightGraphs) {
+        removePlottable(graph);
     }
+    m_highlightGraphs.clear();
+
+    // Remove shadow graphs
+    for (QCPGraph* graph : m_shadowGraphs) {
+        removePlottable(graph);
+    }
+    m_shadowGraphs.clear();
+
+    // Make original graphs visible again
+    for (auto it = m_scatterGraphsMap.begin(); it != m_scatterGraphsMap.end(); ++it) {
+        it.value()->setVisible(true);
+    }
+
+    m_highlightedIndices.clear();
+
+    replot();
 }
 
 void TsnePlot::drawContourPlot(const QString &featureName, const QString &attributesOrMagnitudes) {

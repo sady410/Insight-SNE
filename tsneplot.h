@@ -106,6 +106,10 @@ private:
 
     // For highlighting
     QCPGraph *m_highlightedGraph;
+    QList<QCPGraph*> m_highlightGraphs; // Graphs for highlighted points
+    QMap<QString, QCPGraph*> m_shadowGraphs; // Graphs for shadowed points
+    QList<int> m_highlightedIndices; // Currently highlighted point indices
+    QColor m_highlightColor; // Color used for highlighting
 
     // For lasso selection
     bool m_isDrawing;
