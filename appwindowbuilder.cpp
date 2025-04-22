@@ -107,8 +107,14 @@ AppWindowBuilder& AppWindowBuilder::initializeTsnePlot() {
     // Process labels and indices if not already done
     if (m_indicesList.isEmpty()) {
         // Create unique labels
-        QSet<QString> uniqueLabelsSet(m_labelsList.begin(), m_labelsList.end());
-        m_uniqueLabels = uniqueLabelsSet.values();
+        QSet<QString> seenLabels;
+        m_uniqueLabels.clear();
+        for (const QString& label : m_labelsList) {
+            if (!seenLabels.contains(label)) {
+                seenLabels.insert(label);
+                m_uniqueLabels.append(label);
+            }
+        }
 
         // Create indices map
         QMap<QString, QList<int>> classIndicesMap;
@@ -208,7 +214,6 @@ AppWindow* AppWindowBuilder::build() {
 
     m_appWindow->setInitialized(true);
     m_appWindow->connectSignalsAndSlots();
-
     int i = 0;
     for (const QList<int>& indices : std::as_const(m_indicesList)) {
         if (i == 0) {

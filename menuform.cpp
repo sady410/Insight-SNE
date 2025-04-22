@@ -211,13 +211,20 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int> 
     toggleButton->setFixedSize(20, 20);
     toggleButton->setStyleSheet(
         "QPushButton {"
-        "   border: none;"
+        "   border: 1px solid black;"
+        "   border-radius: 2px;"
         "   font-size: 16px;"
-        "   color: white;"
-        "   background-color: transparent;"
+        "   color: black;"
+        "   background-color: #cccccc;"  // Light gray
         "   padding: 0;"
+        "   margin: 1px;"  // For shadow to be visible
         "}"
-        "QPushButton:hover { color: #aaa; }"
+        "QPushButton:hover {"
+        "   background-color: #b3b3b3;"  // Slightly darker gray on hover
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: #999999;"  // Even darker when pressed
+        "}"
         );
     selectionLayout->addWidget(toggleButton);
 

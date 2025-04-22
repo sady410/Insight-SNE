@@ -36,7 +36,6 @@ void SelectionManager::createSelection(const QList<int>& indices, const bool ena
     }
     int newId = generateUniqueId();
     QColor color = getAvailableColor();
-
     // Add the color to usedColors
     m_usedColors.insert(color);
 
