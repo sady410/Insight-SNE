@@ -4,18 +4,22 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets charts printsupport
 
 CONFIG += c++17
 
-# QCustomPlot configuration
-# Link against the library
-debug {
-    LIBS += -L/usr/local/lib -lqcustomplotd
-} else {
-    LIBS += -L/usr/local/lib -lqcustomplot
+unix:!android {
+    # QCustomPlot configuration
+    # Link against the library
+    debug {
+        LIBS += -L/usr/local/lib -lqcustomplotd
+    } else {
+        LIBS += -L/usr/local/lib -lqcustomplot
+    }
+
+    # Include path (not strictly needed since it's in /usr/local/include)
+    INCLUDEPATH += /usr/local/include
+
+    # You can make your code fail to compile if it uses deprecated APIs.
+    # In order to do so, uncomment the following line.
+    # DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 }
-# Include path (not strictly needed since it's in /usr/local/include)
-INCLUDEPATH += /usr/local/include
-# You can make your code fail to compile if it uses deprecated APIs.
-# In order to do so, uncomment the following line.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
     appwindow.cpp \
@@ -35,7 +39,8 @@ SOURCES += \
     selectionmanager.cpp \
     selectionwidget.cpp \
     tsneform.cpp \
-    tsneplot.cpp
+    tsneplot.cpp \
+    qcustomplot.cpp
 
 HEADERS += \
     appwindow.h \
@@ -54,7 +59,8 @@ HEADERS += \
     selectionmanager.h \
     selectionwidget.h \
     tsneform.h \
-    tsneplot.h
+    tsneplot.h \
+    qcustomplot.h
 
 FORMS += \
     appwindow.ui \

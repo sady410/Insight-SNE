@@ -69,7 +69,7 @@ void SelectionManager::findHoveredSelectionAndEmitSignal(int id) {
 }
 
 void SelectionManager::selectionClickedInBarPlot(const QString &label, int id) {
-    qDebug() << label << id;
+    qDebug() << label << id; // TODO
 }
 
 int SelectionManager::generateUniqueId() {

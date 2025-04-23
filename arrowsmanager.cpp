@@ -13,7 +13,6 @@ void ArrowsManager::createArrowsField(int selectionId, const QList<int> &indices
     ArrowsField newArrowsField(newId, selectionId, indices, featureName, color);
     m_arrowsField.insert(newId, newArrowsField);
 
-    qDebug() << m_arrowsField.keys();
     emit arrowsFieldCreated(newId, indices, featureName, color);
 }
 
@@ -38,7 +37,6 @@ void ArrowsManager::changeArrowsFieldColor(int selectionId, const QString &featu
     }
 
     m_arrowsField[id].color = newColor;
-    qDebug() << "Changed color of arrows field" << id << "to" << newColor;
 
     // Emit a signal to notify listeners about the color change
     emit arrowsFieldColorChanged(id, newColor);

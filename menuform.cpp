@@ -171,7 +171,8 @@ void MenuForm::uncheckAllFeaturesForSelection(int selectionId)
                     int id = item->data(Qt::UserRole).toInt();
                     emit featureCheckStateChanged(id, item->text(), item->checkState() == Qt::Checked);
                 }
-            });
+            }
+    );
 
     // Emit state changes
     emitFeatureStateChangesForSelection(selectionId, false);
@@ -185,6 +186,10 @@ void MenuForm::emitFeatureStateChangesForSelection(int selectionId, bool state)
             item->data(Qt::UserRole).toInt() == selectionId &&
             !item->data(Qt::UserRole + 1).toBool())
         {
+            if ((state && item->checkState() != Qt::Checked) ||
+                (!state && item->checkState() != Qt::Unchecked)) {
+                item->setCheckState(state ? Qt::Checked : Qt::Unchecked);
+            }
             emit featureCheckStateChanged(selectionId, item->text(), state);
         }
     }
