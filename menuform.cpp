@@ -195,6 +195,25 @@ void MenuForm::emitFeatureStateChangesForSelection(int selectionId, bool state)
     }
 }
 
+void MenuForm::setCheckboxesEnabledForSelection(int selectionId, bool enabled)
+{
+    for (int row = 0; row < m_model->rowCount(); ++row) {
+        QStandardItem *item = m_model->item(row);
+        if (item &&
+            item->data(Qt::UserRole).toInt() == selectionId &&
+            !item->data(Qt::UserRole + 1).toBool())  // Not a header item
+        {
+            if (enabled) {
+                item->setFlags(item->flags() | Qt::ItemIsEnabled);
+            } else {
+                item->setFlags(item->flags() & ~Qt::ItemIsEnabled);
+                // Optionally uncheck when disabling
+                item->setCheckState(Qt::Unchecked);
+            }
+        }
+    }
+}
+
 void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int> &indices,
                                   const bool enableDelete, const bool state, const QString name)
 {
@@ -296,6 +315,14 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int> 
 
     }
 
+    bool initiallyEnabled = circle->isActive();
+    for (int row : featureRows) {
+        QStandardItem *item = m_model->item(row);
+        if (!initiallyEnabled) {
+            item->setFlags(item->flags() & ~Qt::ItemIsEnabled);
+        }
+    }
+
     // Initially hide features if enableDelete is false
     if (!enableDelete) {
         for (int row : featureRows) {
@@ -335,7 +362,10 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int> 
     connect(circle, &ColorCircle::clicked, this, [this, id, circle]() {
         emit selectionStateChanged(id);
 
-        if (!circle->isActive()) {
+        bool isActive = circle->isActive();
+        setCheckboxesEnabledForSelection(id, isActive);
+
+        if (!isActive) {
             uncheckAllFeaturesForSelection(id);
         }
     });
