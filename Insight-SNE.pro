@@ -27,6 +27,7 @@ SOURCES += \
     arrowsmanager.cpp \
     barplot.cpp \
     colorcircle.cpp \
+    distributionplot.cpp \
     explanationform.cpp \
     featuresform.cpp \
     jsonparser.cpp \
@@ -48,6 +49,7 @@ HEADERS += \
     arrowsmanager.h \
     barplot.h \
     colorcircle.h \
+    distributionplot.h \
     explanationform.h \
     featuresform.h \
     jsonparser.h \
