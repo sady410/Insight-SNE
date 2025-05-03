@@ -42,15 +42,22 @@ void AppWindow::connectSignalsAndSlots() { // TODO REFACTOR FOR BARPLOTS
             static_cast<void (SelectionManager::*)(const QList<int>&)>(&SelectionManager::createSelection));
 
     connect(m_selectionManager, &SelectionManager::selectionCreated, getMenuForm(), &MenuForm::addSelectionToMenu);
+
     connect(m_selectionManager, &SelectionManager::selectionCreated, getExplanationForm()->magnitudesPlot, &BarPlot::addValue);
     connect(m_selectionManager, &SelectionManager::selectionCreated, getExplanationForm()->gradientsPlotTop, &BarPlot::addValue);
     connect(m_selectionManager, &SelectionManager::selectionCreated, getExplanationForm()->gradientsPlotBottom, &BarPlot::addValue);
+
     connect(m_selectionManager, &SelectionManager::selectionCreated, getFeaturesForm()->featuresPlot, &BarPlot::addValue);
+    connect(m_selectionManager, &SelectionManager::selectionCreated, getFeaturesForm()->distributionPlot, &DistributionPlot::addSelection);
+    connect(m_selectionManager, &SelectionManager::selectionCreated, getFeaturesForm(), &FeaturesForm::addSelection);
 
     // Selection removal
     connect(getMenuForm(), &MenuForm::requestRemoveSelection, m_selectionManager, &SelectionManager::removeSelection);
 
+    connect(m_selectionManager, &SelectionManager::selectionRemoved, getFeaturesForm(), &FeaturesForm::removeSelection);
     connect(m_selectionManager, &SelectionManager::selectionRemoved, getFeaturesForm()->featuresPlot, &BarPlot::removeValue);
+    connect(m_selectionManager, &SelectionManager::selectionRemoved, getFeaturesForm()->distributionPlot, &DistributionPlot::removeSelection);
+
     connect(m_selectionManager, &SelectionManager::selectionRemoved, getExplanationForm()->magnitudesPlot, &BarPlot::removeValue);
     connect(m_selectionManager, &SelectionManager::selectionRemoved, getExplanationForm()->gradientsPlotTop, &BarPlot::removeValue);
     connect(m_selectionManager, &SelectionManager::selectionRemoved, getExplanationForm()->gradientsPlotBottom, &BarPlot::removeValue);

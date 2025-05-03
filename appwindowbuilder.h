@@ -27,6 +27,8 @@ public:
     AppWindowBuilder& initializeFeaturesPlot();
     AppWindowBuilder& initializeExplanationPlots();
     AppWindowBuilder& initializeMenuForm();
+    AppWindowBuilder& initializeFeaturesForm();
+    AppWindowBuilder& initializeDistributionPlot();
 
     // Build and return the window
     AppWindow* build();

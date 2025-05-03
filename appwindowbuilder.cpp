@@ -162,6 +162,19 @@ AppWindowBuilder& AppWindowBuilder::initializeFeaturesPlot() {
     return *this;
 }
 
+AppWindowBuilder& AppWindowBuilder::initializeDistributionPlot() {
+    if (!m_appWindow) {
+        m_appWindow = new AppWindow(m_parent);
+    }
+
+    FeaturesForm* featuresForm = m_appWindow->getFeaturesForm();
+
+    featuresForm->distributionPlot->setData(getAttributesList());
+    featuresForm->distributionPlot->setFeatureNames(m_featureNamesList);
+
+    return *this;
+}
+
 AppWindowBuilder& AppWindowBuilder::initializeExplanationPlots() {
     if (!m_appWindow) {
         m_appWindow = new AppWindow(m_parent);
@@ -189,6 +202,18 @@ AppWindowBuilder& AppWindowBuilder::initializeExplanationPlots() {
     return *this;
 }
 
+AppWindowBuilder& AppWindowBuilder::initializeFeaturesForm() {
+    if (!m_appWindow) {
+        m_appWindow = new AppWindow(m_parent);
+    }
+
+    FeaturesForm* featuresForm = m_appWindow->getFeaturesForm();
+
+    featuresForm->setFeatureNames(m_featureNamesList);
+
+    return *this;
+}
+
 AppWindowBuilder& AppWindowBuilder::initializeMenuForm() {
     if (!m_appWindow) {
         m_appWindow = new AppWindow(m_parent);
@@ -196,7 +221,6 @@ AppWindowBuilder& AppWindowBuilder::initializeMenuForm() {
 
     MenuForm* menuForm = m_appWindow->getMenuForm();
 
-    // Use already parsed feature names
     menuForm->setFeatureNames(m_featureNamesList);
 
     // Add filters to the menu
