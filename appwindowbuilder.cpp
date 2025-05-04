@@ -250,6 +250,8 @@ AppWindow* AppWindowBuilder::build() {
         i++;
     }
 
+    m_appWindow->getMenuForm()->connectModelSignals();
+
     m_appWindow->showMaximized();
     return m_appWindow;
 }

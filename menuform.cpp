@@ -106,7 +106,13 @@ void MenuForm::setupListView()
     // Add the list view to the layout
     m_top_verticalLayout->addWidget(m_listView);
 
-    // Connect itemChanged signal
+    m_listView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_listView, &QListView::customContextMenuRequested,
+            this, &MenuForm::onListViewContextMenu);
+}
+
+void MenuForm::connectModelSignals()
+{
     connect(m_model, &QStandardItemModel::itemChanged, this,
             [this](QStandardItem *item) {
                 if (item && item->isCheckable() && !item->data(Qt::UserRole + 1).toBool()) {
@@ -114,10 +120,6 @@ void MenuForm::setupListView()
                     emit featureCheckStateChanged(id, item->text(), item->checkState() == Qt::Checked);
                 }
             });
-
-    m_listView->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(m_listView, &QListView::customContextMenuRequested,
-            this, &MenuForm::onListViewContextMenu);
 }
 
 void MenuForm::onListViewContextMenu(const QPoint &pos)

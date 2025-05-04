@@ -86,6 +86,7 @@ void SelectionManager::selectionFreatureArrowCheckboxChanged(int id, const QStri
         if (checked) {
             emit addArrows(id, indices, featureName);
         } else {
+            qDebug() << "test";
             emit removeArrows(id, featureName);
         }
     }

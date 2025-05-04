@@ -24,6 +24,7 @@ public:
     ~MenuForm();
 
     void setFeatureNames(QStringList featureNames) { m_featureNames = featureNames; }
+    void connectModelSignals();
 
 signals:
     void requestRemoveSelection(int id);
