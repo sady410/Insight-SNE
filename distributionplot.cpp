@@ -515,7 +515,7 @@ void DistributionPlot::updatePlot() {
         m_statsTextItem = new QGraphicsSimpleTextItem(chart());
         m_statsTextItem->setText(statsText);
         m_statsTextItem->setBrush(Qt::white);
-        m_statsTextItem->setPos(chart()->plotArea().x() + 10, chart()->plotArea().y() + 10);
+        m_statsTextItem->setPos(50, chart()->margins().top() + 5);
         m_statsTextItem->setZValue(1000);  // Ensure it's on top of everything
     }
 }
