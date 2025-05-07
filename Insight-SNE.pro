@@ -27,6 +27,7 @@ SOURCES += \
     arrowsmanager.cpp \
     barplot.cpp \
     colorcircle.cpp \
+    comparisonform.cpp \
     distributionplot.cpp \
     explanationform.cpp \
     featuresform.cpp \
@@ -49,6 +50,7 @@ HEADERS += \
     arrowsmanager.h \
     barplot.h \
     colorcircle.h \
+    comparisonform.h \
     distributionplot.h \
     explanationform.h \
     featuresform.h \
@@ -66,6 +68,7 @@ HEADERS += \
 
 FORMS += \
     appwindow.ui \
+    comparisonform.ui \
     explanationform.ui \
     featuresform.ui \
     menuform.ui \
