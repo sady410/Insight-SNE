@@ -3,7 +3,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QRadioButton>
+#include <QCheckBox>
 #include <QComboBox>
 
 ComparisonForm::ComparisonForm(QWidget *parent)
@@ -50,26 +50,27 @@ ComparisonForm::ComparisonForm(QWidget *parent)
     QHBoxLayout *controlsLayout = new QHBoxLayout();
     controlsLayout->setSpacing(10);
 
-    QRadioButton *radioButton = new QRadioButton("Toggle", frame);
+    QCheckBox *radioButton = new QCheckBox("Toggle", frame);
     radioButton->setStyleSheet("color: white;");
+    radioButton->setChecked(false);
     controlsLayout->addWidget(radioButton);
 
-    QComboBox *dropdown1 = new QComboBox(frame);
-    dropdown1->addItem("Option 1");
-    dropdown1->addItem("Option 2");
-    dropdown1->addItem("Option 3");
-    controlsLayout->addWidget(dropdown1);
+    m_firstSelectionDropdown = new QComboBox(frame);
+    m_firstSelectionDropdown->addItem("Selection 1");
+    m_firstSelectionDropdown->addItem("Selection 2");
+    m_firstSelectionDropdown->addItem("Selection 3");
+    controlsLayout->addWidget(m_firstSelectionDropdown);
 
-    QLabel *minusLabel = new QLabel("-", frame);
+    QLabel *minusLabel = new QLabel("====| DIFF |====", frame);
     minusLabel->setAlignment(Qt::AlignCenter);
     minusLabel->setStyleSheet("color: white; font-weight: bold;");
     controlsLayout->addWidget(minusLabel);
 
-    QComboBox *dropdown2 = new QComboBox(frame);
-    dropdown2->addItem("Selection 1");
-    dropdown2->addItem("Selection 2");
-    dropdown2->addItem("Selection 3");
-    controlsLayout->addWidget(dropdown2);
+    m_secondSelectionDropdown = new QComboBox(frame);
+    m_secondSelectionDropdown->addItem("Selection 1");
+    m_secondSelectionDropdown->addItem("Selection 2");
+    m_secondSelectionDropdown->addItem("Selection 3");
+    controlsLayout->addWidget(m_secondSelectionDropdown);
 
     verticalLayout->addLayout(controlsLayout);
 
@@ -77,6 +78,45 @@ ComparisonForm::ComparisonForm(QWidget *parent)
     verticalLayout->addStretch();
 
     mainLayout->addWidget(frame);
+
+    // Connect dropdown signals
+    connect(m_firstSelectionDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &ComparisonForm::onSelectionChanged);
+    // Connect dropdown signals
+    connect(m_secondSelectionDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &ComparisonForm::onSelectionChanged);
+}
+
+void ComparisonForm::addSelection(int id, const QColor &color, const QList<int>& indices, const bool enableDelete, const bool state, const QString name) {
+    // Mark unused parameters
+    Q_UNUSED(color);
+    Q_UNUSED(indices);
+    Q_UNUSED(enableDelete);
+    Q_UNUSED(state);
+
+    m_selectionsMap[id] = name;
+    m_firstSelectionDropdown->addItem(name);
+    m_secondSelectionDropdown->addItem(name);
+}
+
+void ComparisonForm::removeSelection(int id) {
+    // Remove the selection from dropdown and map
+    if (m_selectionsMap.contains(id)) {
+        int firstIndex = m_firstSelectionDropdown->findText(m_selectionsMap[id]);
+        int secondIndex = m_secondSelectionDropdown->findText(m_selectionsMap[id]);
+        if (firstIndex >= 0 && secondIndex >= 0) {
+            m_firstSelectionDropdown->removeItem(firstIndex);
+            m_secondSelectionDropdown->removeItem(secondIndex);
+        }
+        m_selectionsMap.remove(id);
+    }
+}
+
+void ComparisonForm::onSelectionChanged(int index) {
+    // if (index >= 0) {
+    //     QString selectionName = m_selectionsDropdown->itemText(index);
+    //     emit selectionChanged(selectionName);
+    // }
 }
 
 ComparisonForm::~ComparisonForm()
