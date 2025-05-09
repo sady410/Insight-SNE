@@ -34,7 +34,7 @@ MenuForm::MenuForm(QWidget *parent) :
     QFrame *topFrame = new QFrame();
     topFrame->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
     topFrame->setLineWidth(2);
-    topFrame->setStyleSheet("background-color: #535353;");
+    topFrame->setStyleSheet("background-color: #d1d1d1;");
     m_top_verticalLayout = new QVBoxLayout(topFrame);
     m_top_verticalLayout->setContentsMargins(8, 8, 8, 8);
     m_top_verticalLayout->setSpacing(6);
@@ -42,7 +42,7 @@ MenuForm::MenuForm(QWidget *parent) :
     // Title and separator
     QLabel *topTitleLabel = new QLabel("Selections", topFrame);
     topTitleLabel->setAlignment(Qt::AlignCenter);
-    topTitleLabel->setStyleSheet("font-weight: bold; color: white; font-size: 16px;");
+    topTitleLabel->setStyleSheet("font-weight: bold; color: black; font-size: 16px;");
     m_top_verticalLayout->addWidget(topTitleLabel);
 
     QFrame *separator = new QFrame();
@@ -61,7 +61,7 @@ MenuForm::MenuForm(QWidget *parent) :
     QFrame *bottomFrame = new QFrame();
     bottomFrame->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
     bottomFrame->setLineWidth(2);
-    bottomFrame->setStyleSheet("background-color: #535353;");
+    bottomFrame->setStyleSheet("background-color: #d1d1d1;");
     m_bottomLayout = new QVBoxLayout(bottomFrame);
     m_bottomLayout->setContentsMargins(8, 8, 8, 8);
     m_bottomLayout->setSpacing(6);
@@ -69,7 +69,7 @@ MenuForm::MenuForm(QWidget *parent) :
     // Title and separator for bottom frame
     QLabel *bottomTitleLabel = new QLabel("Filters", bottomFrame);
     bottomTitleLabel->setAlignment(Qt::AlignCenter);
-    bottomTitleLabel->setStyleSheet("font-weight: bold; color: white; font-size: 16px;");
+    bottomTitleLabel->setStyleSheet("font-weight: bold; color: black; font-size: 16px;");
     m_bottomLayout->addWidget(bottomTitleLabel);
 
     QFrame *bottomSeparator = new QFrame();

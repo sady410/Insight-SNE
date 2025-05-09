@@ -24,7 +24,7 @@ DistributionPlot::DistributionPlot(QChart *chart, QWidget *parent)
     m_statsTextItem(nullptr) {
 
     setRenderHint(QPainter::Antialiasing);
-    chart->setTheme(QChart::ChartThemeDark);
+    // chart->setTheme(QChart::ChartThemeDark);
     chart->legend()->setVisible(false);
 
     // Enable mouse tracking for tooltips

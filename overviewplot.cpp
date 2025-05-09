@@ -5,14 +5,12 @@
 OverviewPlot::OverviewPlot(QWidget *parent)
     : QCustomPlot(parent), m_zoomRect(nullptr)
 {
-    // Setup plot appearance
     setupPlotAppearance();
 }
 
 void OverviewPlot::setupPlotAppearance()
 {
-    // Dark theme setup
-    setBackground(QColor(53, 53, 53));
+    setBackground(QColor(209, 209, 209));
 
     // Axis setup
     // QPen axisPen(Qt::white, 1);
@@ -27,10 +25,7 @@ void OverviewPlot::setupPlotAppearance()
 
     xAxis->setVisible(false);
     yAxis->setVisible(false);
-
     layer("grid")->setVisible(false);
-
-    // Hide legend
     legend->setVisible(false);
 }
 

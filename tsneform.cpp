@@ -20,6 +20,7 @@ TsneForm::TsneForm(QWidget *parent)
         "QPushButton {"
         "   background-color: rgba(255, 255, 255, 150);"
         "   border: 1px solid black;"
+        "   color: black;"
         "}"
         );
 

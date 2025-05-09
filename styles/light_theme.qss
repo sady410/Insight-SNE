@@ -1,0 +1,155 @@
+/* Light Theme */
+
+/* Main application styling */
+QMainWindow, QDialog, QWidget {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+/* Menu styling */
+QMenuBar {
+    background-color: #E6E6E6;
+    color: #333333;
+}
+
+QMenuBar::item:selected {
+    background-color: #DDDDDD;
+}
+
+QMenu {
+    background-color: #F5F5F5;
+    color: #333333;
+    border: 1px solid #DDDDDD;
+}
+
+QMenu::item:selected {
+    background-color: #DDDDDD;
+}
+
+/* Button styling */
+QPushButton {
+    background-color: #007ACC;
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 3px;
+}
+
+QPushButton:hover {
+    background-color: #0086E5;
+}
+
+QPushButton:pressed {
+    background-color: #005B9E;
+}
+
+QPushButton:disabled {
+    background-color: #E0E0E0;
+    color: #999999;
+}
+
+/* Slider styling */
+QSlider::groove:horizontal {
+    border: 1px solid #C0C0C0;
+    height: 8px;
+    background: #E0E0E0;
+    margin: 2px 0;
+    border-radius: 4px;
+}
+
+QSlider::handle:horizontal {
+    background: #007ACC;
+    border: 1px solid #C0C0C0;
+    width: 18px;
+    margin: -2px 0;
+    border-radius: 9px;
+}
+
+QSlider::handle:horizontal:hover {
+    background: #0086E5;
+}
+
+/* Label styling */
+QLabel {
+    color: #333333;
+}
+
+/* Group Box styling */
+QGroupBox {
+    border: 1px solid #C0C0C0;
+    border-radius: 5px;
+    margin-top: 1ex;
+    padding-top: 10px;
+    color: #333333;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center;
+    padding: 0 3px;
+}
+
+/* Scrollbar styling */
+QScrollBar:vertical {
+    border: 1px solid #C0C0C0;
+    background: #F0F0F0;
+    width: 10px;
+    margin: 0px 0px 0px 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: #C0C0C0;
+    min-height: 20px;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    border: none;
+    background: none;
+}
+
+/* Plot styling for QCustomPlot */
+QCustomPlot {
+    background-color: #FFFFFF;
+    color: #333333;
+}
+
+/* Form styling */
+TsneForm, OverviewForm, FeaturesForm, ExplanationForm, MenuForm {
+    background-color: #000000;
+}
+
+/* Table styling */
+QTableView, QTableWidget {
+    background-color: #FFFFFF;
+    color: #333333;
+    gridline-color: #E0E0E0;
+}
+
+QHeaderView::section {
+    background-color: #E6E6E6;
+    color: #333333;
+    padding: 5px;
+    border: 1px solid #C0C0C0;
+}
+
+/* Other controls */
+QLineEdit, QTextEdit, QComboBox {
+    background-color: #FFFFFF;
+    color: #000000;
+    border: 1px solid #C0C0C0;
+    padding: 2px;
+}
+
+QCheckBox {
+    color: #333333;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #007ACC;
+    border: 1px solid #C0C0C0;
+}
+
+QCheckBox::indicator:unchecked {
+    background-color: #FFFFFF;
+    border: 1px solid #C0C0C0;
+}

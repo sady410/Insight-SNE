@@ -18,7 +18,7 @@ ComparisonForm::ComparisonForm(QWidget *parent)
     QFrame *frame = new QFrame();
     frame->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
     frame->setLineWidth(2);
-    frame->setStyleSheet("background-color: #535353;");
+    frame->setStyleSheet("background-color: #d1d1d1;");
 
     QVBoxLayout* verticalLayout = new QVBoxLayout(frame);
     verticalLayout->setContentsMargins(8, 8, 8, 8);
@@ -32,13 +32,13 @@ ComparisonForm::ComparisonForm(QWidget *parent)
 
     QLabel *titleLabel = new QLabel("Selections comparison", headerWidget);
     titleLabel->setAlignment(Qt::AlignCenter);
-    titleLabel->setStyleSheet("font-weight: bold; color: white; font-size: 16px;");
+    titleLabel->setStyleSheet("font-weight: bold; color: black; font-size: 16px;");
     headerLayout->addWidget(titleLabel);
 
     QFrame *separator = new QFrame(headerWidget);
     separator->setFrameShape(QFrame::HLine);
     separator->setFrameShadow(QFrame::Sunken);
-    separator->setStyleSheet("color: #888;");
+    separator->setStyleSheet("color: #000000;");
     headerLayout->addWidget(separator);
 
     verticalLayout->addWidget(headerWidget);
@@ -63,7 +63,7 @@ ComparisonForm::ComparisonForm(QWidget *parent)
 
     QLabel *minusLabel = new QLabel("====| DIFF |====", frame);
     minusLabel->setAlignment(Qt::AlignCenter);
-    minusLabel->setStyleSheet("color: white; font-weight: bold;");
+    minusLabel->setStyleSheet("color: black; font-weight: bold;");
     controlsLayout->addWidget(minusLabel);
 
     m_secondSelectionDropdown = new QComboBox(frame);

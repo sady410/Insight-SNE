@@ -40,6 +40,7 @@ SOURCES += \
     pythonexecutor.cpp \
     selectionmanager.cpp \
     selectionwidget.cpp \
+    thememanager.cpp \
     tsneform.cpp \
     tsneplot.cpp \
     qcustomplot.cpp
@@ -62,6 +63,7 @@ HEADERS += \
     pythonexecutor.h \
     selectionmanager.h \
     selectionwidget.h \
+    thememanager.h \
     tsneform.h \
     tsneplot.h \
     qcustomplot.h
@@ -85,3 +87,6 @@ DISTFILES += \
     gradients.py \
     main.py \
     tsne.py
+
+RESOURCES += \
+    resources.qrc

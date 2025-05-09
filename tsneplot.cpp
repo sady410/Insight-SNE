@@ -8,8 +8,7 @@ TsnePlot::TsnePlot(QWidget *parent)
     setInteractions(QCP::iRangeZoom);
     setMouseTracking(true);
 
-    // Dark theme setup
-    setBackground(QColor(53, 53, 53));
+    setBackground(QColor(209, 209, 209));
 
     xAxis->setVisible(false);
     yAxis->setVisible(false);
