@@ -1,6 +1,9 @@
 #include "appwindow.h"
 #include "arrowsmanager.h"
 #include "ui_appwindow.h"
+#include <QStyleFactory>
+#include <QGraphicsDropShadowEffect>
+#include <QScreen>
 
 AppWindow::AppWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -9,6 +12,292 @@ AppWindow::AppWindow(QWidget *parent)
 {
     ui->setupUi(this);
     qDebug() << "AppWindow UI initialized.";
+
+    // Set application style and UI customizations
+    applyStylesheet();
+    setupUi();
+
+    // Center the window on the screen
+    QScreen *screen = QGuiApplication::primaryScreen();
+    QRect screenGeometry = screen->geometry();
+    int x = (screenGeometry.width() - this->width()) / 2;
+    int y = (screenGeometry.height() - this->height()) / 2;
+    this->move(x, y);
+
+    // Set window title
+    this->setWindowTitle("Insight-SNE Visualization");
+}
+
+void AppWindow::setupUi()
+{
+    // Add drop shadows to various containers
+    QList<QWidget*> formWidgets = {
+        ui->tsneForm, ui->menuForm_2, ui->overviewForm,
+        ui->featuresForm, ui->explanationForm, ui->comparisonForm
+    };
+
+    for (QWidget* widget : formWidgets) {
+        QGraphicsDropShadowEffect* shadowEffect = new QGraphicsDropShadowEffect;
+        shadowEffect->setBlurRadius(10);
+        shadowEffect->setColor(QColor(0, 0, 0, 100));
+        shadowEffect->setOffset(0, 1);
+        widget->setGraphicsEffect(shadowEffect);
+
+        // Apply a frame style to each widget
+        widget->setStyleSheet("background-color: #2d2d2d; border-radius: 5px; margin: 2px;");
+    }
+
+    // Adjust the layout spacing for better appearance
+    ui->horizontalLayout_2->setSpacing(8);
+    ui->verticalLayout->setSpacing(8);
+    ui->horizontalLayout_4->setSpacing(8);
+    ui->horizontalLayout->setSpacing(8);
+    ui->verticalLayout_2->setSpacing(8);
+
+    // Add margins
+    ui->horizontalLayout_2->setContentsMargins(8, 8, 8, 8);
+}
+
+void AppWindow::applyStylesheet()
+{
+    // Set application style to Fusion
+    qApp->setStyle(QStyleFactory::create("Fusion"));
+
+    // Create a palette for the window
+    QPalette darkPalette;
+    darkPalette.setColor(QPalette::Window, QColor(45, 45, 45));
+    darkPalette.setColor(QPalette::WindowText, QColor(230, 230, 230));
+    darkPalette.setColor(QPalette::Base, QColor(60, 60, 60));
+    darkPalette.setColor(QPalette::AlternateBase, QColor(45, 45, 45));
+    darkPalette.setColor(QPalette::ToolTipBase, QColor(230, 230, 230));
+    darkPalette.setColor(QPalette::ToolTipText, QColor(45, 45, 45));
+    darkPalette.setColor(QPalette::Text, QColor(230, 230, 230));
+    darkPalette.setColor(QPalette::Button, QColor(60, 60, 60));
+    darkPalette.setColor(QPalette::ButtonText, QColor(230, 230, 230));
+    darkPalette.setColor(QPalette::BrightText, QColor(255, 255, 255));
+    darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
+    darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+    darkPalette.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
+
+    // Apply the palette
+    qApp->setPalette(darkPalette);
+
+    // Set style sheet for specific widgets
+    QString styleSheet = R"(
+        QMainWindow {
+            background-color: #1d1d1d;
+        }
+
+        QWidget {
+            color: #e6e6e6;
+        }
+
+        /* Form titles */
+        QLabel[objectName^="titleLabel"] {
+            color: #4CAF50;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 5px;
+            background-color: #333333;
+            border-radius: 3px;
+        }
+
+        /* Plot styling */
+        QCustomPlot {
+            background-color: #424242;
+            border: 1px solid #555555;
+            border-radius: 3px;
+        }
+
+        /* Button styling */
+        QPushButton {
+            background-color: #424242;
+            border: 1px solid #555555;
+            border-radius: 4px;
+            padding: 5px;
+            color: white;
+            min-height: 25px;
+        }
+
+        QPushButton:hover {
+            background-color: #4CAF50;
+            border: 1px solid #388E3C;
+        }
+
+        QPushButton:disabled {
+            background-color: #323232;
+            color: #9E9E9E;
+        }
+
+        /* Slider styling */
+        QSlider::groove:horizontal {
+            height: 10px;
+            background: #424242;
+            border-radius: 5px;
+        }
+
+        QSlider::handle:horizontal {
+            background: #4CAF50;
+            width: 20px;
+            height: 20px;
+            margin: -5px 0;
+            border-radius: 10px;
+        }
+
+        QSlider::handle:horizontal:hover {
+            background: #66BB6A;
+        }
+
+        QSlider::sub-page:horizontal {
+            background: #2E7D32;
+            border-radius: 5px;
+        }
+
+        QSlider::add-page:horizontal {
+            background: #424242;
+            border-radius: 5px;
+        }
+
+        /* Checkbox styling */
+        QCheckBox {
+            spacing: 8px;
+            min-height: 25px;
+        }
+
+        QCheckBox::indicator {
+            width: 20px;
+            height: 20px;
+        }
+
+        QCheckBox::indicator:unchecked {
+            border: 2px solid #555555;
+            background-color: #424242;
+            border-radius: 3px;
+        }
+
+        QCheckBox::indicator:unchecked:hover {
+            border: 2px solid #4CAF50;
+        }
+
+        QCheckBox::indicator:checked {
+            border: 2px solid #4CAF50;
+            background-color: #4CAF50;
+            border-radius: 3px;
+        }
+
+        QCheckBox::indicator:checked:hover {
+            background-color: #66BB6A;
+            border: 2px solid #66BB6A;
+        }
+
+        /* Combobox styling */
+        QComboBox {
+            border: 1px solid #555555;
+            border-radius: 4px;
+            padding: 5px 18px 5px 10px;
+            min-width: 6em;
+            background-color: #424242;
+            min-height: 25px;
+        }
+
+        QComboBox:hover {
+            border: 1px solid #4CAF50;
+        }
+
+        QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 20px;
+            border-left-width: 1px;
+            border-left-color: #555555;
+            border-left-style: solid;
+        }
+
+        QComboBox QAbstractItemView {
+            background-color: #424242;
+            border: 1px solid #555555;
+            selection-background-color: #4CAF50;
+            selection-color: white;
+        }
+
+        /* Scrollbar styling */
+        QScrollBar:vertical {
+            border: none;
+            background-color: #2d2d2d;
+            width: 10px;
+            margin: 0px;
+        }
+
+        QScrollBar::handle:vertical {
+            background-color: #4CAF50;
+            min-height: 30px;
+            border-radius: 5px;
+        }
+
+        QScrollBar::handle:vertical:hover {
+            background-color: #66BB6A;
+        }
+
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            height: 0px;
+        }
+
+        QScrollBar:horizontal {
+            border: none;
+            background-color: #2d2d2d;
+            height: 10px;
+            margin: 0px;
+        }
+
+        QScrollBar::handle:horizontal {
+            background-color: #4CAF50;
+            min-width: 30px;
+            border-radius: 5px;
+        }
+
+        QScrollBar::handle:horizontal:hover {
+            background-color: #66BB6A;
+        }
+
+        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+            width: 0px;
+        }
+
+        /* Menu styling */
+        QMenuBar {
+            background-color: #333333;
+            color: #e6e6e6;
+        }
+
+        QMenuBar::item {
+            background: transparent;
+        }
+
+        QMenuBar::item:selected {
+            background: #4CAF50;
+        }
+
+        QMenu {
+            background-color: #333333;
+            border: 1px solid #555555;
+        }
+
+        QMenu::item {
+            padding: 5px 30px 5px 30px;
+        }
+
+        QMenu::item:selected {
+            background-color: #4CAF50;
+        }
+
+        /* Status bar styling */
+        QStatusBar {
+            background-color: #333333;
+            color: #e6e6e6;
+        }
+    )";
+
+    this->setStyleSheet(styleSheet);
 }
 
 class TsneForm* AppWindow::getTsneForm() const {
@@ -28,7 +317,7 @@ class ExplanationForm* AppWindow::getExplanationForm() const {
 }
 
 class MenuForm* AppWindow::getMenuForm() const {
-    return ui->menuForm;
+    return ui->menuForm_2;
 }
 
 SelectionManager* AppWindow::getSelectionManager() const {

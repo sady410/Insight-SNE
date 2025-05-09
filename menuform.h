@@ -66,6 +66,7 @@ private:
     QList<QComboBox*> m_comboBoxes;
     int *m_selectedIndex;
     QVBoxLayout *m_bottomLayout;
+    QVBoxLayout *m_filterLayout;
 
     QStringList m_featureNames;
 
@@ -76,6 +77,10 @@ private:
     void emitFeatureStateChangesForSelection(int selectionId, bool state);
     void uncheckAllFeaturesForSelection(int selectionId);
     void setupListView();
+
+    void applyStyles();
+    QFrame* createStyledFrame();
+    QFrame* createSeparator();
 };
 
 #endif // MENUFORM_H

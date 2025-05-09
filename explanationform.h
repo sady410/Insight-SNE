@@ -1,10 +1,9 @@
 #ifndef EXPLANATIONFORM_H
 #define EXPLANATIONFORM_H
 
-#include "barplot.h"
-
 #include <QWidget>
-#include <QHorizontalBarSeries>
+#include "barplot.h"
+#include <QFrame>
 
 namespace Ui {
 class ExplanationForm;
@@ -28,6 +27,11 @@ public slots:
 
 private:
     Ui::ExplanationForm *ui;
+
+    // New styling methods
+    void applyStyles();
+    QFrame* createStyledFrame();
+    QFrame* createSeparator();
 };
 
 #endif // EXPLANATIONFORM_H

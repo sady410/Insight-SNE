@@ -9,8 +9,6 @@
 BarPlot::BarPlot(QChart *chart, QWidget *parent)
     : QChartView(chart, parent), m_barSeries(nullptr), m_firstDataAdded(false) {
     setRenderHint(QPainter::Antialiasing);
-    // chart->setAnimationOptions(QChart::SeriesAnimations);
-    // chart->setTheme(QChart::ChartThemeDark);
 }
 
 BarPlot::~BarPlot() {}

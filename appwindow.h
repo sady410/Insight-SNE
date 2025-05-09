@@ -45,6 +45,9 @@ private:
     SelectionManager *m_selectionManager;
     ArrowsManager *m_arrowsManager;
     bool m_isInitialized = false; // Flag to track initialization
+
+    void applyStylesheet();
+    void setupUi();
 };
 
 #endif // APPWINDOW_H

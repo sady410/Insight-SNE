@@ -2,26 +2,42 @@
 #define SELECTIONWIDGET_H
 
 #include <QWidget>
-#include <QLabel>
+#include <QPropertyAnimation>
+#include <QMouseEvent>
+#include <QEnterEvent>
 
-class SelectionWidget : public QWidget {
+class SelectionWidget : public QWidget
+{
     Q_OBJECT
+    // Property for hover animation
+    Q_PROPERTY(qreal hoverOpacity READ hoverOpacity WRITE setHoverOpacity)
 
 public:
-    SelectionWidget(int id, QWidget *parent = nullptr);
+    explicit SelectionWidget(int id, QWidget *parent = nullptr);
+
+    // Getter and setter for hover opacity property
+    qreal hoverOpacity() const { return m_hoverOpacity; }
+    void setHoverOpacity(qreal opacity);
+
+protected:
+    // Event handlers
+    void paintEvent(QPaintEvent *event) override;
+    void enterEvent(QEnterEvent *event) override;
+    void leaveEvent(QEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 signals:
     void hovered(int id);
     void left(int id);
-
-protected:
-    void enterEvent(QEnterEvent *event) override;
-    void leaveEvent(QEvent *event) override;
+    void clicked(int id);
 
 private:
-    void updateLabelStyle();
-
-    int m_id;  // The ID of the selection
+    int m_id;
+    qreal m_hoverOpacity;
+    bool m_pressed = false;
+    QPropertyAnimation *m_hoverAnimation;
 };
 
 #endif // SELECTIONWIDGET_H
