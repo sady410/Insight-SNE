@@ -5,10 +5,36 @@
 #include <QHorizontalBarSeries>
 #include <QBarSeries>
 #include <QDebug>
+#include <QPen>
+#include <QBrush>
+#include <QFont>
 
 BarPlot::BarPlot(QChart *chart, QWidget *parent)
     : QChartView(chart, parent), m_barSeries(nullptr), m_firstDataAdded(false) {
+    // Set anti-aliasing for smoother edges
     setRenderHint(QPainter::Antialiasing);
+
+    // Apply dark theme styling to the chart view
+    setStyleSheet(
+        "QChartView {"
+        "   background-color: #363636;"
+        "   border: 1px solid #555555;"
+        "   border-radius: 5px;"
+        "}"
+        );
+
+    // Apply theme styling to the chart
+    chart->setBackgroundVisible(true);
+    chart->setBackgroundBrush(QBrush(QColor("#363636")));
+    chart->setPlotAreaBackgroundVisible(true);
+    chart->setPlotAreaBackgroundBrush(QBrush(QColor("#2d2d2d")));
+    chart->setAnimationOptions(QChart::SeriesAnimations);
+
+    // Style the chart legend
+    chart->legend()->setLabelColor(QColor("#e6e6e6"));
+    chart->legend()->setMarkerShape(QLegend::MarkerShapeRectangle);
+    chart->legend()->setFont(QFont("Arial", 9));
+    chart->legend()->setAlignment(Qt::AlignBottom);
 }
 
 BarPlot::~BarPlot() {}
@@ -25,8 +51,12 @@ void BarPlot::initPlot(Qt::Orientation orientation) {
     if (orientation == Qt::Horizontal) {
         m_barSeries = new QHorizontalBarSeries();
     } else {
-       m_barSeries = new QBarSeries();
+        m_barSeries = new QBarSeries();
     }
+
+    // Apply series styling through QChart theme or individual bar sets
+    // QAbstractBarSeries doesn't have setPen method
+
     m_plotOrientation = orientation;
 }
 
@@ -65,7 +95,11 @@ void BarPlot::addValue(int id, const QColor &color, const QList<int> &indices, c
     for (qreal value : meanValues) {
         *newSet << value;
     }
+
+    // Style the bar set
     newSet->setColor(color);
+    // Note: QBarSet doesn't have setBorderColor method - will be handled by setPen below
+    newSet->setLabelColor(QColor("#e6e6e6"));  // Light color for labels
 
     // Store the initial color of the bar set
     m_initialBarSetColors[id] = color;
@@ -149,10 +183,15 @@ void BarPlot::setupAxes(Qt::Orientation orientation) {
     if (orientation == Qt::Horizontal) {
         QValueAxis *axisX = new QValueAxis();
         axisX->setTitleText("Gradients"); // TODO
+        axisX->setTitleFont(QFont("Arial", 10, QFont::Bold));
+        axisX->setTitleBrush(QColor("#4CAF50"));
         axisX->setLabelFormat("%.2f");
         axisX->setTickCount(5);
         axisX->setRange(minValue, maxValue);
-        axisX->setGridLineVisible(false);
+        axisX->setGridLineVisible(true);
+        axisX->setGridLineColor(QColor("#555555"));
+        axisX->setLabelsColor(QColor("#e6e6e6"));
+        axisX->setLinePenColor(QColor("#888888"));
         chart()->addAxis(axisX, Qt::AlignBottom);
         m_barSeries->attachAxis(axisX);
 
@@ -162,15 +201,22 @@ void BarPlot::setupAxes(Qt::Orientation orientation) {
         }
         axisY->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
         axisY->setGridLineVisible(false);
+        axisY->setLabelsColor(QColor("#e6e6e6"));
+        axisY->setLinePenColor(QColor("#888888"));
         chart()->addAxis(axisY, Qt::AlignLeft);
         m_barSeries->attachAxis(axisY);
     } else {
         QValueAxis *axisY = new QValueAxis();
         axisY->setTitleText("Gradients");
+        axisY->setTitleFont(QFont("Arial", 10, QFont::Bold));
+        axisY->setTitleBrush(QColor("#4CAF50"));
         axisY->setLabelFormat("%.2f");
         axisY->setTickCount(5);
         axisY->setRange(minValue, maxValue);
-        axisY->setGridLineVisible(false);
+        axisY->setGridLineVisible(true);
+        axisY->setGridLineColor(QColor("#555555"));
+        axisY->setLabelsColor(QColor("#e6e6e6"));
+        axisY->setLinePenColor(QColor("#888888"));
         chart()->addAxis(axisY, Qt::AlignLeft);
         m_barSeries->attachAxis(axisY);
 
@@ -180,6 +226,8 @@ void BarPlot::setupAxes(Qt::Orientation orientation) {
         }
         axisX->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
         axisX->setGridLineVisible(false);
+        axisX->setLabelsColor(QColor("#e6e6e6"));
+        axisX->setLinePenColor(QColor("#888888"));
         chart()->addAxis(axisX, Qt::AlignBottom);
         m_barSeries->attachAxis(axisX);
     }
@@ -254,11 +302,18 @@ void BarPlot::startHighlightSelection(const QColor &color, const QList<int>& ind
         }
 
         if (set->color() != color) {
-            QPen defaultPen(Qt::black, 1); // Example: Default black border with a width of 1
-            set->setPen(defaultPen);
+            // Style non-selected bars with a subdued appearance
+            QPen dimPen(QColor("#444444"), 1);
+            set->setPen(dimPen);
 
-            QBrush defaultBrush(set->color().darker(150)); // Example: Darker color for the brush
-            set->setBrush(defaultBrush);
+            QBrush dimBrush(set->color().darker(180));
+            set->setBrush(dimBrush);
+        } else {
+            // Make the selected bar stand out
+            QPen highlightPen(QColor("#FFFFFF"), 1.5);
+            set->setPen(highlightPen);
+
+            // Optional glow effect can be added here if needed
         }
     }
     chart()->update();
@@ -275,8 +330,8 @@ void BarPlot::stopHighlightSelection() {
             set->setBrush(originalColor); // Restore the original brush color
         }
 
-        // Reset the pen to its default values
-        QPen defaultPen(Qt::white, 1); // Default black border with a width of 1
+        // Reset to default styling
+        QPen defaultPen(QColor("#555555"), 1);
         set->setPen(defaultPen);
     }
 
@@ -284,4 +339,3 @@ void BarPlot::stopHighlightSelection() {
     m_originalBarSetColors.clear();
     chart()->update();
 }
-

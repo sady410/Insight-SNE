@@ -8,19 +8,35 @@ TsnePlot::TsnePlot(QWidget *parent)
     setInteractions(QCP::iRangeZoom);
     setMouseTracking(true);
 
-    setBackground(QColor(209, 209, 209));
+    // Dark theme styling
+    setBackground(QColor(45, 45, 45));  // Dark background
 
+    // Set explicit tooltip colors
+    QPalette tooltipPalette;
+    tooltipPalette.setColor(QPalette::ToolTipBase, QColor(45, 45, 45));  // Dark background
+    tooltipPalette.setColor(QPalette::ToolTipText, Qt::white);          // White text
+    QToolTip::setPalette(tooltipPalette);
+
+    // Optional: Set font
+    QFont tooltipFont("Arial", 10);
+    tooltipFont.setBold(true);
+    QToolTip::setFont(tooltipFont);
+
+    // Hide axes
     xAxis->setVisible(false);
     yAxis->setVisible(false);
 
+    // Hide grid
     layer("grid")->setVisible(false);
 
-    // Legend setup
-    legend->setVisible(true);
-    legend->setBrush(QBrush(QColor(100, 100, 100, 200)));
-    legend->setBorderPen(QPen(QColor(150, 150, 150, 200)));
-    legend->setTextColor(Qt::white);
+    // Enable antialiasing
+    setAntialiasedElements(QCP::aeAll);
 
+    // Legend styling
+    legend->setVisible(true);
+    legend->setBrush(QBrush(QColor(35, 35, 35, 230)));  // Darker than background
+    legend->setBorderPen(QPen(QColor(68, 68, 68, 200)));
+    legend->setTextColor(Qt::white);  // Light text for dark background
     // Initialize the timer
     m_lassoFadeTimer = new QTimer(this);
     connect(m_lassoFadeTimer, &QTimer::timeout, this, &TsnePlot::fadeLasso);
@@ -84,7 +100,12 @@ void TsnePlot::initPlot(const QVector<double> &x, const QVector<double> &y)
         return;
     }
 
-    QList<QColor> colorList = {Qt::red, Qt::blue, Qt::green, Qt::yellow};
+    QList<QColor> colorList = {
+        QColor(255, 87, 34),   // Deep Orange
+        QColor(33, 150, 243),  // Blue
+        QColor(76, 175, 80),   // Green
+        QColor(255, 193, 7)    // Amber
+    };
     m_labelColors.clear();
     int colorIndex = 0;
 
@@ -131,7 +152,7 @@ void TsnePlot::initPlot(const QVector<double> &x, const QVector<double> &y)
         // This is the key line - removes the line from both plot and legend
         graph->setLineStyle(QCPGraph::lsNone);
 
-        // Set scatter style (this will be shown in legend)
+        // When setting scatter style for each graph:
         QCPScatterStyle scatterStyle(QCPScatterStyle::ssCircle, 8);
         scatterStyle.setPen(QPen(m_labelColors[label]));
         scatterStyle.setBrush(QBrush(m_labelColors[label]));
@@ -184,8 +205,8 @@ void TsnePlot::mousePressEvent(QMouseEvent *event)
 
         m_lassoCurve->removeFromLegend();
 
-        // Set the pen for drawing
-        QPen lassoPen(Qt::red, 2, Qt::SolidLine);
+        // Set the pen for drawing with accent color
+        QPen lassoPen(QColor(76, 175, 80), 2, Qt::SolidLine);  // Green accent
         m_lassoCurve->setPen(lassoPen);
 
         // Initialize with the first point (t=0, x, y)
@@ -267,29 +288,43 @@ void TsnePlot::mouseMoveEvent(QMouseEvent *event)
         m_lassoCurve->addData(pointCount, xCoord, yCoord);
 
         replot();
-    } else {
-        for (auto it = m_scatterGraphsMap.begin(); it != m_scatterGraphsMap.end(); ++it) {
-            QCPGraph *graph = it.value();
+    }
+
+    // Tooltip handling
+    if (!m_isPanning && !m_isDrawing) {
+        bool pointFound = false;
+
+        for (auto graph : m_scatterGraphsMap) {
             for (int i = 0; i < graph->dataCount(); ++i) {
                 QPointF point(graph->dataMainKey(i), graph->dataMainValue(i));
                 QPointF screenPos = coordsToPixels(point.x(), point.y());
 
-                if (QLineF(event->pos(), screenPos).length() < 10) {
-                    QString label = graph->name();
-                    int id = m_pointIndexMap[point];
-                    QString tooltipText = QString("Label: %1\nCoordinates: (%2, %3)\nID: %4")
-                                              .arg(label)
-                                              .arg(point.x(), 0, 'f', 2)
-                                              .arg(point.y(), 0, 'f', 2)
-                                              .arg(id);
+                if (QLineF(event->pos(), screenPos).length() < 15) {
+                    auto it = m_pointIndexMap.find(point);
+                    if (it != m_pointIndexMap.end()) {
+                        QString tooltipText = QString("<span style='color:white;'>"  // Force white text
+                                                      "Label: %1<br>"
+                                                      "Coordinates: (%2, %3)<br>"
+                                                      "ID: %4"
+                                                      "</span>")
+                                                  .arg(graph->name())
+                                                  .arg(point.x(), 0, 'f', 2)
+                                                  .arg(point.y(), 0, 'f', 2)
+                                                  .arg(it->second);
 
-                    QToolTip::showText(event->globalPosition().toPoint(), tooltipText, this);
-                    return;
+                        QToolTip::showText(event->globalPos(), tooltipText, this,
+                                           QRect(), 3000);  // Show for 3 seconds
+                        pointFound = true;
+                        break;
+                    }
                 }
             }
+            if (pointFound) break;
         }
 
-        QToolTip::hideText();
+        if (!pointFound) {
+            QToolTip::hideText();
+        }
     }
 
     QCustomPlot::mouseMoveEvent(event);
@@ -503,7 +538,8 @@ void TsnePlot::addArrows(int id, const QList<int> &indices, const QString &featu
         arrow->end->setCoords(startPoint + QPointF(featureVectors[0][featureIndex],
                                                    featureVectors[1][featureIndex]));
         arrow->setHead(QCPLineEnding::esSpikeArrow);
-        arrow->setPen(QPen(color, 2));
+        QColor arrowColor = color.isValid() ? color : QColor(76, 175, 80);  // Default to green accent
+        arrow->setPen(QPen(arrowColor, 2));
 
         arrow->setLayer("arrows");
 
@@ -761,11 +797,13 @@ void TsnePlot::drawContourPlot(const QString &featureName, const QString &attrib
         plotLayout()->insertColumn(1);
     }
 
-    // Create and set up color scale
+    // Style the color scale
     m_colorScale = new QCPColorScale(this);
     plotLayout()->addElement(0, 1, m_colorScale);
     m_colorScale->setType(QCPAxis::atRight);
     m_colorScale->axis()->setLabel(featureName);
+    m_colorScale->axis()->setLabelColor(Qt::white);  // White text
+    m_colorScale->axis()->setTickLabelColor(Qt::white);  // White tick labels
     m_colorScale->setGradient(gradient);
     m_colorScale->setDataRange(QCPRange(minCellValue, maxCellValue));
 

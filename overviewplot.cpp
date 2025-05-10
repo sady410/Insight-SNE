@@ -10,23 +10,26 @@ OverviewPlot::OverviewPlot(QWidget *parent)
 
 void OverviewPlot::setupPlotAppearance()
 {
-    setBackground(QColor(209, 209, 209));
+    // Set dark theme background color to match the application theme
+    setBackground(QColor(45, 45, 45)); // #2d2d2d
 
-    // Axis setup
-    // QPen axisPen(Qt::white, 1);
-    // xAxis->setBasePen(axisPen);
-    // yAxis->setBasePen(axisPen);
-    // xAxis->setTickPen(axisPen);
-    // yAxis->setTickPen(axisPen);
-    // xAxis->setSubTickPen(axisPen);
-    // yAxis->setSubTickPen(axisPen);
-    // xAxis->setTickLabelColor(Qt::white);
-    // yAxis->setTickLabelColor(Qt::white);
+    // Configure plot margins
+    setContentsMargins(5, 5, 5, 5);
 
+    // Hide axis and grid for a clean look
     xAxis->setVisible(false);
     yAxis->setVisible(false);
     layer("grid")->setVisible(false);
     legend->setVisible(false);
+
+    // Set the plot's border style
+    QPen borderPen(QColor(68, 68, 68), 1); // #444444
+
+    // Enable antialiasing for smoother drawing
+    setAntialiasedElements(QCP::aeAll);
+
+    // Set interactions (if you need them)
+    // setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 }
 
 void OverviewPlot::setScatterData(const QVector<double> &x, const QVector<double> &y) {
@@ -36,16 +39,22 @@ void OverviewPlot::setScatterData(const QVector<double> &x, const QVector<double
     QCPGraph *scatterPlot = addGraph();
     scatterPlot->setData(x, y);
     scatterPlot->setLineStyle(QCPGraph::lsNone);
-    scatterPlot->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 5));
-    scatterPlot->setPen(QPen(Qt::gray));
-    scatterPlot->setBrush(QBrush(Qt::gray));
+
+    // Style the scatter points to match the theme
+    QCPScatterStyle scatterStyle(QCPScatterStyle::ssCircle, QColor(76, 175, 80), QColor(170, 170, 170), 5);
+    scatterPlot->setScatterStyle(scatterStyle);
 
     // Calculate and set axis ranges with padding
     auto [xMin, xMax] = std::minmax_element(x.constBegin(), x.constEnd());
     auto [yMin, yMax] = std::minmax_element(y.constBegin(), y.constEnd());
 
+    // Add padding to avoid points being cut off at edges
     double xPadding = (*xMax - *xMin) * 0.2;
     double yPadding = (*yMax - *yMin) * 0.2;
+
+    // If we have single points or identical values, make sure we still have a valid range
+    if (xPadding == 0) xPadding = 1;
+    if (yPadding == 0) yPadding = 1;
 
     xAxis->setRange(*xMin - xPadding, *xMax + xPadding);
     yAxis->setRange(*yMin - yPadding, *yMax + yPadding);
@@ -57,8 +66,14 @@ void OverviewPlot::updateZoomRectangle(double minX, double maxX, double minY, do
 {
     if (!m_zoomRect) {
         m_zoomRect = new QCPItemRect(this);
-        m_zoomRect->setPen(QPen(Qt::red, 2));
-        m_zoomRect->setBrush(QBrush(QColor(255, 0, 0, 50)));
+
+        // Style the zoom rectangle to match the theme
+        QPen rectPen(QColor(76, 175, 80), 2); // #4CAF50 (green accent color)
+        m_zoomRect->setPen(rectPen);
+
+        // Semi-transparent green fill
+        QColor fillColor = QColor(76, 175, 80, 50); // 20% opacity
+        m_zoomRect->setBrush(QBrush(fillColor));
     }
 
     m_zoomRect->topLeft->setCoords(minX, maxY);

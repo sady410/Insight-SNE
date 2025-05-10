@@ -9,7 +9,12 @@ inline size_t qHash(const QColor &color, size_t seed = 0)
 }
 
 SelectionManager::SelectionManager(QObject* parent) : QObject(parent), m_nextId(0) {
-    m_colorList = {Qt::magenta, Qt::red, Qt::blue, Qt::green, Qt::yellow, Qt::cyan, Qt::gray, Qt::darkRed};
+    m_colorList = {QColor(255, 200, 158),
+                   QColor(255, 87, 34),
+                   QColor(33, 150, 243),
+                   QColor(76, 175, 80),
+                   QColor(255, 193, 7),
+                   Qt::cyan, Qt::gray, Qt::darkRed};
 }
 
 void SelectionManager::changeSelectionStateAndEmitSignal(int id) {
