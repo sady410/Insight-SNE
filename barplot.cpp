@@ -31,10 +31,12 @@ BarPlot::BarPlot(QChart *chart, QWidget *parent)
     chart->setAnimationOptions(QChart::SeriesAnimations);
 
     // Style the chart legend
-    chart->legend()->setLabelColor(QColor("#e6e6e6"));
-    chart->legend()->setMarkerShape(QLegend::MarkerShapeRectangle);
-    chart->legend()->setFont(QFont("Arial", 9));
-    chart->legend()->setAlignment(Qt::AlignBottom);
+    // chart->legend()->setLabelColor(QColor("#e6e6e6"));
+    // chart->legend()->setMarkerShape(QLegend::MarkerShapeRectangle);
+    // chart->legend()->setFont(QFont("Arial", 9));
+    // chart->legend()->setAlignment(Qt::AlignBottom);
+
+    chart->legend()->setVisible(false);
 }
 
 BarPlot::~BarPlot() {}
@@ -207,7 +209,7 @@ void BarPlot::setupAxes(Qt::Orientation orientation) {
         m_barSeries->attachAxis(axisY);
     } else {
         QValueAxis *axisY = new QValueAxis();
-        axisY->setTitleText("Gradients");
+        axisY->setTitleText("Features"); // TODO
         axisY->setTitleFont(QFont("Arial", 10, QFont::Bold));
         axisY->setTitleBrush(QColor("#4CAF50"));
         axisY->setLabelFormat("%.2f");

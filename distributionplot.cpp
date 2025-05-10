@@ -11,6 +11,8 @@
 #include <QScatterSeries>
 #include <QPainter>
 #include <QToolTip>
+#include <QBrush>
+#include <QFont>
 
 DistributionPlot::DistributionPlot(QChart *chart, QWidget *parent)
     : QChartView(chart, parent),
@@ -23,7 +25,25 @@ DistributionPlot::DistributionPlot(QChart *chart, QWidget *parent)
     m_maxBins(20),
     m_statsTextItem(nullptr) {
 
+    // Set anti-aliasing for smoother edges
     setRenderHint(QPainter::Antialiasing);
+
+    // Apply dark theme styling to the chart view (matching BarPlot)
+    setStyleSheet(
+        "QChartView {"
+        "   background-color: #363636;"
+        "   border: 1px solid #555555;"
+        "   border-radius: 5px;"
+        "}"
+        );
+
+    // Apply theme styling to the chart (matching BarPlot)
+    chart->setBackgroundVisible(true);
+    chart->setBackgroundBrush(QBrush(QColor("#363636")));
+    chart->setPlotAreaBackgroundVisible(true);
+    chart->setPlotAreaBackgroundBrush(QBrush(QColor("#2d2d2d")));
+    chart->setAnimationOptions(QChart::SeriesAnimations);
+
     chart->legend()->setVisible(false);
 
     // Enable mouse tracking for tooltips
@@ -134,10 +154,14 @@ void DistributionPlot::setupAxes(const QStringList &categories) {
     // Value axis for Y (count)
     QValueAxis *axisY = new QValueAxis();
     axisY->setTitleText("Count");
+    axisY->setTitleFont(QFont("Arial", 10, QFont::Bold));
+    axisY->setTitleBrush(QColor("#4CAF50"));  // Match BarPlot green title
     axisY->setLabelFormat("%d");
     axisY->setTickCount(5);
     axisY->setGridLineVisible(true);
-    axisY->setGridLineColor(QColor(60, 60, 60));
+    axisY->setGridLineColor(QColor("#555555"));  // Match BarPlot grid color
+    axisY->setLabelsColor(QColor("#e6e6e6"));    // Match BarPlot label color
+    axisY->setLinePenColor(QColor("#888888"));   // Match BarPlot axis line color
     chart()->addAxis(axisY, Qt::AlignLeft);
 
     if (m_barSeries) {
@@ -152,8 +176,12 @@ void DistributionPlot::setupAxes(const QStringList &categories) {
     if (categories.isEmpty()) {
         QValueAxis *axisX = new QValueAxis();
         axisX->setGridLineVisible(true);
-        axisX->setGridLineColor(QColor(60, 60, 60));
+        axisX->setGridLineColor(QColor("#555555"));      // Match BarPlot grid color
         axisX->setTitleText(m_currentFeatureName);
+        axisX->setTitleFont(QFont("Arial", 10, QFont::Bold));
+        axisX->setTitleBrush(QColor("#4CAF50"));         // Match BarPlot green title
+        axisX->setLabelsColor(QColor("#e6e6e6"));        // Match BarPlot label color
+        axisX->setLinePenColor(QColor("#888888"));       // Match BarPlot axis line color
         chart()->addAxis(axisX, Qt::AlignBottom);
 
         if (m_barSeries) {
@@ -167,8 +195,12 @@ void DistributionPlot::setupAxes(const QStringList &categories) {
         QBarCategoryAxis *axisX = new QBarCategoryAxis();
         axisX->append(categories);
         axisX->setTitleText(m_currentFeatureName);
+        axisX->setTitleFont(QFont("Arial", 10, QFont::Bold));
+        axisX->setTitleBrush(QColor("#4CAF50"));         // Match BarPlot green title
         axisX->setGridLineVisible(true);
-        axisX->setGridLineColor(QColor(60, 60, 60));
+        axisX->setGridLineColor(QColor("#555555"));      // Match BarPlot grid color
+        axisX->setLabelsColor(QColor("#e6e6e6"));        // Match BarPlot label color
+        axisX->setLinePenColor(QColor("#888888"));       // Match BarPlot axis line color
 
         // Handle label visibility based on number of categories
         if (categories.size() > 10) {
@@ -210,7 +242,7 @@ void DistributionPlot::updateAxisRange() {
         }
     }
 
-    // Add padding to max value
+    // Add padding to max value (similar to BarPlot's approach)
     qreal padding = maxValue * 0.1;
     if (padding < 1) padding = 1; // At least 1 for counts
     maxValue += padding;
@@ -288,6 +320,11 @@ void DistributionPlot::createHistogram(const QList<qreal> &values, BinMethod bin
         barColor = m_selectionColors[m_currentSelectionId];
     }
     histogramSet->setColor(barColor);
+    histogramSet->setLabelColor(QColor("#e6e6e6"));  // Light color for labels (matching BarPlot)
+
+    // Add a border pen to the bars (similar to BarPlot)
+    QPen barPen(QColor("#555555"), 1);
+    histogramSet->setPen(barPen);
 
     // Create the histogram based on binning method
     switch (binMethod) {
@@ -510,10 +547,16 @@ void DistributionPlot::updatePlot() {
                                 .arg(mean, 0, 'f', 2)
                                 .arg(stdDev, 0, 'f', 2);
 
-        // Create a new text item
+        // Create a new text item with styled text
         m_statsTextItem = new QGraphicsSimpleTextItem(chart());
         m_statsTextItem->setText(statsText);
-        m_statsTextItem->setBrush(Qt::white);
+        m_statsTextItem->setBrush(QColor("#e6e6e6"));  // Light color matching other text
+
+        // Use the same font as other text elements
+        QFont statsFont("Arial", 9);
+        m_statsTextItem->setFont(statsFont);
+
+        // Position it in the top left corner with some padding
         m_statsTextItem->setPos(50, chart()->margins().top() + 5);
         m_statsTextItem->setZValue(1000);  // Ensure it's on top of everything
     }

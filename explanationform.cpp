@@ -95,7 +95,7 @@ ExplanationForm::ExplanationForm(QWidget *parent)
 
     // Create charts with dark theme styling
     QChart *magnitudesChart = new QChart();
-    magnitudesChart->setTitle("Magnitudes Plot");
+    magnitudesChart->setTitle("Magnitudes");
     magnitudesChart->setTitleFont(QFont("Arial", 12, QFont::Bold));
     magnitudesChart->setTitleBrush(QBrush(QColor("#4CAF50")));
     magnitudesChart->setBackgroundBrush(QBrush(QColor("#363636")));
@@ -103,7 +103,7 @@ ExplanationForm::ExplanationForm(QWidget *parent)
     magnitudesChart->legend()->setLabelColor(QColor("#FFFFFF"));
 
     QChart *gradientsChartTop = new QChart();
-    gradientsChartTop->setTitle("Gradients Plot X");
+    gradientsChartTop->setTitle("X-axis");
     gradientsChartTop->setTitleFont(QFont("Arial", 12, QFont::Bold));
     gradientsChartTop->setTitleBrush(QBrush(QColor("#4CAF50")));
     gradientsChartTop->setBackgroundBrush(QBrush(QColor("#363636")));
@@ -111,7 +111,7 @@ ExplanationForm::ExplanationForm(QWidget *parent)
     gradientsChartTop->legend()->setLabelColor(QColor("#FFFFFF"));
 
     QChart *gradientsChartBottom = new QChart();
-    gradientsChartBottom->setTitle("Gradients Plot Y");
+    gradientsChartBottom->setTitle("Y-axis");
     gradientsChartBottom->setTitleFont(QFont("Arial", 12, QFont::Bold));
     gradientsChartBottom->setTitleBrush(QBrush(QColor("#4CAF50")));
     gradientsChartBottom->setBackgroundBrush(QBrush(QColor("#363636")));

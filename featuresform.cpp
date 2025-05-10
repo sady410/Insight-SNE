@@ -42,7 +42,7 @@ FeaturesForm::FeaturesForm(QWidget *parent)
 
     // Create charts with dark theme styling
     QChart *featuresChart = new QChart();
-    featuresChart->setTitle("Features Plot");
+    featuresChart->setTitle("Mean Features");
     featuresChart->setTitleFont(QFont("Arial", 12, QFont::Bold));
     featuresChart->setTitleBrush(QBrush(QColor("#4CAF50")));
     featuresChart->setBackgroundBrush(QBrush(QColor("#363636")));
@@ -50,7 +50,7 @@ FeaturesForm::FeaturesForm(QWidget *parent)
     featuresChart->legend()->setLabelColor(QColor("#FFFFFF"));
 
     QChart *distributionChart = new QChart();
-    distributionChart->setTitle("Distribution Plot");
+    distributionChart->setTitle("Features Distribution");
     distributionChart->setTitleFont(QFont("Arial", 12, QFont::Bold));
     distributionChart->setTitleBrush(QBrush(QColor("#4CAF50")));
     distributionChart->setBackgroundBrush(QBrush(QColor("#363636")));
