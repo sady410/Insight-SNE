@@ -1,7 +1,7 @@
 #include "colorcircle.h"
 
 ColorCircle::ColorCircle(const QColor &color, const bool state, QWidget *parent)
-    : QWidget(parent), m_color(color), m_active(state)
+    : QWidget(parent), m_color(color), m_active(state), m_hoverValue(0)
 {
     setFixedSize(28, 28);
     setCursor(Qt::PointingHandCursor);
@@ -10,8 +10,6 @@ ColorCircle::ColorCircle(const QColor &color, const bool state, QWidget *parent)
     m_animation = new QPropertyAnimation(this, "hoverValue");
     m_animation->setDuration(150);
     m_animation->setEasingCurve(QEasingCurve::OutCubic);
-
-    m_hoverValue = 0;
 }
 
 void ColorCircle::setActive(bool active) {

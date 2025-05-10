@@ -10,6 +10,8 @@
 class ColorCircle : public QWidget {
     Q_OBJECT
 
+    Q_PROPERTY(qreal hoverValue READ hoverValue WRITE setHoverValue)
+
 public:
     ColorCircle(const QColor &color, const bool state, QWidget *parent = nullptr);
 
