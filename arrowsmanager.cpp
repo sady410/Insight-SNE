@@ -19,20 +19,20 @@ void ArrowsManager::createArrowsField(int selectionId, const QList<int> &indices
 void ArrowsManager::removeArrowsField(int selectionId, const QString &featureName) {
     int id = findIdBySelectionIdAndFeatureName(selectionId, featureName);
     if (id == -1) {
-        qDebug() << "Error: No arrows field found for selectionId" << selectionId;
+        // qDebug() << "Error: No arrows field found for selectionId" << selectionId;
         return;
     }
 
     m_arrowsField.remove(id);
     m_availableIds.push(id);
-    qDebug() << m_arrowsField.keys();
+
     emit arrowsFieldRemoved(id);
 }
 
 void ArrowsManager::changeArrowsFieldColor(int selectionId, const QString &featureName, const QColor &newColor) {
     int id = findIdBySelectionIdAndFeatureName(selectionId, featureName);
     if (id == -1) {
-        qDebug() << "Error: No arrows field found for selectionId" << selectionId << "and feature" << featureName;
+        // qDebug() << "Error: No arrows field found for selectionId" << selectionId << "and feature" << featureName;
         return;
     }
 

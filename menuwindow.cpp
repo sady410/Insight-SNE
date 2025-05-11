@@ -58,8 +58,14 @@ MenuWindow::MenuWindow(QWidget *parent)
     ui->iterationsSlider->setValue(3);
     connect(ui->iterationsSlider, &QSlider::valueChanged, this, &MenuWindow::updateIterationsLabel);
 
-    ui->runAppButton->setEnabled(false);
+    ui->visualizationTypeComboBox->addItem("Class");
+    ui->visualizationTypeComboBox->addItem("Unique");
+    ui->visualizationTypeComboBox->setCurrentIndex(0); // Default to "Class"
+    ui->visualizationTypeComboBox->setToolTip("Select visualization type: Class (group by labels) or Unique (individual points)");
+    ui->visualizationTypeComboBox->setEnabled(ui->checkBox->isChecked());
+    connect(ui->checkBox, &QCheckBox::toggled, ui->visualizationTypeComboBox, &QComboBox::setEnabled);
 
+    ui->runAppButton->setEnabled(false);
     connect(ui->runAppButton, &QPushButton::clicked, this, &MenuWindow::onRunAppButtonClicked);
 
     // Hide the message label initially
@@ -67,7 +73,6 @@ MenuWindow::MenuWindow(QWidget *parent)
 
     // Python Executor Instance
     m_pythonExecutor = new class PythonExecutor(this);
-
     connect(m_pythonExecutor, &PythonExecutor::outputReceived, this, &MenuWindow::onOutputReceived);
     connect(m_pythonExecutor, &PythonExecutor::finished, this, &MenuWindow::onScriptFinished);
 }
@@ -105,6 +110,14 @@ void MenuWindow::setupUi()
         // The background color will indicate the checked state
     }
 
+    // Connect checkbox state change to enable/disable combobox
+    connect(ui->checkBox, &QCheckBox::stateChanged, this, [this](int state) {
+        ui->visualizationTypeComboBox->setEnabled(state == Qt::Checked);
+    });
+
+    // Set initial state of combobox based on checkbox
+    ui->visualizationTypeComboBox->setEnabled(ui->checkBox->isChecked());
+
     // Add tooltips for better UX
     ui->perplexitySlider->setToolTip("Adjust the perplexity parameter for t-SNE (affects clustering)");
     ui->iterationsSlider->setToolTip("Adjust the number of iterations for t-SNE training");
@@ -119,29 +132,29 @@ void MenuWindow::applyStylesheet()
     // Set application style to Fusion
     qApp->setStyle(QStyleFactory::create("Fusion"));
 
-    // Create a palette for the window
+    // Create a darker palette similar to MenuForm
     QPalette darkPalette;
-    darkPalette.setColor(QPalette::Window, QColor(45, 45, 45));
+    darkPalette.setColor(QPalette::Window, QColor(29, 29, 29));       // #1d1d1d
     darkPalette.setColor(QPalette::WindowText, QColor(230, 230, 230));
-    darkPalette.setColor(QPalette::Base, QColor(60, 60, 60));
+    darkPalette.setColor(QPalette::Base, QColor(36, 36, 36));         // #242424
     darkPalette.setColor(QPalette::AlternateBase, QColor(45, 45, 45));
     darkPalette.setColor(QPalette::ToolTipBase, QColor(230, 230, 230));
     darkPalette.setColor(QPalette::ToolTipText, QColor(45, 45, 45));
     darkPalette.setColor(QPalette::Text, QColor(230, 230, 230));
-    darkPalette.setColor(QPalette::Button, QColor(60, 60, 60));
+    darkPalette.setColor(QPalette::Button, QColor(54, 54, 54));       // #363636
     darkPalette.setColor(QPalette::ButtonText, QColor(230, 230, 230));
     darkPalette.setColor(QPalette::BrightText, QColor(255, 255, 255));
-    darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
-    darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+    darkPalette.setColor(QPalette::Link, QColor(76, 175, 80));        // #4CAF50
+    darkPalette.setColor(QPalette::Highlight, QColor(76, 175, 80));   // #4CAF50
     darkPalette.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
 
     // Apply the palette
     qApp->setPalette(darkPalette);
 
-    // Set style sheet for specific widgets
+    // Set style sheet with MenuForm's styling approach
     QString styleSheet = R"(
         QMainWindow {
-            background-color: #2d2d2d;
+            background-color: #1d1d1d;
         }
 
         QLabel#menuTitle {
@@ -149,17 +162,21 @@ void MenuWindow::applyStylesheet()
             font-size: 24px;
             font-weight: bold;
             padding: 10px;
+            background-color: #333333;
+            border-radius: 4px;
         }
 
-        QPushButton#uploadCsvButton {
-            background-color: #424242;
+        QPushButton {
+            background-color: #363636;
             border: 1px solid #555555;
             border-radius: 4px;
             padding: 8px;
             color: white;
+            min-height: 28px;
+            font-size: 14px;
         }
 
-        QPushButton#uploadCsvButton:hover {
+        QPushButton:hover {
             background-color: #4CAF50;
             border: 1px solid #388E3C;
         }
@@ -167,10 +184,7 @@ void MenuWindow::applyStylesheet()
         QPushButton#runAppButton {
             background-color: #4CAF50;
             border: none;
-            border-radius: 4px;
-            padding: 10px;
             font-weight: bold;
-            color: white;
         }
 
         QPushButton#runAppButton:hover {
@@ -210,27 +224,15 @@ void MenuWindow::applyStylesheet()
             border-radius: 5px;
         }
 
-        QSlider::sub-page:horizontal:disabled {
-            background: #555555;
-        }
-
-        QSlider::add-page:horizontal:disabled {
-            background: #333333;
-        }
-
-        QSlider::handle:horizontal:disabled {
-            background: #555555;
-        }
-
         QCheckBox {
             spacing: 8px;
-            min-height: 25px;
-            font-size: 10pt;
+            color: #e6e6e6;
+            font-size: 14px;
         }
 
         QCheckBox::indicator {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
         }
 
         QCheckBox::indicator:unchecked {
@@ -249,19 +251,14 @@ void MenuWindow::applyStylesheet()
             border-radius: 3px;
         }
 
-        QCheckBox::indicator:checked:hover {
-            background-color: #66BB6A;
-            border: 2px solid #66BB6A;
-        }
-
         QComboBox {
             border: 1px solid #555555;
-            border-radius: 4px;
-            padding: 5px 18px 5px 10px;
-            min-width: 6em;
+            border-radius: 5px;
+            padding: 6px 20px 6px 12px;
             background-color: #424242;
-            min-height: 25px;
-            font-size: 10pt;
+            color: #e6e6e6;
+            font-size: 14px;
+            min-height: 28px;
         }
 
         QComboBox:hover {
@@ -271,13 +268,14 @@ void MenuWindow::applyStylesheet()
         QComboBox::drop-down {
             subcontrol-origin: padding;
             subcontrol-position: top right;
-            width: 20px;
+            width: 22px;
             border-left-width: 1px;
             border-left-color: #555555;
             border-left-style: solid;
         }
 
         QComboBox::down-arrow {
+            image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>');
             width: 12px;
             height: 12px;
         }
@@ -289,14 +287,38 @@ void MenuWindow::applyStylesheet()
             selection-color: white;
         }
 
+        QComboBox:disabled {
+            color: #777777;
+            background-color: #2d2d2d;
+            border: 1px solid #444444;
+        }
+
         QLabel#fileLabel {
-            background-color: #424242;
-            border-radius: 3px;
-            padding: 5px;
+            background-color: #363636;
+            border-radius: 5px;
+            padding: 8px;
+            border: 1px solid #555555;
+            font-size: 14px;
+        }
+
+        QLabel#message {
+            color: #e6e6e6;
+            font-size: 14px;
+            padding: 8px;
+            background-color: #363636;
+            border-radius: 5px;
+            border: 1px solid #555555;
         }
     )";
 
     this->setStyleSheet(styleSheet);
+
+    // Add shadow effect to match MenuForm's styling
+    QGraphicsDropShadowEffect *windowShadow = new QGraphicsDropShadowEffect(this);
+    windowShadow->setBlurRadius(15);
+    windowShadow->setColor(QColor(0, 0, 0, 120));
+    windowShadow->setOffset(0, 2);
+    this->setGraphicsEffect(windowShadow);
 }
 
 MenuWindow::~MenuWindow()
@@ -495,6 +517,7 @@ QStringList MenuWindow::constructArgsString() {
     args.append("[" +  formattedRows.join(", ") + "]");
     args.append(QString::number(perplexity));
     args.append(QString::number(iterations));
+    // args.append(ui->visualizationTypeComboBox);
     return args;
 }
 
