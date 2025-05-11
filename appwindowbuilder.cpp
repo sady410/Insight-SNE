@@ -30,6 +30,10 @@ AppWindowBuilder& AppWindowBuilder::parseJsonData() {
     m_magnitudesArray = m_jsonData.value("magnitudes").toArray();
     m_attributesArray = m_jsonData.value("data").toArray();
 
+    m_perplexity = m_jsonData.value("perplexity").toInt();
+    m_iterations = m_jsonData.value("iterations").toInt();
+    m_filename = m_jsonData.value("filename").toString();
+
     // Convert to appropriate data structures
     // Feature names used by multiple plots
     m_featureNamesList.clear();
@@ -140,8 +144,14 @@ AppWindowBuilder& AppWindowBuilder::initializeOverviewPlot() {
         m_appWindow = new AppWindow(m_parent);
     }
 
-    // Use already parsed embedding data
     m_appWindow->getOverviewForm()->overviewPlot->setScatterData(m_xData, m_yData);
+
+    QString infoText = QString("Dataset: %1\nPerplexity: %2\nIterations: %3")
+                           .arg(m_filename)
+                           .arg(m_perplexity)
+                           .arg(m_iterations);
+
+    m_appWindow->getOverviewForm()->setDatasetInfo(infoText);
 
     return *this;
 }

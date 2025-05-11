@@ -377,6 +377,15 @@ void MenuWindow::onOutputReceived(const QString &output)
             }
             jsonObject["labels"] = labelsArray;
 
+            // Add perplexity and iterations values to JSON
+            jsonObject["perplexity"] = ui->perplexitySlider->value();
+            jsonObject["iterations"] = m_iterationsMap[ui->iterationsSlider->value()];
+
+            // Add filename without .csv extension
+            QFileInfo fileInfo(m_csvFile);
+            QString filenameWithoutExtension = fileInfo.baseName();
+            jsonObject["filename"] = filenameWithoutExtension;
+
             // Add data to JSON
             QJsonArray dataArray;
             for (const QList<QString> &row : std::as_const(m_data)) {

@@ -51,6 +51,9 @@ private:
     QJsonArray m_gradientsArray;
     QJsonArray m_magnitudesArray;
     QJsonArray m_attributesArray;
+    int m_perplexity;
+    int m_iterations;
+    QString m_filename;
 
     // Parsed data structures
     QStringList m_featureNamesList;
