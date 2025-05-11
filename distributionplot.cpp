@@ -42,7 +42,7 @@ DistributionPlot::DistributionPlot(QChart *chart, QWidget *parent)
     chart->setBackgroundBrush(QBrush(QColor("#363636")));
     chart->setPlotAreaBackgroundVisible(true);
     chart->setPlotAreaBackgroundBrush(QBrush(QColor("#2d2d2d")));
-    chart->setAnimationOptions(QChart::SeriesAnimations);
+    // chart->setAnimationOptions(QChart::SeriesAnimations);
 
     chart->legend()->setVisible(false);
 

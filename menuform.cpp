@@ -442,40 +442,18 @@ void MenuForm::onListViewContextMenu(const QPoint &pos)
 
 void MenuForm::uncheckAllFeaturesForSelection(int selectionId)
 {
-    qDebug() << "Unchecking features for selection ID:" << selectionId;
+    // Temporarily disconnect the itemChanged signal
+    disconnect(m_model, &QStandardItemModel::itemChanged, this, nullptr);
 
-    // Store matching items that need to be unchecked
-    QList<QStandardItem*> itemsToUncheck;
-
-    // Find all checked items that need processing
+    // Uncheck all features
     for (int row = 0; row < m_model->rowCount(); ++row) {
         QStandardItem *item = m_model->item(row);
         if (item &&
             item->data(Qt::UserRole).toInt() == selectionId &&
-            !item->data(Qt::UserRole + 1).toBool() &&
-            item->checkState() == Qt::Checked)  // Only include items that are checked
+            !item->data(Qt::UserRole + 1).toBool())
         {
-            itemsToUncheck.append(item);
+            item->setCheckState(Qt::Unchecked);
         }
-    }
-
-    if (itemsToUncheck.isEmpty()) {
-        qDebug() << "No checked items found for selection ID:" << selectionId;
-        return;  // Nothing to do
-    }
-
-    qDebug() << "Found" << itemsToUncheck.size() << "items to uncheck";
-
-    // Temporarily disconnect the itemChanged signal
-    disconnect(m_model, &QStandardItemModel::itemChanged, this, nullptr);
-
-    // Uncheck items and emit signals
-    for (QStandardItem *item : itemsToUncheck) {
-        QString featureName = item->text();
-        qDebug() << "Unchecking feature:" << featureName << "for selection ID:" << selectionId;
-
-        item->setCheckState(Qt::Unchecked);
-        emit featureCheckStateChanged(selectionId, featureName, false);
     }
 
     // Reconnect the itemChanged signal
@@ -487,6 +465,26 @@ void MenuForm::uncheckAllFeaturesForSelection(int selectionId)
                 }
             }
             );
+
+    // Emit state changes
+    emitFeatureStateChangesForSelection(selectionId, false);
+}
+
+void MenuForm::emitFeatureStateChangesForSelection(int selectionId, bool state)
+{
+    for (int row = 0; row < m_model->rowCount(); ++row) {
+        QStandardItem *item = m_model->item(row);
+        if (item &&
+            item->data(Qt::UserRole).toInt() == selectionId &&
+            !item->data(Qt::UserRole + 1).toBool())
+        {
+            if ((state && item->checkState() != Qt::Checked) ||
+                (!state && item->checkState() != Qt::Unchecked)) {
+                item->setCheckState(state ? Qt::Checked : Qt::Unchecked);
+            }
+            emit featureCheckStateChanged(selectionId, item->text(), state);
+        }
+    }
 }
 
 void MenuForm::setCheckboxesEnabledForSelection(int selectionId, bool enabled)
@@ -717,8 +715,10 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int> 
     connect(selectionWidget, &SelectionWidget::left, this, &MenuForm::selectionLeft);
     connect(circle, &ColorCircle::clicked, this, [this, id, circle]() {
         emit selectionStateChanged(id);
+
         bool isActive = circle->isActive();
         setCheckboxesEnabledForSelection(id, isActive);
+
         if (!isActive) {
             uncheckAllFeaturesForSelection(id);
         }

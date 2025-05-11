@@ -75,6 +75,7 @@ private:
 
     void setCheckboxesEnabledForSelection(int selectionId, bool enabled);
     void uncheckAllFeaturesForSelection(int selectionId);
+    void emitFeatureStateChangesForSelection(int selectionId, bool state);
     void setupListView();
 
     void applyStyles();
