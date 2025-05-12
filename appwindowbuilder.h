@@ -54,6 +54,8 @@ private:
     int m_perplexity;
     int m_iterations;
     QString m_filename;
+    bool m_isLabel;
+    bool m_isClass;
 
     // Parsed data structures
     QStringList m_featureNamesList;

@@ -32,7 +32,7 @@ MenuWindow::MenuWindow(QWidget *parent)
 
     // Set window title and fixed size
     this->setWindowTitle("Insight-SNE");
-    this->setFixedSize(380, 540);
+    this->setFixedSize(400, 600);
 
     connect(ui->uploadCsvButton, &QPushButton::clicked, this, &MenuWindow::selectCsvFile);
 
@@ -97,21 +97,21 @@ void MenuWindow::setupUi()
     ui->fileLabel->setWordWrap(true);
     ui->fileLabel->setMinimumHeight(40);
 
-    // Since we may not have custom icons, let's use Qt's standard icons
-    if (!QIcon::hasThemeIcon("check")) {
-        // We're setting up a fallback for missing custom icons
-        // This approach will work without needing extra resources
+    // // Since we may not have custom icons, let's use Qt's standard icons
+    // if (!QIcon::hasThemeIcon("check")) {
+    //     // We're setting up a fallback for missing custom icons
+    //     // This approach will work without needing extra resources
 
-        // For dropdown arrow, we'll use a standard icon if our custom one is missing
-        QStyle *style = QApplication::style();
-        QIcon downArrowIcon = style->standardIcon(QStyle::SP_ArrowDown);
+    //     // For dropdown arrow, we'll use a standard icon if our custom one is missing
+    //     QStyle *style = QApplication::style();
+    //     QIcon downArrowIcon = style->standardIcon(QStyle::SP_ArrowDown);
 
-        // For checkbox, we'll still use the CSS styling without an explicit image
-        // The background color will indicate the checked state
-    }
+    //     // For checkbox, we'll still use the CSS styling without an explicit image
+    //     // The background color will indicate the checked state
+    // }
 
     // Connect checkbox state change to enable/disable combobox
-    connect(ui->checkBox, &QCheckBox::stateChanged, this, [this](int state) {
+    connect(ui->checkBox, &QCheckBox::checkStateChanged, this, [this](int state) {
         ui->visualizationTypeComboBox->setEnabled(state == Qt::Checked);
     });
 
@@ -381,6 +381,10 @@ void MenuWindow::onOutputReceived(const QString &output)
             jsonObject["perplexity"] = ui->perplexitySlider->value();
             jsonObject["iterations"] = m_iterationsMap[ui->iterationsSlider->value()];
 
+            // Add checkbox and combobox values
+            jsonObject["showLabels"] = ui->checkBox->isChecked();
+            jsonObject["isClass"] = true ? ui->visualizationTypeComboBox->currentText() == "Class" : false;
+
             // Add filename without .csv extension
             QFileInfo fileInfo(m_csvFile);
             QString filenameWithoutExtension = fileInfo.baseName();
@@ -460,7 +464,6 @@ void MenuWindow::selectCsvFile() {
     }
 }
 
-// TODO Modify to handle CSV with labels or id etc...
 void MenuWindow::readCsvFile(const QString &filePath) {
     QFile file(filePath);
 
@@ -526,7 +529,6 @@ QStringList MenuWindow::constructArgsString() {
     args.append("[" +  formattedRows.join(", ") + "]");
     args.append(QString::number(perplexity));
     args.append(QString::number(iterations));
-    // args.append(ui->visualizationTypeComboBox);
     return args;
 }
 

@@ -34,6 +34,9 @@ AppWindowBuilder& AppWindowBuilder::parseJsonData() {
     m_iterations = m_jsonData.value("iterations").toInt();
     m_filename = m_jsonData.value("filename").toString();
 
+    m_isLabel = m_jsonData.value("showLabels").toBool();
+    m_isClass = m_jsonData.value("isClass").toBool();
+
     // Convert to appropriate data structures
     // Feature names used by multiple plots
     m_featureNamesList.clear();
@@ -105,8 +108,12 @@ AppWindowBuilder& AppWindowBuilder::initializeTsnePlot() {
     tsneForm->tsnePlot->setMagnitudes(getMagnitudesList());
     tsneForm->tsnePlot->setAttributes(getAttributesList());
 
-    // Initialize plot with the vectors directly
-    tsneForm->tsnePlot->initPlot(m_xData, m_yData);
+    // Initialize plot with the vectors directly and visualization type
+    if (m_isLabel) {
+        tsneForm->tsnePlot->initPlot(m_xData, m_yData, m_isClass, !m_isClass);
+    } else {
+        tsneForm->tsnePlot->initPlot(m_xData, m_yData, false, false);
+    }
 
     // Process labels and indices if not already done
     if (m_indicesList.isEmpty()) {

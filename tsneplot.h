@@ -19,7 +19,7 @@ public:
     explicit TsnePlot(QWidget *parent = nullptr);
     ~TsnePlot();
 
-    void initPlot(const QVector<double> &x, const QVector<double> &y);
+    void initPlot(const QVector<double> &x, const QVector<double> &y, bool hasClassLabels, bool hasUniqueLabels);
     void setLabels(const QStringList &labels);
     void setAttributes(const QList<QList<qreal>> attributes);
     void setGradients(const QList<QList<QList<qreal>>> gradients);

@@ -88,15 +88,23 @@ void TsnePlot::setLabels(const QStringList &labels)
     m_labels = labels;
 }
 
-void TsnePlot::initPlot(const QVector<double> &x, const QVector<double> &y)
+void TsnePlot::initPlot(const QVector<double> &x, const QVector<double> &y,
+                        bool hasClassLabels, bool hasUniqueLabels)
 {
     clearPlottables();
     clearItems();
     m_scatterGraphsMap.clear();
     m_pointIndexMap.clear();
 
-    if (x.size() != y.size() || x.size() != m_labels.size()) {
-        qDebug() << "Error: Data size mismatch!";
+    // Check if we have valid data
+    if (x.size() != y.size()) {
+        qDebug() << "Error: X and Y data size mismatch!";
+        return;
+    }
+
+    // Handle the case where we have labels but size doesn't match
+    if (hasClassLabels && x.size() != m_labels.size()) {
+        qDebug() << "Error: Data and labels size mismatch!";
         return;
     }
 
@@ -104,8 +112,13 @@ void TsnePlot::initPlot(const QVector<double> &x, const QVector<double> &y)
         QColor(255, 87, 34),   // Deep Orange
         QColor(33, 150, 243),  // Blue
         QColor(76, 175, 80),   // Green
-        QColor(255, 193, 7)    // Amber
+        QColor(255, 193, 7),   // Amber
+        QColor(156, 39, 176),  // Purple
+        QColor(0, 188, 212),   // Cyan
+        QColor(233, 30, 99),   // Pink
+        QColor(139, 195, 74)   // Light Green
     };
+
     m_labelColors.clear();
     int colorIndex = 0;
 
@@ -123,46 +136,83 @@ void TsnePlot::initPlot(const QVector<double> &x, const QVector<double> &y)
     m_initialMinY -= yRange * 0.1;
     m_initialMaxY += yRange * 0.1;
 
-    // Group points by label
-    QMap<QString, QVector<double>> labelX, labelY;
-    for (int i = 0; i < x.size(); ++i) {
-        QString label = m_labels[i];
-        labelX[label] << x[i];
-        labelY[label] << y[i];
-
-        if (!m_labelColors.contains(label)) {
-            m_labelColors[label] = colorList[colorIndex % colorList.size()];
-            colorIndex++;
-        }
-
-        m_pointIndexMap[QPointF(x[i], y[i])] = i;
-    }
-
     setCurrentLayer("dataPoints");
 
-    // Create graphs for each label
-    for (auto it = labelX.begin(); it != labelX.end(); ++it) {
-        const QString &label = it.key();
-        QCPGraph *graph = addGraph();
-        graph->setName(label);
-        graph->setData(labelX[label], labelY[label]);
+    if (hasClassLabels) {
+        // Group points by label
+        QMap<QString, QVector<double>> labelX, labelY;
+        for (int i = 0; i < x.size(); ++i) {
+            QString label = m_labels[i];
+            labelX[label] << x[i];
+            labelY[label] << y[i];
+            if (!m_labelColors.contains(label)) {
+                m_labelColors[label] = colorList[colorIndex % colorList.size()];
+                colorIndex++;
+            }
+            m_pointIndexMap[QPointF(x[i], y[i])] = i;
+        }
 
+        // Create graphs for each label
+        for (auto it = labelX.begin(); it != labelX.end(); ++it) {
+            const QString &label = it.key();
+            QCPGraph *graph = addGraph();
+            graph->setName(label);
+            graph->setData(labelX[label], labelY[label]);
+            graph->setLayer("dataPoints");
+
+            // Remove the line from both plot and legend
+            graph->setLineStyle(QCPGraph::lsNone);
+
+            // Set scatter style for each graph
+            QCPScatterStyle scatterStyle(QCPScatterStyle::ssCircle, 8);
+            scatterStyle.setPen(QPen(m_labelColors[label]));
+            scatterStyle.setBrush(QBrush(m_labelColors[label]));
+            graph->setScatterStyle(scatterStyle);
+
+            // Optional: improve rendering performance
+            graph->setAntialiased(false);
+            graph->setAdaptiveSampling(false);
+            m_scatterGraphsMap[label] = graph;
+        }
+    } else {
+        // No class labels - create one graph for all points
+        QCPGraph *graph = addGraph();
+        graph->setName("Data Points");
+        graph->setData(x, y);
         graph->setLayer("dataPoints");
 
-        // This is the key line - removes the line from both plot and legend
+        // Remove the line from both plot and legend
         graph->setLineStyle(QCPGraph::lsNone);
 
-        // When setting scatter style for each graph:
+        // Set scatter style for the graph
         QCPScatterStyle scatterStyle(QCPScatterStyle::ssCircle, 8);
-        scatterStyle.setPen(QPen(m_labelColors[label]));
-        scatterStyle.setBrush(QBrush(m_labelColors[label]));
+        scatterStyle.setPen(QPen(colorList[0]));
+        scatterStyle.setBrush(QBrush(colorList[0]));
         graph->setScatterStyle(scatterStyle);
 
         // Optional: improve rendering performance
         graph->setAntialiased(false);
         graph->setAdaptiveSampling(false);
 
-        m_scatterGraphsMap[label] = graph;
+        // Map all points
+        for (int i = 0; i < x.size(); ++i) {
+            m_pointIndexMap[QPointF(x[i], y[i])] = i;
+        }
+
+        m_scatterGraphsMap["Data Points"] = graph;
+    }
+
+    // Add text labels for unique labels near each point if requested
+    if (hasUniqueLabels && !m_labels.isEmpty()) {
+        for (int i = 0; i < x.size(); ++i) {
+            QCPItemText *textLabel = new QCPItemText(this);
+            textLabel->setPositionAlignment(Qt::AlignCenter|Qt::AlignBottom);
+            textLabel->position->setCoords(x[i], y[i] - 10); // Position above the point
+            textLabel->setText(m_labels[i]);
+            textLabel->setFont(QFont("Arial", 8));
+            textLabel->setPen(QPen(Qt::black));
+            textLabel->setLayer("dataPoints");
+        }
     }
 
     // Set axis ranges
