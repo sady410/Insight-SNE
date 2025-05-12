@@ -30,7 +30,9 @@ TsnePlot::TsnePlot(QWidget *parent)
     layer("grid")->setVisible(false);
 
     // Enable antialiasing
-    setAntialiasedElements(QCP::aeAll);
+    setNotAntialiasedElements(QCP::aeAll);
+    // For performances
+    setPlottingHints(QCP::phFastPolylines);
 
     // Legend styling
     legend->setVisible(true);
@@ -200,6 +202,8 @@ void TsnePlot::initPlot(const QVector<double> &x, const QVector<double> &y,
         }
 
         m_scatterGraphsMap["Data Points"] = graph;
+
+        legend->setVisible(false);
     }
 
     // Add text labels for unique labels near each point if requested
@@ -337,11 +341,12 @@ void TsnePlot::mouseMoveEvent(QMouseEvent *event)
         int pointCount = m_lassoCurve->data()->size();
         m_lassoCurve->addData(pointCount, xCoord, yCoord);
 
-        replot();
+        m_lassoCurve->layer()->replot();
     }
 
     // Tooltip handling
     if (!m_isPanning && !m_isDrawing) {
+
         bool pointFound = false;
 
         for (auto graph : m_scatterGraphsMap) {
@@ -419,7 +424,7 @@ void TsnePlot::mouseReleaseEvent(QMouseEvent *event)
             m_lassoFadeTimer->start(50);
         }
 
-        replot();
+        m_lassoCurve->layer()->replot();
     }
 
     QCustomPlot::mouseReleaseEvent(event);
@@ -431,6 +436,9 @@ void TsnePlot::selectPointsInsideLasso()
     m_selectedPoints->clear();
 
     QPolygonF lassoPolygon;
+    // can be optimized using a more efficient spatial data structure (quad tree or grid)
+    // to pre-filter points that might be in the lasso area
+    // QRectF lassoRect = lassoPolygon.boundingRect();
     for (const QPoint &point : std::as_const(m_lassoPoints))     {
         lassoPolygon << point;
     }

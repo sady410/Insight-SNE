@@ -255,12 +255,13 @@ AppWindow* AppWindowBuilder::build() {
 
     m_appWindow->setInitialized(true);
     m_appWindow->connectSignalsAndSlots();
+
     int i = 0;
     for (const QList<int>& indices : std::as_const(m_indicesList)) {
         if (i == 0) {
             m_appWindow->getSelectionManager()->createSelection(indices, false, true, "All points");
         } else {
-            if (i-1 < m_uniqueLabels.size()) {
+            if (i-1 < m_uniqueLabels.size() & m_isClass==true) {
                 m_appWindow->getSelectionManager()->createSelection(indices, false, false, m_uniqueLabels[i-1]);
             }
         }
