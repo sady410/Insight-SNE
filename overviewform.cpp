@@ -35,6 +35,10 @@ OverviewForm::OverviewForm(QWidget *parent)
     QFrame *separator = createSeparator();
     frameLayout->addWidget(separator);
 
+    // Create horizontal layout for info label and back button
+    QHBoxLayout *infoLayout = new QHBoxLayout();
+    infoLayout->setSpacing(6);
+
     // Create info label (initially empty)
     m_infoLabel = new QLabel(mainFrame);
     m_infoLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
@@ -43,7 +47,35 @@ OverviewForm::OverviewForm(QWidget *parent)
     m_infoLabel->setWordWrap(true);
     m_infoLabel->setMaximumHeight(80); // Limit height to avoid taking too much space
     m_infoLabel->setVisible(false); // Initially hidden until there's content
-    frameLayout->addWidget(m_infoLabel);
+
+    // Create back button
+    m_backButton = new QPushButton("Menu", mainFrame);
+    m_backButton->setObjectName("backButton");
+    m_backButton->setFixedSize(80, 30); // Set a fixed size
+    m_backButton->setStyleSheet(
+        "QPushButton#backButton {"
+        "   background-color: #4CAF50;"
+        "   color: white;"
+        "   border: none;"
+        "   border-radius: 4px;"
+        "   font-weight: bold;"
+        "   padding: 5px;"
+        "}"
+        "QPushButton#backButton:hover {"
+        "   background-color: #66BB6A;"
+        "}"
+        "QPushButton#backButton:pressed {"
+        "   background-color: #45A049;"
+        "}"
+        );
+    m_backButton->setVisible(false); // Initially hidden until there's content
+
+    // Add info label and back button to horizontal layout
+    infoLayout->addWidget(m_infoLabel, 1); // Stretch factor to make info label expand
+    infoLayout->addWidget(m_backButton);
+
+    // Add info layout to frame layout
+    frameLayout->addLayout(infoLayout);
 
     // Create the plot with styled background
     overviewPlot = new OverviewPlot(nullptr);
@@ -149,7 +181,12 @@ void OverviewForm::setDatasetInfo(const QString &info)
 {
     // Set the text for the info label
     m_infoLabel->setText(info);
-    m_infoLabel->setVisible(!info.isEmpty()); // Only show if there's text
+
+    // Show/hide info label based on content
+    m_infoLabel->setVisible(!info.isEmpty());
+
+    // Show back button when info is not empty
+    m_backButton->setVisible(!info.isEmpty());
 }
 
 OverviewForm::~OverviewForm()

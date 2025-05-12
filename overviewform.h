@@ -19,6 +19,7 @@ public:
     OverviewPlot *overviewPlot;
 
     void setDatasetInfo(const QString &info);
+    QPushButton *m_backButton;
 
 private:
     Ui::OverviewForm *ui;

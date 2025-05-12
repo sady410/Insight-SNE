@@ -36,6 +36,9 @@ public:
 
     void setInitialized(bool initialized) { m_isInitialized = initialized; }
 
+public slots:
+    void returnToMenu();
+
 protected:
     // Override the resizeEvent method
     void resizeEvent(QResizeEvent *event) override;

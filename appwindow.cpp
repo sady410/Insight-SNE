@@ -1,5 +1,6 @@
 #include "appwindow.h"
 #include "arrowsmanager.h"
+#include "menuwindow.h"
 #include "ui_appwindow.h"
 #include <QStyleFactory>
 #include <QGraphicsDropShadowEffect>
@@ -410,6 +411,21 @@ void AppWindow::connectSignalsAndSlots() { // TODO REFACTOR FOR BARPLOTS
 
     // Zoom
     connect(getTsneForm()->tsnePlot, &TsnePlot::zoomChanged, getOverviewForm()->overviewPlot, &OverviewPlot::updateZoomRectangle);
+
+    // Connect button to go back to menu
+    connect(getOverviewForm()->m_backButton, &QPushButton::clicked, this, &AppWindow::returnToMenu);
+}
+
+void AppWindow::returnToMenu()
+{
+    // Create the menu window - adjust the class name as needed for your application
+    MenuWindow* menuWindow = new MenuWindow();
+
+    // Show the menu window
+    menuWindow->show();
+
+    // Close the AppWindow
+    this->close();
 }
 
 AppWindow::~AppWindow() {

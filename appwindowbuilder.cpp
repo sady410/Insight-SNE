@@ -143,15 +143,15 @@ AppWindowBuilder& AppWindowBuilder::initializeOverviewPlot() {
     if (!m_appWindow) {
         m_appWindow = new AppWindow(m_parent);
     }
+    OverviewForm* overviewForm = m_appWindow->getOverviewForm();
 
-    m_appWindow->getOverviewForm()->overviewPlot->setScatterData(m_xData, m_yData);
+    overviewForm->overviewPlot->setScatterData(m_xData, m_yData);
 
     QString infoText = QString("Dataset: %1\nPerplexity: %2\nIterations: %3")
                            .arg(m_filename)
                            .arg(m_perplexity)
                            .arg(m_iterations);
-
-    m_appWindow->getOverviewForm()->setDatasetInfo(infoText);
+    overviewForm->setDatasetInfo(infoText);
 
     return *this;
 }

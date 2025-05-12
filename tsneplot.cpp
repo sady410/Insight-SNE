@@ -714,13 +714,13 @@ void TsnePlot::startHighlightSelection(const QColor &color, const QList<int>& in
 void TsnePlot::stopHighlightSelection()
 {
     // Remove highlighted graphs
-    for (QCPGraph* graph : m_highlightGraphs) {
+    for (QCPGraph* graph : std::as_const(m_highlightGraphs)) {
         removePlottable(graph);
     }
     m_highlightGraphs.clear();
 
     // Remove shadow graphs
-    for (QCPGraph* graph : m_shadowGraphs) {
+    for (QCPGraph* graph : std::as_const(m_shadowGraphs)) {
         removePlottable(graph);
     }
     m_shadowGraphs.clear();
