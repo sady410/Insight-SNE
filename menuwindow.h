@@ -48,6 +48,7 @@ private:
     void applyStylesheet();
 
     // Helper methods
+    QChar detectSeparator(const QString &sampleLine);
     void readCsvFile(const QString &filePath);
     QStringList constructArgsString();
     QString list2String(const QList<QString> &list);

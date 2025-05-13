@@ -482,26 +482,47 @@ void MenuWindow::readCsvFile(const QString &filePath) {
 
     QTextStream in(&file);
 
-    // Read the first line for feature names
+    // Read first line to detect separator
     QString firstLine = in.readLine();
-    m_featureNames = firstLine.split(";");
-    m_featureNames.removeLast(); // TODO MAYBE DO IT SMARTER
+    QChar separator = detectSeparator(firstLine);
+
+    if (separator == QChar()) {
+        qDebug() << "Error: Could not detect CSV separator.";
+        ui->message->setText("Error: Invalid CSV format.");
+        ui->message->setStyleSheet("color: #FF5252;");
+        ui->message->setVisible(true);
+        return;
+    }
+
+    // Read feature names
+    m_featureNames = firstLine.split(separator);
+    if (m_featureNames.isEmpty()) {
+        qDebug() << "Error: No columns found in CSV file.";
+        ui->message->setText("Error: Empty CSV file.");
+        ui->message->setStyleSheet("color: #FF5252;");
+        ui->message->setVisible(true);
+        return;
+    }
+    m_featureNames.removeLast(); // Remove label column
 
     // Read the rest of the lines
     while (!in.atEnd()) {
         QString line = in.readLine();
-        QStringList fields = line.split(";");
+        if (line.trimmed().isEmpty()) continue; // Skip empty lines
+
+        QStringList fields = line.split(separator);
+        if (fields.size() < 2) continue; // Skip lines with insufficient data
 
         QList<QString> features;
         QString label;
 
         // All columns except the last one are features
         for (int i = 0; i < fields.size() - 1; ++i) {
-            features.append(fields[i]);
+            features.append(fields[i].trimmed()); // Trim whitespace
         }
 
         // The last column is the label
-        label = fields.last();
+        label = fields.last().trimmed();
 
         // Store the features and the label
         m_data.append(features);
@@ -509,6 +530,24 @@ void MenuWindow::readCsvFile(const QString &filePath) {
     }
 
     file.close();
+}
+
+QChar MenuWindow::detectSeparator(const QString &sampleLine) {
+    // Count occurrences of potential separators
+    int commaCount = sampleLine.count(',');
+    int semicolonCount = sampleLine.count(';');
+    int tabCount = sampleLine.count('\t');
+
+    // Determine which separator is most likely used
+    if (commaCount > 0 && commaCount >= semicolonCount && commaCount >= tabCount) {
+        return ',';
+    } else if (semicolonCount > 0 && semicolonCount >= commaCount && semicolonCount >= tabCount) {
+        return ';';
+    } else if (tabCount > 0 && tabCount >= commaCount && tabCount >= semicolonCount) {
+        return '\t';
+    }
+
+    return QChar(); // No separator detected
 }
 
 QStringList MenuWindow::constructArgsString() {

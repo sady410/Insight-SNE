@@ -14,7 +14,6 @@ if __name__ == "__main__":
 
     X = ast.literal_eval(input_data)
     X = np.array(X, dtype=np.float64)
-
     # Perform t-SNE
     Y, P, Q, sigma = compute_tsne(X, no_dims=2, perplexity=perplexity, max_iter=iterations)
     gradients = compute_all_gradients(X, Y, P, Q, sigma)
