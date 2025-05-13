@@ -32,7 +32,7 @@ TsnePlot::TsnePlot(QWidget *parent)
     // Enable antialiasing
     setNotAntialiasedElements(QCP::aeAll);
     // For performances
-    setPlottingHints(QCP::phFastPolylines);
+    // setPlottingHints(QCP::phFastPolylines);
 
     // Legend styling
     legend->setVisible(true);
@@ -210,11 +210,17 @@ void TsnePlot::initPlot(const QVector<double> &x, const QVector<double> &y,
     if (hasUniqueLabels && !m_labels.isEmpty()) {
         for (int i = 0; i < x.size(); ++i) {
             QCPItemText *textLabel = new QCPItemText(this);
-            textLabel->setPositionAlignment(Qt::AlignCenter|Qt::AlignBottom);
-            textLabel->position->setCoords(x[i], y[i] - 10); // Position above the point
+            textLabel->setPositionAlignment(Qt::AlignCenter | Qt::AlignBottom);
+            textLabel->position->setCoords(x[i], y[i] - 0.2); // Position above the point
             textLabel->setText(m_labels[i]);
             textLabel->setFont(QFont("Arial", 8));
-            textLabel->setPen(QPen(Qt::black));
+
+            // Set text color to white
+            textLabel->setColor(Qt::white);
+
+            // Remove the border
+            textLabel->setPen(Qt::NoPen);
+
             textLabel->setLayer("dataPoints");
         }
     }

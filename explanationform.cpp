@@ -247,14 +247,6 @@ QFrame* ExplanationForm::createSeparator()
     return separator;
 }
 
-void ExplanationForm::showMagnitudesPlot() {
-    // This is now handled by the stacked widget
-}
-
-void ExplanationForm::showGradientsPlot() {
-    // This is now handled by the stacked widget
-}
-
 ExplanationForm::~ExplanationForm() {
     delete ui;
 }

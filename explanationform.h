@@ -21,14 +21,9 @@ public:
     BarPlot *gradientsPlotTop;
     BarPlot *gradientsPlotBottom;
 
-public slots:
-    void showMagnitudesPlot();
-    void showGradientsPlot();
-
 private:
     Ui::ExplanationForm *ui;
 
-    // New styling methods
     void applyStyles();
     QFrame* createStyledFrame();
     QFrame* createSeparator();
