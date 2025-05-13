@@ -243,7 +243,6 @@ AppWindowBuilder& AppWindowBuilder::initializeMenuForm() {
     // Add filters to the menu
     menuForm->addFilterToMenu(0, "Magnitudes", m_featureNamesList);
     menuForm->addFilterToMenu(1, "Attributes", m_featureNamesList);
-    menuForm->addFilterToMenu(2, "Scope", {"TODO"});
 
     return *this;
 }

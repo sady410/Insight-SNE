@@ -18,6 +18,8 @@ AppWindow::AppWindow(QWidget *parent)
     applyStylesheet();
     setupUi();
 
+    ui->comparisonForm->hide(); // TODO
+
     // Center the window on the screen
     QScreen *screen = QGuiApplication::primaryScreen();
     QRect screenGeometry = screen->geometry();
@@ -340,6 +342,11 @@ void AppWindow::connectSignalsAndSlots() { // TODO REFACTOR FOR BARPLOTS
     connect(m_selectionManager, &SelectionManager::selectionCreated, getFeaturesForm()->featuresPlot, &BarPlot::addValue);
     connect(m_selectionManager, &SelectionManager::selectionCreated, getFeaturesForm()->distributionPlot, &DistributionPlot::addSelection);
     connect(m_selectionManager, &SelectionManager::selectionCreated, getFeaturesForm(), &FeaturesForm::addSelection);
+
+    // Click on point in tsne plot
+    connect(getTsneForm()->tsnePlot, &TsnePlot::pointClicked, this, [](int id) {
+        qDebug() << id;
+    });
 
     // Selection removal
     connect(getMenuForm(), &MenuForm::requestRemoveSelection, m_selectionManager, &SelectionManager::removeSelection);

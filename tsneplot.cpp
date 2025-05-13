@@ -237,6 +237,11 @@ QPointF TsnePlot::coordsToPixels(double x, double y) const
     return QPointF(xAxis->coordToPixel(x), yAxis->coordToPixel(y));
 }
 
+void TsnePlot::setSelectionMode(SelectionMode mode)
+{
+    m_selectionMode = mode;
+}
+
 void TsnePlot::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::RightButton) {
@@ -247,32 +252,36 @@ void TsnePlot::mousePressEvent(QMouseEvent *event)
         event->accept();
         return;
     }
-    else if (event->button() == Qt::LeftButton && m_selectionCount < MAX_SELECTIONS) {
-        clearLasso();
+    else if (event->button() == Qt::LeftButton) {
+        if (selectionMode() == SelectionMode::LassoMode && m_selectionCount < MAX_SELECTIONS) {
+            clearLasso();
 
-        m_isDrawing = true;
-        m_lassoPoints.clear();
-        m_lassoPoints << event->pos();
+            m_isDrawing = true;
+            m_lassoPoints.clear();
+            m_lassoPoints << event->pos();
 
-        // Convert screen position to data coordinates
-        double xCoord = xAxis->pixelToCoord(event->pos().x());
-        double yCoord = yAxis->pixelToCoord(event->pos().y());
+            // Convert screen position to data coordinates
+            double xCoord = xAxis->pixelToCoord(event->pos().x());
+            double yCoord = yAxis->pixelToCoord(event->pos().y());
 
-        // Create a new lasso curve
-        setCurrentLayer("lassoSelection");
-        m_lassoCurve = new QCPCurve(xAxis, yAxis);
-        m_lassoCurve->setLayer("lassoSelection");
+            // Create a new lasso curve
+            setCurrentLayer("lassoSelection");
+            m_lassoCurve = new QCPCurve(xAxis, yAxis);
+            m_lassoCurve->setLayer("lassoSelection");
 
-        m_lassoCurve->removeFromLegend();
+            m_lassoCurve->removeFromLegend();
 
-        // Set the pen for drawing with accent color
-        QPen lassoPen(QColor(76, 175, 80), 2, Qt::SolidLine);  // Green accent
-        m_lassoCurve->setPen(lassoPen);
+            // Set the pen for drawing with accent color
+            QPen lassoPen(QColor(76, 175, 80), 2, Qt::SolidLine);  // Green accent
+            m_lassoCurve->setPen(lassoPen);
 
-        // Initialize with the first point (t=0, x, y)
-        m_lassoCurve->addData(0, xCoord, yCoord);
+            // Initialize with the first point (t=0, x, y)
+            m_lassoCurve->addData(0, xCoord, yCoord);
 
-        replot();
+            replot();
+        } else if (selectionMode() == SelectionMode::SinglePointMode) {
+            emit pointClicked(m_pointHoveredId);
+        }
     }
 
     QCustomPlot::mousePressEvent(event);
@@ -362,6 +371,7 @@ void TsnePlot::mouseMoveEvent(QMouseEvent *event)
 
                 if (QLineF(event->pos(), screenPos).length() < 15) {
                     auto it = m_pointIndexMap.find(point);
+                    m_pointHoveredId = it->second;
                     if (it != m_pointIndexMap.end()) {
                         QString tooltipText = QString("<span style='color:white;'>"  // Force white text
                                                       "Label: %1<br>"
@@ -380,11 +390,15 @@ void TsnePlot::mouseMoveEvent(QMouseEvent *event)
                     }
                 }
             }
-            if (pointFound) break;
+            if (pointFound) {
+                setSelectionMode(SelectionMode::SinglePointMode);
+                break;
+            }
         }
 
         if (!pointFound) {
             QToolTip::hideText();
+            setSelectionMode(SelectionMode::LassoMode);
         }
     }
 

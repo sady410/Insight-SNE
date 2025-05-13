@@ -105,7 +105,8 @@ public:
 
 MenuForm::MenuForm(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::MenuForm)
+    ui(new Ui::MenuForm),
+    m_scopeEnabled(false) // Initialize scope state
 {
     ui->setupUi(this);
 
@@ -140,7 +141,140 @@ MenuForm::MenuForm(QWidget *parent) :
     // Add top frame to layout
     mainLayout->addWidget(topFrame, 4);
 
-    // ===== Bottom Frame =====
+    // ===== Middle Frame (Scope) =====
+    m_scopeFrame = createStyledFrame();
+    m_scopeLayout = new QVBoxLayout(m_scopeFrame);
+    m_scopeLayout->setContentsMargins(8, 8, 8, 8);
+    m_scopeLayout->setSpacing(6);
+
+    // Title and separator for scope frame
+    QLabel *scopeTitleLabel = new QLabel("Scope", m_scopeFrame);
+    scopeTitleLabel->setAlignment(Qt::AlignCenter);
+    scopeTitleLabel->setObjectName("titleLabel");
+    scopeTitleLabel->setStyleSheet("font-weight: bold; color: #4CAF50; font-size: 16px;");
+    m_scopeLayout->addWidget(scopeTitleLabel);
+
+    QFrame *scopeSeparator = createSeparator();
+    m_scopeLayout->addWidget(scopeSeparator);
+
+    // Create container for scope controls
+    QWidget *scopeContainer = new QWidget(m_scopeFrame);
+    QHBoxLayout *scopeControlLayout = new QHBoxLayout(scopeContainer);
+    scopeControlLayout->setSpacing(10);
+    scopeControlLayout->setContentsMargins(5, 5, 5, 5);
+
+    // Create status label
+    m_scopeLabel = new QLabel("No point selected", scopeContainer);
+    m_scopeLabel->setStyleSheet(
+        "QLabel {"
+        "   color: #CCCCCC;"
+        "   font-size: 13px;"
+        "   padding: 0px 5px;"
+        "   border-radius: 3px;"
+        "   background-color: #333333;"
+        "   border: 1px solid #444444;"
+        "}"
+        );
+    m_scopeLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    m_scopeLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+
+    // Create toggle button with improved styling
+    m_scopeToggleButton = new QPushButton("Disabled", scopeContainer);
+    m_scopeToggleButton->setCheckable(true);
+    m_scopeToggleButton->setChecked(false);
+    m_scopeToggleButton->setStyleSheet(
+        "QPushButton {"
+        "   border: 1px solid #555555;"
+        "   border-radius: 4px;"
+        "   padding: 5px 10px;"
+        "   background-color: #424242;"
+        "   color: #9E9E9E;"
+        "   font-weight: bold;"
+        "   min-width: 80px;"
+        "}"
+        "QPushButton:hover {"
+        "   border: 1px solid #4CAF50;"
+        "   background-color: #484848;"
+        "}"
+        "QPushButton:checked {"
+        "   background-color: #4CAF50;"
+        "   color: white;"
+        "   border: 1px solid #388E3C;"
+        "   text-align: center;"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: #388E3C;"
+        "}"
+        );
+
+    // Create combobox with styling matching the other comboboxes
+    m_scopeComboBox = new QComboBox(scopeContainer);
+    m_scopeComboBox->addItems({"Global", "Selection", "Region", "Custom"});
+    m_scopeComboBox->setEnabled(false); // Initially disabled
+    m_scopeComboBox->setStyleSheet(
+        "QComboBox {"
+        "   border: 1px solid #555555;"
+        "   border-radius: 5px;"
+        "   padding: 6px 20px 6px 12px;"
+        "   min-width: 8em;"
+        "   background-color: #424242;"
+        "   min-height: 28px;"
+        "   color: white;"
+        "   font-size: 13px;"
+        "}"
+        "QComboBox:hover {"
+        "   border: 1px solid #4CAF50;"
+        "   background-color: #484848;"
+        "}"
+        "QComboBox:disabled {"
+        "   background-color: #323232;"
+        "   color: #9E9E9E;"
+        "}"
+        "QComboBox::drop-down {"
+        "   subcontrol-origin: padding;"
+        "   subcontrol-position: top right;"
+        "   width: 22px;"
+        "   border-left-width: 1px;"
+        "   border-left-color: #555555;"
+        "   border-left-style: solid;"
+        "   border-top-right-radius: 5px;"
+        "   border-bottom-right-radius: 5px;"
+        "}"
+        "QComboBox::down-arrow {"
+        "   image: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"white\" stroke-width=\"2\"><path d=\"M6 9l6 6 6-6\"/></svg>');"
+        "   width: 12px;"
+        "   height: 12px;"
+        "}"
+        "QComboBox QAbstractItemView {"
+        "   background-color: #424242;"
+        "   border: 1px solid #555555;"
+        "   border-radius: 4px;"
+        "   selection-background-color: #4CAF50;"
+        "   selection-color: white;"
+        "   padding: 2px;"
+        "}"
+        );
+
+    // Add widgets to layout
+    scopeControlLayout->addWidget(m_scopeLabel, 2); // Give status label more space
+    scopeControlLayout->addWidget(m_scopeToggleButton);
+    scopeControlLayout->addWidget(m_scopeComboBox, 1); // Give combobox some space
+
+    // Add container to scope layout
+    m_scopeLayout->addWidget(scopeContainer);
+
+    // Add some stretch space to fill the rest of the frame
+    m_scopeLayout->addStretch(1);
+
+    // Connect signals
+    connect(m_scopeToggleButton, &QPushButton::toggled, this, &MenuForm::onScopeToggled);
+    connect(m_scopeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &MenuForm::onScopeSelectionChanged);
+
+    // Add scope frame to main layout with a proportional size
+    mainLayout->addWidget(m_scopeFrame, 1);
+
+    // ===== Bottom Frame (Filters) =====
     QFrame *bottomFrame = createStyledFrame();
     m_bottomLayout = new QVBoxLayout(bottomFrame);
     m_bottomLayout->setContentsMargins(8, 8, 8, 8);
@@ -169,7 +303,6 @@ MenuForm::MenuForm(QWidget *parent) :
 
     m_bottomLayout->addWidget(filterContainer);
 
-
     // Button group for mutual exclusivity
     m_filterGroup = new QButtonGroup(this);
     m_filterGroup->setExclusive(false); // Allow toggling
@@ -183,6 +316,29 @@ MenuForm::MenuForm(QWidget *parent) :
 
     // Add bottom frame to layout
     mainLayout->addWidget(bottomFrame, 2);
+}
+
+void MenuForm::onScopeToggled(bool checked)
+{
+    m_scopeEnabled = checked;
+    m_scopeToggleButton->setText(checked ? "Enabled" : "Disabled");
+    m_scopeComboBox->setEnabled(checked);
+
+    // Emit a signal that the scope has changed
+    emit scopeStateChanged(checked, m_scopeComboBox->currentText());
+}
+
+void MenuForm::onScopeSelectionChanged(int index)
+{
+    if (m_scopeEnabled) {
+        // Emit a signal with the new scope selection
+        emit scopeScopeChanged(m_scopeComboBox->currentText());
+    }
+}
+
+void MenuForm::setScopeInstanceId(int id)
+{
+    m_scopeLabel->setText(QString::number(id));
 }
 
 void MenuForm::applyStyles()

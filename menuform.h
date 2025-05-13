@@ -44,15 +44,21 @@ signals:
     void addContour(const QString &comboValue, const QString &filterName);
     void clearContour();
 
+    void scopeStateChanged(bool enabled, const QString &scope);
+    void scopeScopeChanged(const QString &scope);
+
 public slots:
     void addSelectionToMenu(int id, const QColor &color,
                             const QList<int> &indices, const bool enableDelete,
                             const bool state, const QString name);
     void addFilterToMenu(int filterIndex, const QString &filterLabel, const QStringList &comboItems);
     void removeSelectionWidget(int id);
+    void setScopeInstanceId(int pointId);
 
 private slots:
     void onListViewContextMenu(const QPoint &pos);
+    void onScopeSelectionChanged(int index);
+    void onScopeToggled(bool checked);
 
 private:
     Ui::MenuForm *ui;
@@ -72,6 +78,13 @@ private:
 
     QListView *m_listView;
     QStandardItemModel *m_model;
+
+    QFrame *m_scopeFrame;
+    QVBoxLayout *m_scopeLayout;
+    QComboBox *m_scopeComboBox;
+    QPushButton *m_scopeToggleButton;
+    QLabel *m_scopeLabel;
+    bool m_scopeEnabled;
 
     void setCheckboxesEnabledForSelection(int selectionId, bool enabled);
     void uncheckAllFeaturesForSelection(int selectionId);
