@@ -7,7 +7,7 @@ TsnePlot::TsnePlot(QWidget *parent)
 {
     setInteractions(QCP::iRangeZoom);
     setMouseTracking(true);
-
+    setCursor(Qt::CrossCursor);
     // Dark theme styling
     setBackground(QColor(45, 45, 45));  // Dark background
 
@@ -392,6 +392,7 @@ void TsnePlot::mouseMoveEvent(QMouseEvent *event)
             }
             if (pointFound) {
                 setSelectionMode(SelectionMode::SinglePointMode);
+                setCursor(Qt::PointingHandCursor);
                 break;
             }
         }
@@ -399,6 +400,7 @@ void TsnePlot::mouseMoveEvent(QMouseEvent *event)
         if (!pointFound) {
             QToolTip::hideText();
             setSelectionMode(SelectionMode::LassoMode);
+            setCursor(Qt::CrossCursor);
         }
     }
 

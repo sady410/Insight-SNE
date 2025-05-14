@@ -57,7 +57,7 @@ public slots:
 
 private slots:
     void onListViewContextMenu(const QPoint &pos);
-    void onScopeSelectionChanged(int index);
+    void onScopeSelectionChanged();
     void onScopeToggled(bool checked);
 
 private:

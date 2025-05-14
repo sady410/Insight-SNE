@@ -164,7 +164,7 @@ MenuForm::MenuForm(QWidget *parent) :
     scopeControlLayout->setContentsMargins(5, 5, 5, 5);
 
     // Create status label
-    m_scopeLabel = new QLabel("No point selected", scopeContainer);
+    m_scopeLabel = new QLabel("/", scopeContainer);
     m_scopeLabel->setStyleSheet(
         "QLabel {"
         "   color: #CCCCCC;"
@@ -324,14 +324,12 @@ void MenuForm::onScopeToggled(bool checked)
     m_scopeToggleButton->setText(checked ? "Enabled" : "Disabled");
     m_scopeComboBox->setEnabled(checked);
 
-    // Emit a signal that the scope has changed
     emit scopeStateChanged(checked, m_scopeComboBox->currentText());
 }
 
-void MenuForm::onScopeSelectionChanged(int index)
+void MenuForm::onScopeSelectionChanged()
 {
     if (m_scopeEnabled) {
-        // Emit a signal with the new scope selection
         emit scopeScopeChanged(m_scopeComboBox->currentText());
     }
 }

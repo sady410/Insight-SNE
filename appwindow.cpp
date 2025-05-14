@@ -344,9 +344,7 @@ void AppWindow::connectSignalsAndSlots() { // TODO REFACTOR FOR BARPLOTS
     connect(m_selectionManager, &SelectionManager::selectionCreated, getFeaturesForm(), &FeaturesForm::addSelection);
 
     // Click on point in tsne plot
-    connect(getTsneForm()->tsnePlot, &TsnePlot::pointClicked, this, [](int id) {
-        qDebug() << id;
-    });
+    connect(getTsneForm()->tsnePlot, &TsnePlot::pointClicked,getMenuForm(), &MenuForm::setScopeInstanceId);
 
     // Selection removal
     connect(getMenuForm(), &MenuForm::requestRemoveSelection, m_selectionManager, &SelectionManager::removeSelection);
