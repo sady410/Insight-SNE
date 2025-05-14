@@ -414,6 +414,10 @@ void AppWindow::connectSignalsAndSlots() { // TODO REFACTOR FOR BARPLOTS
     connect(getMenuForm(), &MenuForm::addContour, getTsneForm()->tsnePlot, &TsnePlot::drawContourPlot);
     connect(getMenuForm(), &MenuForm::clearContour, getTsneForm()->tsnePlot, &TsnePlot::clearContourPlot);
 
+    // Scope enable/disable
+    connect(getMenuForm(), &MenuForm::scopeEnabled, getTsneForm()->tsnePlot, &TsnePlot::drawScopeContourPlot);
+    connect(getMenuForm(), &MenuForm::scopeDisabled, getTsneForm()->tsnePlot, &TsnePlot::clearContourPlot);
+
     // Zoom
     connect(getTsneForm()->tsnePlot, &TsnePlot::zoomChanged, getOverviewForm()->overviewPlot, &OverviewPlot::updateZoomRectangle);
 

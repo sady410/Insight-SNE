@@ -164,7 +164,7 @@ MenuForm::MenuForm(QWidget *parent) :
     scopeControlLayout->setContentsMargins(5, 5, 5, 5);
 
     // Create status label
-    m_scopeLabel = new QLabel("/", scopeContainer);
+    m_scopeLabel = new QLabel("0", scopeContainer);
     m_scopeLabel->setStyleSheet(
         "QLabel {"
         "   color: #CCCCCC;"
@@ -209,7 +209,6 @@ MenuForm::MenuForm(QWidget *parent) :
 
     // Create combobox with styling matching the other comboboxes
     m_scopeComboBox = new QComboBox(scopeContainer);
-    m_scopeComboBox->addItems({"Global", "Selection", "Region", "Custom"});
     m_scopeComboBox->setEnabled(false); // Initially disabled
     m_scopeComboBox->setStyleSheet(
         "QComboBox {"
@@ -324,19 +323,26 @@ void MenuForm::onScopeToggled(bool checked)
     m_scopeToggleButton->setText(checked ? "Enabled" : "Disabled");
     m_scopeComboBox->setEnabled(checked);
 
-    emit scopeStateChanged(checked, m_scopeComboBox->currentText());
+    if (m_scopeEnabled) {
+        emit scopeEnabled(m_scopeLabel->text());
+    } else {
+        emit scopeDisabled();
+    }
 }
 
 void MenuForm::onScopeSelectionChanged()
 {
     if (m_scopeEnabled) {
-        emit scopeScopeChanged(m_scopeComboBox->currentText());
+        emit scopeEnabled(m_scopeLabel->text());
     }
 }
 
 void MenuForm::setScopeInstanceId(int id)
 {
     m_scopeLabel->setText(QString::number(id));
+    if (m_scopeEnabled) {
+        emit scopeEnabled(m_scopeLabel->text());
+    }
 }
 
 void MenuForm::applyStyles()

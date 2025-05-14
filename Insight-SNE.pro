@@ -38,6 +38,7 @@ SOURCES += \
     overviewform.cpp \
     overviewplot.cpp \
     pythonexecutor.cpp \
+    scopecomputation.cpp \
     selectionmanager.cpp \
     selectionwidget.cpp \
     thememanager.cpp \
@@ -61,6 +62,7 @@ HEADERS += \
     overviewform.h \
     overviewplot.h \
     pythonexecutor.h \
+    scopecomputation.h \
     selectionmanager.h \
     selectionwidget.h \
     thememanager.h \

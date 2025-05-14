@@ -54,8 +54,10 @@ public slots:
     void changeArrowsColor(int id, const QColor &newColor);
 
     // Contour
-    void drawContourPlot(const QString &featureName, const QString &attributesOrMagnitudes);
+    void drawContourPlot(const QString &featureName, const QString &dataSource);
     void clearContourPlot();
+    // Scope
+    void drawScopeContourPlot(const QString &selectedPointId);
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -79,6 +81,8 @@ private:
     SelectionMode m_selectionMode;
     int m_pointHoveredId;
 
+    // For scope
+    int m_selectedInstanceForScope = 0;
 
     void updateOverviewRectangle();
     void selectPointsInsideLasso();
@@ -99,11 +103,10 @@ private:
     // For contour plotting
     QCPColorMap *m_colorMap;
     QCPColorScale *m_colorScale;
-    QCPColorMapData* createContourData(const QString &featureName);
-    QCPColorMapData* createContourDataForView(const QString &featureName, const QCPRange &xRange, const QCPRange &yRange);
-    void updateContourPlot();
+    QCPColorMapData* createContourData(const QString &featureName, const QString &dataSource);
+
     QString m_currentContourFeature;
-    QString m_currentContourType;
+    QString m_currentDataSource;
     QList<QList<qreal>> m_zValues;
     QList<QList<qreal>> m_attributes;
     QList<QList<qreal>> m_magnitudes;

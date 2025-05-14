@@ -244,6 +244,8 @@ AppWindowBuilder& AppWindowBuilder::initializeMenuForm() {
     menuForm->addFilterToMenu(0, "Magnitudes", m_featureNamesList);
     menuForm->addFilterToMenu(1, "Attributes", m_featureNamesList);
 
+    menuForm->addScopeToCombobox({"Global"});
+
     return *this;
 }
 

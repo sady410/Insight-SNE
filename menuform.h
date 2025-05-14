@@ -24,6 +24,7 @@ public:
     ~MenuForm();
 
     void setFeatureNames(QStringList featureNames) { m_featureNames = featureNames; }
+    void addScopeToCombobox(QStringList name) { m_scopeComboBox->addItems(name); }
     void connectModelSignals();
 
 signals:
@@ -44,8 +45,8 @@ signals:
     void addContour(const QString &comboValue, const QString &filterName);
     void clearContour();
 
-    void scopeStateChanged(bool enabled, const QString &scope);
-    void scopeScopeChanged(const QString &scope);
+    void scopeEnabled(const QString &id); // scope is features or global
+    void scopeDisabled();
 
 public slots:
     void addSelectionToMenu(int id, const QColor &color,

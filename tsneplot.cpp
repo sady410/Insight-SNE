@@ -1,4 +1,5 @@
 #include "tsneplot.h"
+#include "scopecomputation.h"
 
 TsnePlot::TsnePlot(QWidget *parent)
     : QCustomPlot(parent), m_isPanning(false), m_panStartPos(),
@@ -364,7 +365,7 @@ void TsnePlot::mouseMoveEvent(QMouseEvent *event)
 
         bool pointFound = false;
 
-        for (auto graph : m_scatterGraphsMap) {
+        for (auto graph : std::as_const(m_scatterGraphsMap)) {
             for (int i = 0; i < graph->dataCount(); ++i) {
                 QPointF point(graph->dataMainKey(i), graph->dataMainValue(i));
                 QPointF screenPos = coordsToPixels(point.x(), point.y());
@@ -383,7 +384,7 @@ void TsnePlot::mouseMoveEvent(QMouseEvent *event)
                                                   .arg(point.y(), 0, 'f', 2)
                                                   .arg(it->second);
 
-                        QToolTip::showText(event->globalPos(), tooltipText, this,
+                        QToolTip::showText(event->globalPosition().toPoint(), tooltipText, this,
                                            QRect(), 3000);  // Show for 3 seconds
                         pointFound = true;
                         break;
@@ -754,7 +755,7 @@ void TsnePlot::startHighlightSelection(const QColor &color, const QList<int>& in
 
     // Create highlighted points graph for each category
     for (auto it = m_scatterGraphsMap.begin(); it != m_scatterGraphsMap.end(); ++it) {
-        QString label = it.key();
+        // QString label = it.key();
         QCPGraph *originalGraph = it.value();
 
         // Collect highlighted points for this category
@@ -815,23 +816,17 @@ void TsnePlot::stopHighlightSelection()
     replot();
 }
 
-void TsnePlot::drawContourPlot(const QString &featureName, const QString &attributesOrMagnitudes) {
+void TsnePlot::drawScopeContourPlot(const QString &selectedPointId) {
+    m_selectedInstanceForScope = selectedPointId.toInt();
+    drawContourPlot("", "Scope");
+}
+
+void TsnePlot::drawContourPlot(const QString &featureName, const QString &dataSource) {
     // Make sure we completely clean up first
     clearContourPlot();
 
     // Add a small delay to ensure UI is updated properly
     QApplication::processEvents();
-
-    int featureIndex = m_featureNames.indexOf(featureName);
-    if (featureIndex == -1) {
-        qDebug() << "Feature not found:" << featureName;
-        return;
-    }
-
-    // Set z-values based on mode
-    m_zValues = (attributesOrMagnitudes == "Attributes") ? m_attributes : m_magnitudes;
-    m_currentContourType = attributesOrMagnitudes;
-    m_currentContourFeature = featureName;
 
     // Create color map
     setCurrentLayer("backgroundItems");
@@ -839,7 +834,7 @@ void TsnePlot::drawContourPlot(const QString &featureName, const QString &attrib
     m_colorMap->setInterpolate(true);
 
     // Assign data
-    QCPColorMapData *contourData = createContourData(featureName);
+    QCPColorMapData *contourData = createContourData(featureName, dataSource);
     if (!contourData) {
         qDebug() << "Failed to create contour data";
         delete m_colorMap;
@@ -894,12 +889,11 @@ void TsnePlot::drawContourPlot(const QString &featureName, const QString &attrib
     replot(QCustomPlot::rpQueuedReplot);
 }
 
-QCPColorMapData* TsnePlot::createContourData(const QString &featureName) {
+QCPColorMapData* TsnePlot::createContourData(const QString &featureName, const QString &dataSource) {
     int featureIndex = m_featureNames.indexOf(featureName);
-    if (featureIndex == -1 || m_zValues.isEmpty()) {
-        qDebug() << "Feature not found or no z-values available:" << featureName;
-        return nullptr;
-    }
+
+    // Set z-values based on mode
+    m_zValues = (dataSource == "Attributes") ? m_attributes : m_magnitudes;
 
     // Determine grid size (adjust as needed)
     int gridSize = 100;
@@ -918,17 +912,37 @@ QCPColorMapData* TsnePlot::createContourData(const QString &featureName) {
     double minZ = std::numeric_limits<double>::max();
     double maxZ = std::numeric_limits<double>::lowest();
 
-    for (auto it = m_pointIndexMap.begin(); it != m_pointIndexMap.end(); ++it) {
-        int pointIndex = it->second;
-        if (pointIndex >= 0 && pointIndex < m_zValues.size() &&
-            featureIndex < m_zValues[pointIndex].size()) {
-            dataPoints << it->first;
-            double zVal = m_zValues[pointIndex][featureIndex];
-            zValues << zVal;
+    if (dataSource == "Scope") {
+        zValues = computeInstanceAngles(m_selectedInstanceForScope, m_gradients);
+        qDebug() << zValues;
+        // Track min/max datapoints
+        if (!zValues.isEmpty()) {
+            minZ = zValues[0];
+            maxZ = zValues[0];
 
-            // Track min/max z values
-            minZ = qMin(minZ, zVal);
-            maxZ = qMax(maxZ, zVal);
+            // Use the same points from the map as in the other branch
+            int zIndex = 0;
+            for (auto it = m_pointIndexMap.begin(); it != m_pointIndexMap.end(); ++it) {
+                if (zIndex < zValues.size()) {
+                    dataPoints << it->first;  // Use the QPointF from the map
+                    double zVal = zValues[zIndex++];
+                    minZ = qMin(minZ, zVal);
+                    maxZ = qMax(maxZ, zVal);
+                }
+            }
+        }
+    } else {
+        for (auto it = m_pointIndexMap.begin(); it != m_pointIndexMap.end(); ++it) {
+            int pointIndex = it->second;
+            if (pointIndex >= 0 && pointIndex < m_zValues.size() &&
+                featureIndex < m_zValues[pointIndex].size()) {
+                dataPoints << it->first;
+                double zVal = m_zValues[pointIndex][featureIndex];
+                zValues << zVal;
+                // Track min/max z values
+                minZ = qMin(minZ, zVal);
+                maxZ = qMax(maxZ, zVal);
+            }
         }
     }
 
@@ -1018,137 +1032,9 @@ void TsnePlot::clearContourPlot()
         m_colorScale = nullptr;
     }
 
-    // Reset the current contour feature
-    m_currentContourFeature.clear();
-    m_currentContourType.clear();
-
     // Make sure to reset any layout settings that might have been changed
     plotLayout()->simplify();
 
     // Force a complete replot
     replot(QCustomPlot::rpQueuedReplot);
-}
-
-void TsnePlot::updateContourPlot()
-{
-    // If we have an active contour plot, redraw it with current view
-    if (!m_currentContourFeature.isEmpty() && m_colorMap != nullptr) {
-        // Instead of completely redrawing, just update the data for the current view
-        int featureIndex = m_featureNames.indexOf(m_currentContourFeature);
-        if (featureIndex == -1) return;
-
-        // Get current axis ranges
-        QCPRange xRange = xAxis->range();
-        QCPRange yRange = yAxis->range();
-
-        // Create new contour data with current view bounds
-        QCPColorMapData *newData = createContourDataForView(m_currentContourFeature, xRange, yRange);
-        if (!newData) return;
-
-        // Update the color map with new data
-        m_colorMap->setData(newData, true);
-
-        // No need to change the data range, gradient or color scale
-        // Just replot to show the updated view
-        replot();
-    }
-}
-
-QCPColorMapData* TsnePlot::createContourDataForView(const QString &featureName, const QCPRange &xRange, const QCPRange &yRange)
-{
-    int featureIndex = m_featureNames.indexOf(featureName);
-    if (featureIndex == -1 || m_zValues.isEmpty()) {
-        return nullptr;
-    }
-
-    // Use higher resolution for zoomed views
-    int gridSize = 100;
-
-    // Create data structure with current view ranges
-    QCPColorMapData *data = new QCPColorMapData(
-        gridSize, gridSize,
-        xRange, yRange
-        );
-
-    // Collect data points and z-values for interpolation
-    QVector<QPointF> dataPoints;
-    QVector<double> zValues;
-
-    for (auto it = m_pointIndexMap.begin(); it != m_pointIndexMap.end(); ++it) {
-        int pointIndex = it->second;
-
-        // Only include points that are within or near the current view
-        // to improve performance and quality
-        if (pointIndex >= 0 && pointIndex < m_zValues.size() &&
-            featureIndex < m_zValues[pointIndex].size()) {
-
-            // Add padding to include points just outside view for better interpolation
-            const double padding = 0.2; // 20% padding
-            double padXRange = xRange.size() * padding;
-            double padYRange = yRange.size() * padding;
-
-            if (it->first.x() >= xRange.lower - padXRange &&
-                it->first.x() <= xRange.upper + padXRange &&
-                it->first.y() >= yRange.lower - padYRange &&
-                it->first.y() <= yRange.upper + padYRange) {
-
-                dataPoints << it->first;
-                zValues << m_zValues[pointIndex][featureIndex];
-            }
-        }
-    }
-
-    if (zValues.isEmpty()) {
-        qDebug() << "No valid data points for contour plot in current view";
-        delete data;
-        return nullptr;
-    }
-
-    // Fill grid with interpolated values
-    for (int xIndex = 0; xIndex < gridSize; ++xIndex) {
-        for (int yIndex = 0; yIndex < gridSize; ++yIndex) {
-            double x = data->keyRange().lower + xIndex * data->keyRange().size() / (gridSize - 1);
-            double y = data->valueRange().lower + yIndex * data->valueRange().size() / (gridSize - 1);
-
-            double totalWeight = 0.0;
-            double weightedSum = 0.0;
-            double minDist = std::numeric_limits<double>::max();
-            double nearestValue = 0.0;
-
-            for (int i = 0; i < dataPoints.size(); ++i) {
-                double distance = QLineF(x, y, dataPoints[i].x(), dataPoints[i].y()).length();
-
-                // Keep track of nearest point as fallback
-                if (distance < minDist) {
-                    minDist = distance;
-                    nearestValue = zValues[i];
-                }
-
-                if (distance < 1e-6) {
-                    // Direct hit on a point
-                    weightedSum = zValues[i];
-                    totalWeight = 1.0;
-                    break;
-                }
-
-                // Use inverse distance weighting
-                double weight = 1.0 / (distance * distance);
-                weightedSum += weight * zValues[i];
-                totalWeight += weight;
-            }
-
-            // Assign interpolated value
-            double value;
-            if (totalWeight > 0) {
-                value = weightedSum / totalWeight;
-            } else {
-                // Fallback to nearest point if weights are zero
-                value = nearestValue;
-            }
-
-            data->setCell(xIndex, yIndex, value);
-        }
-    }
-
-    return data;
 }
