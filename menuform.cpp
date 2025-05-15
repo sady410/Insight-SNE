@@ -32,9 +32,13 @@ public:
             // Draw background matching the style
             painter->fillRect(option.rect, QColor("#363636"));
 
-            // Draw a subtle separator at the bottom
-            painter->setPen(QPen(QColor("#444444"), 1));
-            painter->drawLine(option.rect.bottomLeft(), option.rect.bottomRight());
+            // // Draw a subtle separator at the bottom
+            // painter->setPen(QPen(QColor("#444444"), 1));
+            // QPoint left = option.rect.bottomLeft();
+            // QPoint right = option.rect.bottomRight();
+            // left.ry() += 0.9;   // Move line 1px down
+            // right.ry() += 0.9;
+            // painter->drawLine(left, right);
 
             painter->restore();
             return;
@@ -678,24 +682,24 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int> 
     selectionItem->setSizeHint(QSize(-1, 40)); // Match widget height
     m_model->appendRow(selectionItem);
 
-    // Create the selection widget
     // Create the selection widget with proper size constraints
     SelectionWidget *selectionWidget = new SelectionWidget(id, this);
-    selectionWidget->setMinimumHeight(40); // Consistent height
+    selectionWidget->setMinimumHeight(40);
     selectionWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    QHBoxLayout *selectionLayout = new QHBoxLayout(selectionWidget);
-    selectionLayout->setContentsMargins(5, 8, 5, 8); // Increased margins for better spacing
-    selectionLayout->setSpacing(10); // Increased spacing between elements
 
-    // Improved toggle button
+    QHBoxLayout *selectionLayout = new QHBoxLayout(selectionWidget);
+    selectionLayout->setContentsMargins(8, 6, 8, 6); // Tighter, consistent margins
+    selectionLayout->setSpacing(10);
+
+    // Toggle button (expand/collapse)
     QPushButton *toggleButton = new QPushButton(enableDelete ? "-" : "+", selectionWidget);
-    toggleButton->setFixedSize(24, 24); // Slightly larger button
+    toggleButton->setFixedSize(24, 16);
     toggleButton->setStyleSheet(
         "QPushButton {"
         "   border: 1px solid #555555;"
-        "   border-radius: 12px;" // Make it circular
+        "   border-radius: 12px;"
         "   font-weight: bold;"
-        "   font-size: 14px;"
+        "   font-size: 16px;"
         "   color: white;"
         "   background-color: #424242;"
         "   padding: 0;"
@@ -710,14 +714,12 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int> 
         "   background-color: #2E7D32;"
         "}"
         );
-    selectionLayout->addWidget(toggleButton);
 
-    // Enhanced color circle
+    // Color circle
     ColorCircle *circle = new ColorCircle(color, state, selectionWidget);
-    circle->setFixedSize(28, 28); // Slightly larger for better visibility
-    selectionLayout->addWidget(circle);
+    circle->setFixedSize(28, 28);
 
-    // Create QLineEdit with improved styling
+    // Name field
     QLineEdit *lineEdit = new QLineEdit(selectionWidget);
     if (name.isEmpty()) {
         lineEdit->setText("Selection " + QString::number(id));
@@ -749,19 +751,37 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int> 
             "}"
             );
     }
-    selectionLayout->addWidget(lineEdit, 1); // Give the line edit more space
 
+    // Point count label
+    QLabel *pointCountLabel = new QLabel(QString::number(indices.size()) + " pts", selectionWidget);
+    pointCountLabel->setStyleSheet(
+        "QLabel {"
+        "   color: #AAAAAA;"
+        "   font-size: 12px;"
+        "   background-color: rgba(255, 255, 255, 0.05);"
+        "   border-radius: 6px;"
+        "   padding: 2px 6px;"
+        "   margin-left: 8px;"
+        "}"
+        );
+    pointCountLabel->setAlignment(Qt::AlignVCenter);
+
+    // Optional delete button
+    QPushButton *deleteButton = nullptr;
     if (enableDelete) {
-        QPushButton *deleteButton = new QPushButton("×", selectionWidget);
-        deleteButton->setFixedSize(26, 26);
+        deleteButton = new QPushButton("×", selectionWidget);
+        deleteButton->setFixedSize(24, 16);
         deleteButton->setStyleSheet(
             "QPushButton {"
-            "   border: none;"
-            "   border-radius: 13px;"
-            "   font-size: 22px;"
+            "   border: 1px solid #555555;"
+            "   border-radius: 12px;"
             "   font-weight: bold;"
+            "   font-size: 16px;"
             "   color: #CCCCCC;"
             "   background-color: transparent;"
+            "   padding: 0;"
+            "   margin: 1px;"
+            "   text-align: center;"
             "}"
             "QPushButton:hover {"
             "   color: #FF5252;"
@@ -772,7 +792,6 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int> 
             "   background-color: rgba(255, 82, 82, 0.2);"
             "}"
             );
-        selectionLayout->addWidget(deleteButton);
 
         connect(deleteButton, &QPushButton::clicked, this, [this, id]() {
             uncheckAllFeaturesForSelection(id);
@@ -781,7 +800,19 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int> 
         });
     }
 
-    // Apply selection highlighting when hovered
+    // Assemble layout
+    selectionLayout->addWidget(circle);
+    selectionLayout->addWidget(lineEdit);
+    selectionLayout->addWidget(pointCountLabel);
+
+    // Right-aligned button area
+    QSpacerItem *spacer = new QSpacerItem(10, 10, QSizePolicy::Expanding, QSizePolicy::Minimum);
+    selectionLayout->addItem(spacer);
+    selectionLayout->addWidget(toggleButton);
+    if (deleteButton)
+        selectionLayout->addWidget(deleteButton);
+
+    // Apply hover styling
     selectionWidget->setStyleSheet(
         "SelectionWidget {"
         "   border-radius: 4px;"

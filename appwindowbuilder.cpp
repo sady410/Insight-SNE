@@ -154,8 +154,10 @@ AppWindowBuilder& AppWindowBuilder::initializeOverviewPlot() {
 
     overviewForm->overviewPlot->setScatterData(m_xData, m_yData);
 
-    QString infoText = QString("Dataset: %1\nPerplexity: %2\nIterations: %3")
+    QString infoText = QString("Dataset: %1 (%2 instances)\n"
+                               "Perplexity: %3 | Iterations: %4")
                            .arg(m_filename)
+                           .arg(m_xData.size())
                            .arg(m_perplexity)
                            .arg(m_iterations);
     overviewForm->setDatasetInfo(infoText);
