@@ -52,7 +52,7 @@ TsneForm::TsneForm(QWidget *parent)
     frameLayout->addWidget(plotFrame);
 
     // Create the reset zoom button with matching style
-    QPushButton *resetZoomButton = new QPushButton("Reset Zoom", mainFrame);
+    QPushButton *resetZoomButton = new QPushButton("Zoom out", mainFrame);
     resetZoomButton->setFixedSize(100, 30);
     resetZoomButton->setStyleSheet(
         "QPushButton {"

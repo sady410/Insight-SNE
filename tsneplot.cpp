@@ -858,7 +858,7 @@ void TsnePlot::drawContourPlot(const QString &featureName, const QString &dataSo
     m_colorMap->setData(contourData, true);
 
     // Set up gradient
-    QCPColorGradient gradient(QCPColorGradient::gpGrayscale);
+    QCPColorGradient gradient(QCPColorGradient::gpGeography);
     m_colorMap->setGradient(gradient);
 
     if (qAbs(maxCellValue - minCellValue) < 1e-6) {
@@ -896,7 +896,7 @@ QCPColorMapData* TsnePlot::createContourData(const QString &featureName, const Q
     m_zValues = (dataSource == "Attributes") ? m_attributes : m_magnitudes;
 
     // Determine grid size (adjust as needed)
-    int gridSize = 100;
+    int gridSize = 50;
 
     // Create data structure with initial axis ranges
     QCPColorMapData *data = new QCPColorMapData(
@@ -914,7 +914,6 @@ QCPColorMapData* TsnePlot::createContourData(const QString &featureName, const Q
 
     if (dataSource == "Scope") {
         zValues = computeInstanceAngles(m_selectedInstanceForScope, m_gradients);
-        qDebug() << zValues;
         // Track min/max datapoints
         if (!zValues.isEmpty()) {
             minZ = zValues[0];

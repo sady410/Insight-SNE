@@ -179,8 +179,36 @@ QFrame* OverviewForm::createSeparator()
 
 void OverviewForm::setDatasetInfo(const QString &info)
 {
+    // Split the info string into lines
+    QStringList lines = info.split("\n");
+    QString displayText;
+
+    if (!lines.isEmpty()) {
+        // Process first line (Dataset and instances)
+        QStringList firstLineParts = lines[0].split(" ");
+        if (firstLineParts.size() >= 4) {
+            QString datasetName = firstLineParts[1]; // "Dataset: %1"
+            QString instances = firstLineParts[2];    // "(%2 instances)"
+            instances = instances.mid(1, instances.indexOf(" instances)") - 1);
+
+            displayText = QString("Dataset: %1 (%2 instances)")
+                              .arg(datasetName)
+                              .arg(instances);
+        }
+
+        // Process second line if it exists (Perplexity and Iterations)
+        if (lines.size() > 1) {
+            QStringList secondLineParts = lines[1].split(" | ");
+            for (const QString& part : std::as_const(secondLineParts)) {
+                displayText += "<br>" + part;
+            }
+        }
+    } else {
+        displayText = info;
+    }
+
     // Set the text for the info label
-    m_infoLabel->setText(info);
+    m_infoLabel->setText(displayText);
 
     // Show/hide info label based on content
     m_infoLabel->setVisible(!info.isEmpty());
