@@ -280,7 +280,7 @@ MenuForm::MenuForm(QWidget *parent) :
     m_bottomLayout->setSpacing(6);
 
     // Title and separator for bottom frame
-    QLabel *bottomTitleLabel = new QLabel("Filters", bottomFrame);
+    QLabel *bottomTitleLabel = new QLabel("Contours", bottomFrame);
     bottomTitleLabel->setAlignment(Qt::AlignCenter);
     bottomTitleLabel->setObjectName("titleLabel");
     bottomTitleLabel->setStyleSheet("font-weight: bold; color: #4CAF50; font-size: 16px;");

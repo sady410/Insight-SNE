@@ -196,7 +196,7 @@
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_5">
+        <layout class="QVBoxLayout" name="verticalLayout_5" stretch="1,1">
          <item>
           <widget class="QLabel" name="iterationsLabel">
            <property name="minimumSize">
@@ -250,6 +250,13 @@
           </widget>
          </item>
         </layout>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="standardizationCheckBox">
+         <property name="text">
+          <string>Standardize</string>
+         </property>
+        </widget>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1">

@@ -122,6 +122,7 @@ void MenuWindow::setupUi()
     ui->perplexitySlider->setToolTip("Adjust the perplexity parameter for t-SNE (affects clustering)");
     ui->iterationsSlider->setToolTip("Adjust the number of iterations for t-SNE training");
     ui->runAppButton->setToolTip("Process the data and open visualization");
+    ui->standardizationCheckBox->setToolTip("Standardize data before t-SNE (recommended for features with different scales)");
 
     // Make the run button stand out
     ui->runAppButton->setMinimumHeight(40);
@@ -409,6 +410,8 @@ void MenuWindow::onOutputReceived(const QString &output)
             }
             jsonObject["data"] = dataArray;
 
+            jsonObject["standardize"] = ui->standardizationCheckBox->isChecked();
+
             AppWindowBuilder builder;
             builder.setJsonData(jsonObject)  // This also parses the JSON data
                 .initializeTsnePlot()
@@ -568,6 +571,7 @@ QStringList MenuWindow::constructArgsString() {
     args.append("[" +  formattedRows.join(", ") + "]");
     args.append(QString::number(perplexity));
     args.append(QString::number(iterations));
+    args.append(ui->standardizationCheckBox->isChecked() ? "1" : "0"); // Add standardization flag
     return args;
 }
 
