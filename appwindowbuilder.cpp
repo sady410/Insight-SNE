@@ -16,7 +16,7 @@ AppWindowBuilder::AppWindowBuilder(QWidget* parent) : m_parent(parent), m_appWin
     // Initialize any other members
 }
 
-// Parse all JSON data once - new method
+// Parse all JSON data once
 AppWindowBuilder& AppWindowBuilder::parseJsonData() {
     if (m_jsonData.isEmpty()) {
         return *this; // No data to parse
@@ -277,7 +277,6 @@ AppWindow* AppWindowBuilder::build() {
     return m_appWindow;
 }
 
-// New method to set JSON data and parse it in one step
 AppWindowBuilder& AppWindowBuilder::setJsonData(const QJsonObject& jsonData) {
     m_jsonData = jsonData;
     return parseJsonData();

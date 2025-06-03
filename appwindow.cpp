@@ -66,7 +66,7 @@ void AppWindow::applyStylesheet()
     // Set application style to Fusion
     qApp->setStyle(QStyleFactory::create("Fusion"));
 
-    // Create a palette for the window
+    // Create a dark palette
     QPalette darkPalette;
     darkPalette.setColor(QPalette::Window, QColor(45, 45, 45));
     darkPalette.setColor(QPalette::WindowText, QColor(230, 230, 230));
@@ -327,7 +327,7 @@ SelectionManager* AppWindow::getSelectionManager() const {
     return m_selectionManager;
 }
 
-void AppWindow::connectSignalsAndSlots() { // TODO REFACTOR FOR BARPLOTS
+void AppWindow::connectSignalsAndSlots() {
 
     // Selection creation
     connect(getTsneForm()->tsnePlot, &TsnePlot::pointsSelected, m_selectionManager,

@@ -272,11 +272,11 @@ void TsnePlot::mousePressEvent(QMouseEvent *event)
 
             m_lassoCurve->removeFromLegend();
 
-            // Set the pen for drawing with accent color
-            QPen lassoPen(QColor(76, 175, 80), 2, Qt::SolidLine);  // Green accent
+            // Set the pen for drawing
+            QPen lassoPen(QColor(76, 175, 80), 2, Qt::SolidLine);  // Green
             m_lassoCurve->setPen(lassoPen);
 
-            // Initialize with the first point (t=0, x, y)
+            // Initialize with the first point
             m_lassoCurve->addData(0, xCoord, yCoord);
 
             replot();
@@ -858,7 +858,7 @@ void TsnePlot::drawContourPlot(const QString &featureName, const QString &dataSo
     m_colorMap->setData(contourData, true);
 
     // Set up gradient
-    QCPColorGradient gradient(QCPColorGradient::gpGeography);
+    QCPColorGradient gradient(QCPColorGradient::gpGrayscale);
     m_colorMap->setGradient(gradient);
 
     if (qAbs(maxCellValue - minCellValue) < 1e-6) {

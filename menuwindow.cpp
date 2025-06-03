@@ -32,10 +32,11 @@ MenuWindow::MenuWindow(QWidget *parent)
 
     // Set window title and fixed size
     this->setWindowTitle("Insight-SNE");
-    this->setFixedSize(400, 600);
+    this->setFixedSize(400, 640);
 
     connect(ui->uploadCsvButton, &QPushButton::clicked, this, &MenuWindow::selectCsvFile);
 
+    // Perplexity slider
     ui->perplexityLabel->setText("Perplexity: " + QString::number(15));
 
     ui->perplexitySlider->setRange(1, 50);
@@ -45,6 +46,7 @@ MenuWindow::MenuWindow(QWidget *parent)
     ui->perplexitySlider->setValue(15);
     connect(ui->perplexitySlider, &QSlider::valueChanged, this, &MenuWindow::updatePerplexityLabel);
 
+    // Iteration slider
     m_iterationsMap = {
         {0, 100}, {1, 200}, {2, 300}, {3, 400}, {4, 500},
         {5, 600}, {6, 700}, {7, 800}, {8, 900}, {9, 1000}
@@ -58,6 +60,7 @@ MenuWindow::MenuWindow(QWidget *parent)
     ui->iterationsSlider->setValue(3);
     connect(ui->iterationsSlider, &QSlider::valueChanged, this, &MenuWindow::updateIterationsLabel);
 
+    // Parameters combobox
     ui->visualizationTypeComboBox->addItem("Class");
     ui->visualizationTypeComboBox->addItem("Unique");
     ui->visualizationTypeComboBox->setCurrentIndex(0); // Default to "Class"
@@ -65,13 +68,14 @@ MenuWindow::MenuWindow(QWidget *parent)
     ui->visualizationTypeComboBox->setEnabled(ui->checkBox->isChecked());
     connect(ui->checkBox, &QCheckBox::toggled, ui->visualizationTypeComboBox, &QComboBox::setEnabled);
 
+    // Run t-SNE and explanations
     ui->runAppButton->setEnabled(false);
     connect(ui->runAppButton, &QPushButton::clicked, this, &MenuWindow::onRunAppButtonClicked);
 
-    // Hide the message label initially
+    // Hide the message label
     ui->message->setVisible(false);
 
-    // Python Executor Instance
+    // Instanciate python executor
     m_pythonExecutor = new class PythonExecutor(this);
     connect(m_pythonExecutor, &PythonExecutor::outputReceived, this, &MenuWindow::onOutputReceived);
     connect(m_pythonExecutor, &PythonExecutor::finished, this, &MenuWindow::onScriptFinished);
@@ -86,7 +90,7 @@ void MenuWindow::setupUi()
     titleShadow->setOffset(0, 1);
     ui->menuTitle->setGraphicsEffect(titleShadow);
 
-    // Create spacers for better layout
+    // Create spacers
     ui->verticalLayout->addSpacing(10);
 
     // Style the upload button with an icon
@@ -96,19 +100,6 @@ void MenuWindow::setupUi()
     // Style the file label
     ui->fileLabel->setWordWrap(true);
     ui->fileLabel->setMinimumHeight(40);
-
-    // // Since we may not have custom icons, let's use Qt's standard icons
-    // if (!QIcon::hasThemeIcon("check")) {
-    //     // We're setting up a fallback for missing custom icons
-    //     // This approach will work without needing extra resources
-
-    //     // For dropdown arrow, we'll use a standard icon if our custom one is missing
-    //     QStyle *style = QApplication::style();
-    //     QIcon downArrowIcon = style->standardIcon(QStyle::SP_ArrowDown);
-
-    //     // For checkbox, we'll still use the CSS styling without an explicit image
-    //     // The background color will indicate the checked state
-    // }
 
     // Connect checkbox state change to enable/disable combobox
     connect(ui->checkBox, &QCheckBox::checkStateChanged, this, [this](int state) {
@@ -133,7 +124,7 @@ void MenuWindow::applyStylesheet()
     // Set application style to Fusion
     qApp->setStyle(QStyleFactory::create("Fusion"));
 
-    // Create a darker palette similar to MenuForm
+    // Create a dark palette
     QPalette darkPalette;
     darkPalette.setColor(QPalette::Window, QColor(29, 29, 29));       // #1d1d1d
     darkPalette.setColor(QPalette::WindowText, QColor(230, 230, 230));
@@ -152,7 +143,7 @@ void MenuWindow::applyStylesheet()
     // Apply the palette
     qApp->setPalette(darkPalette);
 
-    // Set style sheet with MenuForm's styling approach
+    // Set style sheet
     QString styleSheet = R"(
         QMainWindow {
             background-color: #1d1d1d;
@@ -314,7 +305,7 @@ void MenuWindow::applyStylesheet()
 
     this->setStyleSheet(styleSheet);
 
-    // Add shadow effect to match MenuForm's styling
+    // Add shadow effect
     QGraphicsDropShadowEffect *windowShadow = new QGraphicsDropShadowEffect(this);
     windowShadow->setBlurRadius(15);
     windowShadow->setColor(QColor(0, 0, 0, 120));
@@ -396,14 +387,14 @@ void MenuWindow::onOutputReceived(const QString &output)
             for (const QList<QString> &row : std::as_const(m_data)) {
                 QJsonArray rowArray;
                 for (const QString &value : row) {
-                    // Convert QString to qreal (double)
+                    // Convert QString to qreal
                     bool conversionOk;
                     qreal numericValue = value.toDouble(&conversionOk);
                     if (conversionOk) {
                         rowArray.append(numericValue);
                     } else {
-                        // Handle conversion error, perhaps by appending a default value or skipping
-                        rowArray.append(0.0); // or handle differently
+                        // Handle conversion error by appending a default value
+                        rowArray.append(0.0);
                     }
                 }
                 dataArray.append(rowArray);

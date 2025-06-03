@@ -28,6 +28,7 @@ SOURCES += \
     barplot.cpp \
     colorcircle.cpp \
     comparisonform.cpp \
+    datamanager.cpp \
     distributionplot.cpp \
     explanationform.cpp \
     featuresform.cpp \
@@ -53,6 +54,7 @@ HEADERS += \
     barplot.h \
     colorcircle.h \
     comparisonform.h \
+    datamanager.h \
     distributionplot.h \
     explanationform.h \
     featuresform.h \
