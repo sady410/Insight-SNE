@@ -10,7 +10,7 @@ OverviewPlot::OverviewPlot(QWidget *parent)
 
 void OverviewPlot::setupPlotAppearance()
 {
-    // Set dark theme background color to match the application theme
+    // Set dark theme background color
     setBackground(QColor(45, 45, 45)); // #2d2d2d
 
     // Configure plot margins
@@ -27,13 +27,44 @@ void OverviewPlot::setupPlotAppearance()
 
     // Enable antialiasing for smoother drawing
     setAntialiasedElements(QCP::aeAll);
-
-    // Set interactions (if you need them)
-    // setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 }
 
-void OverviewPlot::setScatterData(const QVector<double> &x, const QVector<double> &y) {
+void OverviewPlot::setDataManager(DataManagerPtr dataManager)
+{
+    m_dataManager = dataManager;
+
+    if (m_dataManager && m_dataManager->isDataLoaded()) {
+        createScatterPlot();
+    } else {
+        qWarning() << "OverviewPlot: No data manager or data not loaded";
+    }
+}
+
+void OverviewPlot::createScatterPlot()
+{
     clearPlottables(); // Clear existing data
+
+    // Get data from data manager (const references - no copying!)
+    const QList<qreal>& xData = m_dataManager->xData();
+    const QList<qreal>& yData = m_dataManager->yData();
+
+    if (xData.isEmpty() || yData.isEmpty()) {
+        qWarning() << "OverviewPlot: Empty coordinate data";
+        return;
+    }
+
+    if (xData.size() != yData.size()) {
+        qWarning() << "OverviewPlot: X and Y data size mismatch";
+        return;
+    }
+
+    // Convert QList<qreal> to QVector<double> for QCustomPlot
+    // Note: This is a necessary conversion for QCustomPlot API
+    QVector<double> x(xData.size());
+    QVector<double> y(yData.size());
+
+    std::copy(xData.constBegin(), xData.constEnd(), x.begin());
+    std::copy(yData.constBegin(), yData.constEnd(), y.begin());
 
     // Create and configure scatter plot
     QCPGraph *scatterPlot = addGraph();
@@ -41,7 +72,9 @@ void OverviewPlot::setScatterData(const QVector<double> &x, const QVector<double
     scatterPlot->setLineStyle(QCPGraph::lsNone);
 
     // Style the scatter points to match the theme
-    QCPScatterStyle scatterStyle(QCPScatterStyle::ssCircle, QColor(76, 175, 80), QColor(170, 170, 170), 5);
+    QCPScatterStyle scatterStyle(QCPScatterStyle::ssCircle,
+                                 QColor(76, 175, 80),
+                                 QColor(170, 170, 170), 5);
     scatterPlot->setScatterStyle(scatterStyle);
 
     // Calculate and set axis ranges with padding
@@ -66,19 +99,16 @@ void OverviewPlot::updateZoomRectangle(double minX, double maxX, double minY, do
 {
     if (!m_zoomRect) {
         m_zoomRect = new QCPItemRect(this);
-
         // Style the zoom rectangle to match the theme
         QPen rectPen(QColor(76, 175, 80), 2); // #4CAF50 (green accent color)
         m_zoomRect->setPen(rectPen);
-
         // Semi-transparent green fill
-        QColor fillColor = QColor(76, 175, 80, 50); // 20% opacity
+        QColor fillColor = QColor(76, 175, 80, 50); // ~20% opacity
         m_zoomRect->setBrush(QBrush(fillColor));
     }
 
     m_zoomRect->topLeft->setCoords(minX, maxY);
     m_zoomRect->bottomRight->setCoords(maxX, minY);
-
     replot();
 }
 

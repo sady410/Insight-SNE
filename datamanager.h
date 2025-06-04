@@ -44,10 +44,6 @@ public:
     bool isDataLoaded() const { return m_dataLoaded; }
     int dataSize() const { return m_xData.size(); }
 
-signals:
-    void dataLoaded();
-    void dataLoadFailed(const QString& error);
-
 private:
     void parseBasicData();
     void parseCoordinates();

@@ -15,7 +15,7 @@ bool DataManager::loadJsonData(const QJsonObject& jsonData)
         m_jsonData = jsonData;
 
         if (m_jsonData.isEmpty()) {
-            emit dataLoadFailed("JSON data is empty");
+            qWarning() << "JSON data is empty";
             return false;
         }
 
@@ -32,12 +32,11 @@ bool DataManager::loadJsonData(const QJsonObject& jsonData)
         parseLabelsAndIndices();
 
         m_dataLoaded = true;
-        emit dataLoaded();
         return true;
 
     } catch (const std::exception& e) {
         clearData();
-        emit dataLoadFailed(QString("Failed to load data: %1").arg(e.what()));
+        qWarning() << "Failed to load data:" << e.what();
         return false;
     }
 }

@@ -2,15 +2,17 @@
 #define OVERVIEWPLOT_H
 
 #include "qcustomplot.h"
+#include "datamanager.h"
 #include <QVector>
 
 class OverviewPlot : public QCustomPlot {
     Q_OBJECT
+
 public:
     explicit OverviewPlot(QWidget *parent = nullptr);
 
-    // Set scatter plot data
-    void setScatterData(const QVector<double> &x, const QVector<double> &y);
+    // Set data manager and update plot immediately
+    void setDataManager(DataManagerPtr dataManager);
 
 public slots:
     // Update the zoom rectangle visualization
@@ -22,6 +24,10 @@ protected:
 private:
     // Private helper methods
     void setupPlotAppearance();
+    void createScatterPlot();
+
+    // Data manager reference
+    DataManagerPtr m_dataManager;
 
     // Zoom rectangle item
     QCPItemRect *m_zoomRect = nullptr;

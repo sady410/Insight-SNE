@@ -4,144 +4,41 @@
 #include "menuform.h"
 #include "overviewform.h"
 #include "tsneform.h"
-#include "jsonparser.h"
+#include "datamanager.h"
 #include "appwindow.h"
 
-#include <QHorizontalBarSeries>
-#include <QBarSet>
-#include <QBarSeries>
-
-// Constructor - initialize shared data
-AppWindowBuilder::AppWindowBuilder(QWidget* parent) : m_parent(parent), m_appWindow(nullptr) {
-    // Initialize any other members
+// Constructor
+AppWindowBuilder::AppWindowBuilder(QWidget* parent)
+    : m_parent(parent), m_appWindow(nullptr)
+{
+    // Create shared data manager
+    m_dataManager = DataManagerPtr::create();
 }
 
-// Parse all JSON data once
-AppWindowBuilder& AppWindowBuilder::parseJsonData() {
-    if (m_jsonData.isEmpty()) {
-        return *this; // No data to parse
+// Set JSON data and parse it
+AppWindowBuilder& AppWindowBuilder::setJsonData(const QJsonObject& jsonData) {
+    if (!m_dataManager->loadJsonData(jsonData)) {
+        qWarning() << "Failed to load JSON data in AppWindowBuilder";
     }
-
-    // Parse common arrays once
-    m_embeddingArray = m_jsonData.value("Y").toArray();
-    m_labelsArray = m_jsonData.value("labels").toArray();
-    m_featureNamesArray = m_jsonData.value("featureNames").toArray();
-    m_gradientsArray = m_jsonData.value("gradients").toArray();
-    m_magnitudesArray = m_jsonData.value("magnitudes").toArray();
-    m_attributesArray = m_jsonData.value("data").toArray();
-
-    m_perplexity = m_jsonData.value("perplexity").toInt();
-    m_iterations = m_jsonData.value("iterations").toInt();
-    m_filename = m_jsonData.value("filename").toString();
-
-    m_isLabel = m_jsonData.value("showLabels").toBool();
-    m_isClass = m_jsonData.value("isClass").toBool();
-
-    // Convert to appropriate data structures
-    // Feature names used by multiple plots
-    m_featureNamesList.clear();
-    m_featureNamesList.reserve(m_featureNamesArray.size());
-    for (const QJsonValue &value : std::as_const(m_featureNamesArray)) {
-        m_featureNamesList.append(value.toString());
-    }
-
-    // Labels only used by tsne plot, but processed here for clarity
-    m_labelsList.clear();
-    m_labelsList.reserve(m_labelsArray.size());
-    for (const QJsonValue &value : std::as_const(m_labelsArray)) {
-        m_labelsList.append(value.toString());
-    }
-
-    // Extract embedding coordinates
-    m_xData.clear();
-    m_yData.clear();
-    m_xData.reserve(m_embeddingArray.size());
-    m_yData.reserve(m_embeddingArray.size());
-
-    for (const QJsonValue &val : std::as_const(m_embeddingArray)) {
-        QJsonArray point = val.toArray();
-        if (point.size() == 2) {
-            m_xData.append(point[0].toDouble());
-            m_yData.append(point[1].toDouble());
-        }
-    }
-
-    // Process gradients and magnitudes lazily - only convert when needed
-
     return *this;
-}
-
-// Lazily convert JSON to data structures
-const QList<QList<QList<qreal>>>& AppWindowBuilder::getGradientsList() {
-    if (m_gradientsList.isEmpty() && !m_gradientsArray.isEmpty()) {
-        m_gradientsList = JsonParser::jsonArrayToQList3D(m_gradientsArray);
-    }
-    return m_gradientsList;
-}
-
-const QList<QList<qreal>>& AppWindowBuilder::getMagnitudesList() {
-    if (m_magnitudesList.isEmpty() && !m_magnitudesArray.isEmpty()) {
-        m_magnitudesList = JsonParser::jsonArrayToQList2D(m_magnitudesArray);
-    }
-    return m_magnitudesList;
-}
-
-const QList<QList<qreal>>& AppWindowBuilder::getAttributesList() {
-    if (m_attributesList.isEmpty() && !m_attributesArray.isEmpty()) {
-        m_attributesList = JsonParser::jsonArrayToQList2D(m_attributesArray);
-    }
-    return m_attributesList;
 }
 
 AppWindowBuilder& AppWindowBuilder::initializeTsnePlot() {
     if (!m_appWindow) {
         m_appWindow = new AppWindow(m_parent);
     }
-    TsneForm* tsneForm = m_appWindow->getTsneForm();
 
-    // Use already parsed data
-    tsneForm->tsnePlot->setLabels(m_labelsList);
-    tsneForm->tsnePlot->setFeatureNames(m_featureNamesList);
+    // TsneForm* tsneForm = m_appWindow->getTsneForm();
 
-    // Use references to shared data
-    tsneForm->tsnePlot->setGradients(getGradientsList());
-    tsneForm->tsnePlot->setMagnitudes(getMagnitudesList());
-    tsneForm->tsnePlot->setAttributes(getAttributesList());
+    // // Pass the data manager to the plot instead of copying data
+    // tsneForm->tsnePlot->setDataManager(m_dataManager);
 
-    // Initialize plot with the vectors directly and visualization type
-    if (m_isLabel) {
-        tsneForm->tsnePlot->initPlot(m_xData, m_yData, m_isClass, !m_isClass);
-    } else {
-        tsneForm->tsnePlot->initPlot(m_xData, m_yData, false, false);
-    }
-
-    // Process labels and indices if not already done
-    if (m_indicesList.isEmpty()) {
-        // Create unique labels
-        QSet<QString> seenLabels;
-        m_uniqueLabels.clear();
-        for (const QString& label : std::as_const(m_labelsList)) {
-            if (!seenLabels.contains(label)) {
-                seenLabels.insert(label);
-                m_uniqueLabels.append(label);
-            }
-        }
-
-        // Create indices map
-        QMap<QString, QList<int>> classIndicesMap;
-        QList<int> allIndices;
-        allIndices.reserve(m_labelsList.size());
-
-        for (int i = 0; i < m_labelsList.size(); ++i) {
-            allIndices.append(i);
-            classIndicesMap[m_labelsList[i]].append(i);
-        }
-
-        m_indicesList.append(allIndices);
-        for (const auto& label : std::as_const(m_uniqueLabels)) {
-            m_indicesList.append(classIndicesMap[label]);
-        }
-    }
+    // // Initialize plot with visualization type
+    // if (m_dataManager->isLabel()) {
+    //     tsneForm->tsnePlot->initPlot(m_dataManager->isClass(), !m_dataManager->isClass());
+    // } else {
+    //     tsneForm->tsnePlot->initPlot(false, false);
+    // }
 
     return *this;
 }
@@ -150,16 +47,18 @@ AppWindowBuilder& AppWindowBuilder::initializeOverviewPlot() {
     if (!m_appWindow) {
         m_appWindow = new AppWindow(m_parent);
     }
+
     OverviewForm* overviewForm = m_appWindow->getOverviewForm();
 
-    overviewForm->overviewPlot->setScatterData(m_xData, m_yData);
+    // Pass data manager instead of copying scatter data
+    overviewForm->overviewPlot->setDataManager(m_dataManager);
 
     QString infoText = QString("Dataset: %1 (%2 instances)\n"
                                "Perplexity: %3 | Iterations: %4")
-                           .arg(m_filename)
-                           .arg(m_xData.size())
-                           .arg(m_perplexity)
-                           .arg(m_iterations);
+                           .arg(m_dataManager->filename())
+                           .arg(m_dataManager->dataSize())
+                           .arg(m_dataManager->perplexity())
+                           .arg(m_dataManager->iterations());
     overviewForm->setDatasetInfo(infoText);
 
     return *this;
@@ -169,13 +68,11 @@ AppWindowBuilder& AppWindowBuilder::initializeFeaturesPlot() {
     if (!m_appWindow) {
         m_appWindow = new AppWindow(m_parent);
     }
+
     FeaturesForm* featuresForm = m_appWindow->getFeaturesForm();
 
-    // Use already parsed feature names
-    featuresForm->featuresPlot->setLabels(m_featureNamesList);
-
-    // Use shared data
-    featuresForm->featuresPlot->setValues(getAttributesList());
+    // Pass data manager instead of copying data
+    featuresForm->featuresPlot->setDataManager(m_dataManager);
     featuresForm->featuresPlot->initPlot(Qt::Vertical);
 
     return *this;
@@ -186,10 +83,10 @@ AppWindowBuilder& AppWindowBuilder::initializeDistributionPlot() {
         m_appWindow = new AppWindow(m_parent);
     }
 
-    FeaturesForm* featuresForm = m_appWindow->getFeaturesForm();
+    // FeaturesForm* featuresForm = m_appWindow->getFeaturesForm();
 
-    featuresForm->distributionPlot->setData(getAttributesList());
-    featuresForm->distributionPlot->setFeatureNames(m_featureNamesList);
+    // // Pass data manager instead of copying data
+    // featuresForm->distributionPlot->setDataManager(m_dataManager);
 
     return *this;
 }
@@ -198,25 +95,21 @@ AppWindowBuilder& AppWindowBuilder::initializeExplanationPlots() {
     if (!m_appWindow) {
         m_appWindow = new AppWindow(m_parent);
     }
+
     ExplanationForm* explanationForm = m_appWindow->getExplanationForm();
 
-    // Set labels using already parsed feature names
-    explanationForm->magnitudesPlot->setLabels(m_featureNamesList);
-    explanationForm->gradientsPlotTop->setLabels(m_featureNamesList);
-    explanationForm->gradientsPlotBottom->setLabels(m_featureNamesList);
+    // Pass data manager to all explanation plots
+    explanationForm->magnitudesPlot->setDataManager(m_dataManager);
+    explanationForm->gradientsPlotTop->setDataManager(m_dataManager);
+    explanationForm->gradientsPlotBottom->setDataManager(m_dataManager);
 
     // Initialize plots
     explanationForm->gradientsPlotTop->initPlot(Qt::Horizontal);
     explanationForm->gradientsPlotBottom->initPlot(Qt::Horizontal);
     explanationForm->magnitudesPlot->initPlot(Qt::Horizontal);
 
-    // Use shared data
-    const QList<QList<QList<qreal>>>& gradientsList = getGradientsList();
-    explanationForm->gradientsPlotTop->setValues(m_appWindow->getAxisGradient(gradientsList, 0));
-    explanationForm->gradientsPlotBottom->setValues(m_appWindow->getAxisGradient(gradientsList, 1));
-
-    // Set magnitudes
-    explanationForm->magnitudesPlot->setValues(getMagnitudesList());
+    // The plots will now access gradients data directly from data manager
+    // You might need to add methods to get axis-specific gradients
 
     return *this;
 }
@@ -226,9 +119,10 @@ AppWindowBuilder& AppWindowBuilder::initializeFeaturesForm() {
         m_appWindow = new AppWindow(m_parent);
     }
 
-    FeaturesForm* featuresForm = m_appWindow->getFeaturesForm();
+    // FeaturesForm* featuresForm = m_appWindow->getFeaturesForm();
 
-    featuresForm->setFeatureNames(m_featureNamesList);
+    // // Pass data manager instead of copying feature names
+    // featuresForm->setDataManager(m_dataManager);
 
     return *this;
 }
@@ -238,15 +132,16 @@ AppWindowBuilder& AppWindowBuilder::initializeMenuForm() {
         m_appWindow = new AppWindow(m_parent);
     }
 
-    MenuForm* menuForm = m_appWindow->getMenuForm();
+    // MenuForm* menuForm = m_appWindow->getMenuForm();
 
-    menuForm->setFeatureNames(m_featureNamesList);
+    // // Pass data manager instead of copying feature names
+    // menuForm->setDataManager(m_dataManager);
 
-    // Add filters to the menu
-    menuForm->addFilterToMenu(0, "Magnitudes", m_featureNamesList);
-    menuForm->addFilterToMenu(1, "Attributes", m_featureNamesList);
+    // // Add filters to the menu using data manager
+    // menuForm->addFilterToMenu(0, "Magnitudes", m_dataManager->featureNames());
+    // menuForm->addFilterToMenu(1, "Attributes", m_dataManager->featureNames());
 
-    menuForm->addScopeToCombobox({"Global"});
+    // menuForm->addScopeToCombobox({"Global"});
 
     return *this;
 }
@@ -256,28 +151,27 @@ AppWindow* AppWindowBuilder::build() {
         m_appWindow = new AppWindow(m_parent);
     }
 
+    // Pass data manager to app window
+    // m_appWindow->setDataManager(m_dataManager);
+
     m_appWindow->setInitialized(true);
     m_appWindow->connectSignalsAndSlots();
 
-    int i = 0;
-    for (const QList<int>& indices : std::as_const(m_indicesList)) {
+    // Create selections using data from data manager
+    const auto& indicesList = m_dataManager->indicesList();
+    const auto& uniqueLabels = m_dataManager->uniqueLabels();
+
+    for (int i = 0; i < indicesList.size(); ++i) {
         if (i == 0) {
-            m_appWindow->getSelectionManager()->createSelection(indices, false, true, "All points");
+            m_appWindow->getSelectionManager()->createSelection(indicesList[i], false, true, "All points");
         } else {
-            if (i-1 < m_uniqueLabels.size() & m_isClass==true) {
-                m_appWindow->getSelectionManager()->createSelection(indices, false, false, m_uniqueLabels[i-1]);
+            if (i-1 < uniqueLabels.size() && m_dataManager->isClass()) {
+                m_appWindow->getSelectionManager()->createSelection(indicesList[i], false, false, uniqueLabels[i-1]);
             }
         }
-        i++;
     }
 
     m_appWindow->getMenuForm()->connectModelSignals();
-
     m_appWindow->showMaximized();
     return m_appWindow;
-}
-
-AppWindowBuilder& AppWindowBuilder::setJsonData(const QJsonObject& jsonData) {
-    m_jsonData = jsonData;
-    return parseJsonData();
 }
