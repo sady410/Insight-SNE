@@ -66,38 +66,20 @@ TsnePlot::~TsnePlot()
     delete m_selectedPoints;
 }
 
-void TsnePlot::setAttributes(const QList<QList<qreal>> attributes)
+void TsnePlot::setDataManager(DataManagerPtr dataManager)
 {
-    m_attributes = attributes;
+    m_dataManager = dataManager;
 }
 
-void TsnePlot::setGradients(const QList<QList<QList<qreal>>> gradients)
-{
-    m_gradients = gradients;
-}
-
-void TsnePlot::setMagnitudes(const QList<QList<qreal>> magnitudes)
-{
-    m_magnitudes = magnitudes;
-}
-
-void TsnePlot::setFeatureNames(const QStringList featureNames)
-{
-    m_featureNames = featureNames;
-}
-
-void TsnePlot::setLabels(const QStringList &labels)
-{
-    m_labels = labels;
-}
-
-void TsnePlot::initPlot(const QVector<double> &x, const QVector<double> &y,
-                        bool hasClassLabels, bool hasUniqueLabels)
+void TsnePlot::initPlot(bool hasClassLabels, bool hasUniqueLabels)
 {
     clearPlottables();
     clearItems();
     m_scatterGraphsMap.clear();
     m_pointIndexMap.clear();
+
+    const QVector<double> &x = m_dataManager->xData();
+    const QVector<double> &y = m_dataManager->yData();
 
     // Check if we have valid data
     if (x.size() != y.size()) {
@@ -106,7 +88,7 @@ void TsnePlot::initPlot(const QVector<double> &x, const QVector<double> &y,
     }
 
     // Handle the case where we have labels but size doesn't match
-    if (hasClassLabels && x.size() != m_labels.size()) {
+    if (hasClassLabels && x.size() != m_dataManager->labels().size()) {
         qDebug() << "Error: Data and labels size mismatch!";
         return;
     }
@@ -145,7 +127,7 @@ void TsnePlot::initPlot(const QVector<double> &x, const QVector<double> &y,
         // Group points by label
         QMap<QString, QVector<double>> labelX, labelY;
         for (int i = 0; i < x.size(); ++i) {
-            QString label = m_labels[i];
+            QString label = m_dataManager->labels()[i];
             labelX[label] << x[i];
             labelY[label] << y[i];
             if (!m_labelColors.contains(label)) {
@@ -208,12 +190,12 @@ void TsnePlot::initPlot(const QVector<double> &x, const QVector<double> &y,
     }
 
     // Add text labels for unique labels near each point if requested
-    if (hasUniqueLabels && !m_labels.isEmpty()) {
+    if (hasUniqueLabels && !m_dataManager->labels().isEmpty()) {
         for (int i = 0; i < x.size(); ++i) {
             QCPItemText *textLabel = new QCPItemText(this);
             textLabel->setPositionAlignment(Qt::AlignCenter | Qt::AlignBottom);
             textLabel->position->setCoords(x[i], y[i] - 0.2); // Position above the point
-            textLabel->setText(m_labels[i]);
+            textLabel->setText(m_dataManager->labels()[i]);
             textLabel->setFont(QFont("Arial", 8));
 
             // Set text color to white
@@ -580,7 +562,7 @@ void TsnePlot::addArrows(int id, const QList<int> &indices, const QString &featu
 {
     // removeArrows(id); // Not needed
 
-    int featureIndex = m_featureNames.indexOf(featureName);
+    int featureIndex = m_dataManager->featureNames().indexOf(featureName);
     if (featureIndex == -1) {
         qDebug() << "Feature not found:" << featureName;
         return;
@@ -589,12 +571,12 @@ void TsnePlot::addArrows(int id, const QList<int> &indices, const QString &featu
     setCurrentLayer("arrows");
 
     for (int index : indices) {
-        if (index < 0 || index >= m_gradients.size()) {
+        if (index < 0 || index >= m_dataManager->gradients().size()) {
             qDebug() << "Index out of bounds:" << index;
             continue;
         }
 
-        const QList<QList<qreal>>& featureVectors = m_gradients[index];
+        const QList<QList<qreal>>& featureVectors = m_dataManager->gradients()[index];
         if (featureVectors.size() < 2 || featureVectors[0].size() <= featureIndex) {
             qDebug() << "Invalid gradient data for index:" << index;
             continue;
@@ -890,10 +872,10 @@ void TsnePlot::drawContourPlot(const QString &featureName, const QString &dataSo
 }
 
 QCPColorMapData* TsnePlot::createContourData(const QString &featureName, const QString &dataSource) {
-    int featureIndex = m_featureNames.indexOf(featureName);
+    int featureIndex = m_dataManager->featureNames().indexOf(featureName);
 
     // Set z-values based on mode
-    m_zValues = (dataSource == "Attributes") ? m_attributes : m_magnitudes;
+    m_zValues = (dataSource == "Attributes") ? m_dataManager->attributes() : m_dataManager->magnitudes();
 
     // Determine grid size (adjust as needed)
     int gridSize = 50;
@@ -913,7 +895,7 @@ QCPColorMapData* TsnePlot::createContourData(const QString &featureName, const Q
     double maxZ = std::numeric_limits<double>::lowest();
 
     if (dataSource == "Scope") {
-        zValues = computeInstanceAngles(m_selectedInstanceForScope, m_gradients);
+        zValues = computeInstanceAngles(m_selectedInstanceForScope, m_dataManager->gradients());
         // Track min/max datapoints
         if (!zValues.isEmpty()) {
             minZ = zValues[0];

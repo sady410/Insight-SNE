@@ -2,6 +2,7 @@
 #define TSNEPLOT_H
 
 #include "qcustomplot.h"
+#include "datamanager.h"
 #include <QMouseEvent>
 #include <QPainterPath>
 #include <QPen>
@@ -27,13 +28,10 @@ public:
     void setSelectionMode(SelectionMode mode);
     SelectionMode selectionMode() const { return m_selectionMode; }
 
-    void initPlot(const QVector<double> &x, const QVector<double> &y, bool hasClassLabels, bool hasUniqueLabels);
+    void initPlot(bool hasClassLabels, bool hasUniqueLabels);
 
-    void setLabels(const QStringList &labels);
-    void setAttributes(const QList<QList<qreal>> attributes);
-    void setGradients(const QList<QList<QList<qreal>>> gradients);
-    void setMagnitudes(const QList<QList<qreal>> magnitudes);
-    void setFeatureNames(const QStringList featureNames);
+    // Set the data manager
+    void setDataManager(DataManagerPtr dataManager);
 
 signals:
     void zoomChanged(qreal minX, qreal maxX, qreal minY, qreal maxY);
@@ -89,12 +87,9 @@ private:
     void clearLasso();
     QPointF coordsToPixels(double x, double y) const;
 
-    QStringList m_featureNames;
     QMap<QString, QColor> m_labelColors;
-    QStringList m_labels;
     QMap<QString, QCPGraph*> m_scatterGraphsMap;
     std::map<QPointF, int, QPointFComparator> m_pointIndexMap;
-    QList<QList<QList<qreal>>> m_gradients;
 
     // For Panning
     bool m_isPanning;
@@ -108,8 +103,9 @@ private:
     QString m_currentContourFeature;
     QString m_currentDataSource;
     QList<QList<qreal>> m_zValues;
-    QList<QList<qreal>> m_attributes;
-    QList<QList<qreal>> m_magnitudes;
+
+    // Data manager
+    DataManagerPtr m_dataManager;
 
     // For arrows
     struct ArrowData {

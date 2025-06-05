@@ -28,17 +28,17 @@ AppWindowBuilder& AppWindowBuilder::initializeTsnePlot() {
         m_appWindow = new AppWindow(m_parent);
     }
 
-    // TsneForm* tsneForm = m_appWindow->getTsneForm();
+    TsneForm* tsneForm = m_appWindow->getTsneForm();
 
-    // // Pass the data manager to the plot instead of copying data
-    // tsneForm->tsnePlot->setDataManager(m_dataManager);
+    // Pass the data manager to the plot instead of copying data
+    tsneForm->tsnePlot->setDataManager(m_dataManager);
 
-    // // Initialize plot with visualization type
-    // if (m_dataManager->isLabel()) {
-    //     tsneForm->tsnePlot->initPlot(m_dataManager->isClass(), !m_dataManager->isClass());
-    // } else {
-    //     tsneForm->tsnePlot->initPlot(false, false);
-    // }
+    // Initialize plot with visualization type
+    if (m_dataManager->isLabel()) {
+        tsneForm->tsnePlot->initPlot(m_dataManager->isClass(), !m_dataManager->isClass());
+    } else {
+        tsneForm->tsnePlot->initPlot(false, false);
+    }
 
     return *this;
 }

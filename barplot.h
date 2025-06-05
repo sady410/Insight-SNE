@@ -1,6 +1,7 @@
 #ifndef BARPLOT_H
 #define BARPLOT_H
 
+#include "datamanager.h"
 #include <QChartView>
 #include <QChart>
 #include <QAbstractBarSeries>
@@ -9,7 +10,6 @@
 #include <QList>
 #include <QColor>
 #include <QMap>
-#include "datamanager.h"
 
 class BarPlot : public QChartView
 {
