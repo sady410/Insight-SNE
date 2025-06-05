@@ -23,7 +23,7 @@ public:
     void setDataManager(DataManagerPtr dataManager);
 
     // Initialize the plot with orientation
-    void initPlot(Qt::Orientation orientation);
+    void initPlot(Qt::Orientation orientation, int dataSource);
 
     // Add/remove data series
     void addValue(int id, const QColor &color, const QList<int> &indices, const bool enableDelete, const bool state);
@@ -46,6 +46,7 @@ private:
 
     // Data manager
     DataManagerPtr m_dataManager;
+    int m_dataSource;
 
     // Plot components
     QAbstractBarSeries *m_barSeries;

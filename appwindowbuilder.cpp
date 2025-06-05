@@ -73,7 +73,7 @@ AppWindowBuilder& AppWindowBuilder::initializeFeaturesPlot() {
 
     // Pass data manager instead of copying data
     featuresForm->featuresPlot->setDataManager(m_dataManager);
-    featuresForm->featuresPlot->initPlot(Qt::Vertical);
+    featuresForm->featuresPlot->initPlot(Qt::Vertical, 3);
 
     return *this;
 }
@@ -104,9 +104,9 @@ AppWindowBuilder& AppWindowBuilder::initializeExplanationPlots() {
     explanationForm->gradientsPlotBottom->setDataManager(m_dataManager);
 
     // Initialize plots
-    explanationForm->gradientsPlotTop->initPlot(Qt::Horizontal);
-    explanationForm->gradientsPlotBottom->initPlot(Qt::Horizontal);
-    explanationForm->magnitudesPlot->initPlot(Qt::Horizontal);
+    explanationForm->gradientsPlotTop->initPlot(Qt::Horizontal, 1);
+    explanationForm->gradientsPlotBottom->initPlot(Qt::Horizontal, 2);
+    explanationForm->magnitudesPlot->initPlot(Qt::Horizontal, 0);
 
     // The plots will now access gradients data directly from data manager
     // You might need to add methods to get axis-specific gradients

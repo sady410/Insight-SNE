@@ -38,11 +38,13 @@ void BarPlot::setDataManager(DataManagerPtr dataManager) {
     m_dataManager = dataManager;
 }
 
-void BarPlot::initPlot(Qt::Orientation orientation) {
+void BarPlot::initPlot(Qt::Orientation orientation, int dataSource) {
     if (!m_dataManager) {
         qWarning() << "DataManager not set before initializing BarPlot";
         return;
     }
+
+    m_dataSource = dataSource; // 0, 1, 2, 3 for magnitudes, attributes, gradients axis 0, gradients axis 1
 
     if (orientation == Qt::Horizontal) {
         m_barSeries = new QHorizontalBarSeries();
@@ -73,21 +75,22 @@ void BarPlot::addValue(int id, const QColor &color, const QList<int> &indices, c
 
     // Get data from DataManager based on the plot type
     const QList<QList<qreal>>* dataSource = nullptr;
-    QStringList labels;
+    QStringList labels = m_dataManager->featureNames();
 
-    // Determine which data to use based on context
-    // You may need to add a parameter or method to specify which data type to use
-    // For now, I'll assume we're using magnitudes data, but you can modify this
-    const auto& magnitudesData = m_dataManager->magnitudes();
-    const auto& attributesData = m_dataManager->attributes();
-
-    if (!magnitudesData.isEmpty()) {
-        dataSource = &magnitudesData;
-        labels = m_dataManager->featureNames();
-    } else if (!attributesData.isEmpty()) {
-        dataSource = &attributesData;
-        labels = m_dataManager->featureNames();
-    } else {
+    switch (m_dataSource) {
+    case 0:
+        dataSource = &m_dataManager->magnitudes();
+        break;
+    case 1:
+        dataSource = &m_dataManager->gradients()[0];
+        break;
+    case 2:
+        dataSource = &m_dataManager->gradients()[1];
+        break;
+    case 3:
+        dataSource = &m_dataManager->attributes();
+        break;
+    default:
         qDebug() << "No suitable data found in DataManager";
         return;
     }
