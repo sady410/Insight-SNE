@@ -141,6 +141,44 @@ const QList<QList<qreal>>& DataManager::attributes()
     return m_attributesList;
 }
 
+const QList<QList<qreal>>& DataManager::xAxisGradients()
+{
+    if (!m_xAxisGradientsLoaded && !m_gradientsArray.isEmpty()) {
+        // Ensure the main gradients are loaded first
+        const auto& gradsList = gradients();
+        m_xAxisGradientsList = getAxisGradient(gradsList, 0); // X-axis is index 0
+        m_xAxisGradientsLoaded = true;
+    }
+    return m_xAxisGradientsList;
+}
+
+const QList<QList<qreal>>& DataManager::yAxisGradients()
+{
+    if (!m_yAxisGradientsLoaded && !m_gradientsArray.isEmpty()) {
+        // Ensure the main gradients are loaded first
+        const auto& gradsList = gradients();
+        m_yAxisGradientsList = getAxisGradient(gradsList, 1); // Y-axis is index 1
+        m_yAxisGradientsLoaded = true;
+    }
+    return m_yAxisGradientsList;
+}
+
+QList<QList<qreal>> DataManager::getAxisGradient(const QList<QList<QList<qreal>>>& gradientsList, int axis) const
+{
+    QList<QList<qreal>> result;
+    result.reserve(gradientsList.size());
+
+    for (const QList<QList<qreal>>& gradient : gradientsList) {
+        if (axis >= 0 && axis < gradient.size()) {
+            result.append(gradient[axis]);
+        } else {
+            qWarning() << "Axis" << axis << "out of bounds! Available axes: 0 to" << (gradient.size() - 1);
+            return QList<QList<qreal>>(); // Return empty list on error
+        }
+    }
+    return result;
+}
+
 void DataManager::clearData()
 {
     m_jsonData = QJsonObject();
@@ -171,4 +209,10 @@ void DataManager::clearData()
     m_gradientsLoaded = false;
     m_magnitudesLoaded = false;
     m_attributesLoaded = false;
+
+    // Clear the new axis-specific gradient data
+    m_xAxisGradientsList.clear();
+    m_yAxisGradientsList.clear();
+    m_xAxisGradientsLoaded = false;
+    m_yAxisGradientsLoaded = false;
 }

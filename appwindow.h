@@ -19,8 +19,6 @@ public:
     explicit AppWindow(QWidget *parent = nullptr);
     ~AppWindow();
 
-    // Helper methods (used by the builder or other classes)
-    QList<qreal> computeMeanData(const QList<QList<qreal>> &dataList);
     QList<QList<qreal>> getAxisGradient(const QList<QList<QList<qreal>>> &gradientsList, int axis);
 
     // Public getters for UI components

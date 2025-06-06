@@ -441,56 +441,6 @@ AppWindow::~AppWindow() {
     delete ui;
 }
 
-QList<qreal> AppWindow::computeMeanData(const QList<QList<qreal>> &dataList) {
-    QList<qreal> meanDataList;
-
-    if (dataList.isEmpty()) {
-        return meanDataList; // Return empty list if input is empty
-    }
-
-    // Determine the number of columns (assuming all rows have the same number of columns)
-    int numColumns = dataList[0].size();
-
-    // Initialize the meanDataList with zeros
-    meanDataList.resize(numColumns);
-    std::fill(meanDataList.begin(), meanDataList.end(), 0.0);
-
-    // Iterate through each row and accumulate column values
-    for (const QList<qreal> &row : dataList) {
-        if (row.size() != numColumns) {
-            qWarning() << "Row size mismatch! Skipping row.";
-            continue;
-        }
-
-        for (int col = 0; col < numColumns; ++col) {
-            meanDataList[col] += row[col];
-        }
-    }
-
-    // Divide by the number of rows to compute the mean for each column
-    int numRows = dataList.size();
-    for (int col = 0; col < numColumns; ++col) {
-        meanDataList[col] /= numRows;
-    }
-
-    return meanDataList;
-}
-
-QList<QList<qreal>> AppWindow::getAxisGradient(const QList<QList<QList<qreal>>> &gradientsList, int axis) {
-    QList<QList<qreal>> result;
-
-    for (const QList<QList<qreal>> &gradient : gradientsList) {
-        if (axis >= 0 && axis < gradient.size()) {
-            result.append(gradient[axis]);
-        } else {
-            qWarning() << "Axis out of bounds!";
-            return QList<QList<qreal>>();
-        }
-    }
-
-    return result;
-}
-
 void AppWindow::resizeEvent(QResizeEvent *event) {
     QMainWindow::resizeEvent(event);
 

@@ -1,6 +1,5 @@
 #ifndef DATAMANAGER_H
 #define DATAMANAGER_H
-
 #include <QObject>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -13,7 +12,6 @@ class JsonParser;
 class DataManager : public QObject
 {
     Q_OBJECT
-
 public:
     explicit DataManager(QObject* parent = nullptr);
 
@@ -40,6 +38,10 @@ public:
     const QList<QList<qreal>>& magnitudes();
     const QList<QList<qreal>>& attributes();
 
+    // New getters for axis-specific gradients
+    const QList<QList<qreal>>& xAxisGradients();
+    const QList<QList<qreal>>& yAxisGradients();
+
     // Utility methods
     bool isDataLoaded() const { return m_dataLoaded; }
     int dataSize() const { return m_xData.size(); }
@@ -49,6 +51,9 @@ private:
     void parseCoordinates();
     void parseLabelsAndIndices();
     void clearData();
+
+    // Helper method to extract axis gradients
+    QList<QList<qreal>> getAxisGradient(const QList<QList<QList<qreal>>>& gradientsList, int axis) const;
 
     // JSON data storage
     QJsonObject m_jsonData;
@@ -82,6 +87,12 @@ private:
     mutable bool m_gradientsLoaded{false};
     mutable bool m_magnitudesLoaded{false};
     mutable bool m_attributesLoaded{false};
+
+    // New members for axis-specific gradients
+    mutable QList<QList<qreal>> m_xAxisGradientsList;
+    mutable QList<QList<qreal>> m_yAxisGradientsList;
+    mutable bool m_xAxisGradientsLoaded{false};
+    mutable bool m_yAxisGradientsLoaded{false};
 };
 
 // Convenience typedef for shared pointer

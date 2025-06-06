@@ -82,10 +82,10 @@ void BarPlot::addValue(int id, const QColor &color, const QList<int> &indices, c
         dataSource = &m_dataManager->magnitudes();
         break;
     case 1:
-        dataSource = &m_dataManager->gradients()[0];
+        dataSource = &m_dataManager->xAxisGradients();
         break;
     case 2:
-        dataSource = &m_dataManager->gradients()[1];
+        dataSource = &m_dataManager->yAxisGradients();
         break;
     case 3:
         dataSource = &m_dataManager->attributes();
