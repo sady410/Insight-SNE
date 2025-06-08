@@ -30,7 +30,6 @@ AppWindowBuilder& AppWindowBuilder::initializeTsnePlot() {
 
     TsneForm* tsneForm = m_appWindow->getTsneForm();
 
-    // Pass the data manager to the plot instead of copying data
     tsneForm->tsnePlot->setDataManager(m_dataManager);
 
     // Initialize plot with visualization type
@@ -50,7 +49,6 @@ AppWindowBuilder& AppWindowBuilder::initializeOverviewPlot() {
 
     OverviewForm* overviewForm = m_appWindow->getOverviewForm();
 
-    // Pass data manager instead of copying scatter data
     overviewForm->overviewPlot->setDataManager(m_dataManager);
 
     QString infoText = QString("Dataset: %1 (%2 instances)\n"
@@ -83,10 +81,9 @@ AppWindowBuilder& AppWindowBuilder::initializeDistributionPlot() {
         m_appWindow = new AppWindow(m_parent);
     }
 
-    // FeaturesForm* featuresForm = m_appWindow->getFeaturesForm();
+    FeaturesForm* featuresForm = m_appWindow->getFeaturesForm();
 
-    // // Pass data manager instead of copying data
-    // featuresForm->distributionPlot->setDataManager(m_dataManager);
+    featuresForm->distributionPlot->setDataManager(m_dataManager);
 
     return *this;
 }
@@ -98,7 +95,6 @@ AppWindowBuilder& AppWindowBuilder::initializeExplanationPlots() {
 
     ExplanationForm* explanationForm = m_appWindow->getExplanationForm();
 
-    // Pass data manager to all explanation plots
     explanationForm->magnitudesPlot->setDataManager(m_dataManager);
     explanationForm->gradientsPlotTop->setDataManager(m_dataManager);
     explanationForm->gradientsPlotBottom->setDataManager(m_dataManager);
@@ -108,9 +104,6 @@ AppWindowBuilder& AppWindowBuilder::initializeExplanationPlots() {
     explanationForm->gradientsPlotBottom->initPlot(Qt::Horizontal, 2);
     explanationForm->magnitudesPlot->initPlot(Qt::Horizontal, 0);
 
-    // The plots will now access gradients data directly from data manager
-    // You might need to add methods to get axis-specific gradients
-
     return *this;
 }
 
@@ -119,10 +112,9 @@ AppWindowBuilder& AppWindowBuilder::initializeFeaturesForm() {
         m_appWindow = new AppWindow(m_parent);
     }
 
-    // FeaturesForm* featuresForm = m_appWindow->getFeaturesForm();
+    FeaturesForm* featuresForm = m_appWindow->getFeaturesForm();
 
-    // // Pass data manager instead of copying feature names
-    // featuresForm->setDataManager(m_dataManager);
+    featuresForm->setDataManager(m_dataManager);
 
     return *this;
 }
@@ -134,7 +126,6 @@ AppWindowBuilder& AppWindowBuilder::initializeMenuForm() {
 
     // MenuForm* menuForm = m_appWindow->getMenuForm();
 
-    // // Pass data manager instead of copying feature names
     // menuForm->setDataManager(m_dataManager);
 
     // // Add filters to the menu using data manager
@@ -150,9 +141,6 @@ AppWindow* AppWindowBuilder::build() {
     if (!m_appWindow) {
         m_appWindow = new AppWindow(m_parent);
     }
-
-    // Pass data manager to app window
-    // m_appWindow->setDataManager(m_dataManager);
 
     m_appWindow->setInitialized(true);
     m_appWindow->connectSignalsAndSlots();

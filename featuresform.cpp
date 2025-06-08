@@ -245,6 +245,14 @@ void FeaturesForm::applyStyles()
         );
 }
 
+void FeaturesForm::setDataManager(DataManagerPtr dataManager)
+{
+    m_dataManager = dataManager;
+    if (m_dataManager && m_dataManager->isDataLoaded()) {
+        setFeatureNames(m_dataManager->featureNames());
+    }
+}
+
 QFrame* FeaturesForm::createStyledFrame()
 {
     QFrame *frame = new QFrame();

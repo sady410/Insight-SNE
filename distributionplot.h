@@ -1,6 +1,7 @@
 #ifndef DISTRIBUTIONPLOT_H
 #define DISTRIBUTIONPLOT_H
 
+#include "datamanager.h"
 #include <QChartView>
 #include <QMouseEvent>
 #include <QMap>
@@ -22,15 +23,16 @@ public:
     explicit DistributionPlot(QChart *chart, QWidget *parent = nullptr);
     ~DistributionPlot();
 
-    void setData(const QList<QList<qreal>> &data);
-    void setFeatureNames(const QStringList &featureNames);
+    void setDataManager(DataManagerPtr dataManager);
+
     void setCurrentFeature(const QString &featureName);
     void setCurrentSelection(int selectionId);
+    void setBinMethod(BinMethod method);
+    void setMaxBins(int maxBins);
+
     void addSelection(int id, const QColor &color, const QList<int> &indices,
                       bool enableDelete = true, bool state = true);
     void removeSelection(int id);
-    void setBinMethod(BinMethod method);
-    void setMaxBins(int maxBins);
 
 protected:
     void mouseMoveEvent(QMouseEvent *event) override;
@@ -48,9 +50,11 @@ private:
 private:
     QBarSeries *m_barSeries;
     QLineSeries *m_lineSeries;
-    QStringList m_featureNames;
+
+    bool firstUpdateCall = true;
+
+    DataManagerPtr m_dataManager;
     QString m_currentFeatureName;
-    QList<QList<qreal>> m_data;
     QMap<int, QColor> m_selectionColors;
     QMap<int, QList<int>> m_selectionIndices;
     int m_currentSelectionId;

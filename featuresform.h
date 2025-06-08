@@ -22,6 +22,8 @@ public:
     explicit FeaturesForm(QWidget *parent = nullptr);
     ~FeaturesForm();
 
+    void setDataManager(DataManagerPtr dataManager);
+
     void setFeatureNames(QStringList featureNames);
     void addSelection(int id, const QColor &color, const QList<int>& indices,
                       const bool enableDelete, const bool state, const QString name);
@@ -44,6 +46,8 @@ private slots:
 
 private:
     Ui::FeaturesForm *ui;
+    DataManagerPtr m_dataManager;
+
     QComboBox *m_selectionsDropdown;
     QComboBox *m_featuresDropdown;
     QMap<int, QString> m_selectionsMap;

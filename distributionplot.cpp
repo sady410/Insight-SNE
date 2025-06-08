@@ -85,12 +85,8 @@ void DistributionPlot::clearChart() {
     m_lineSeries = nullptr;
 }
 
-void DistributionPlot::setData(const QList<QList<qreal>> &data) {
-    m_data = data;
-}
-
-void DistributionPlot::setFeatureNames(const QStringList &featureNames) {
-    m_featureNames = featureNames;
+void DistributionPlot::setDataManager(DataManagerPtr dataManager) {
+    m_dataManager = dataManager;
 }
 
 void DistributionPlot::setCurrentFeature(const QString &featureName) {
@@ -289,8 +285,8 @@ QList<qreal> DistributionPlot::getSelectedValues(int featureIndex) const {
         const QList<int> &indices = m_selectionIndices[m_currentSelectionId];
 
         for (int idx : indices) {
-            if (idx >= 0 && idx < m_data.size() && featureIndex < m_data[idx].size()) {
-                selectedValues.append(m_data[idx][featureIndex]);
+            if (idx >= 0 && idx < m_dataManager->attributes().size() && featureIndex < m_dataManager->attributes()[idx].size()) {
+                selectedValues.append(m_dataManager->attributes()[idx][featureIndex]);
             }
         }
     }
@@ -489,6 +485,12 @@ void DistributionPlot::createTrendLine() {
 }
 
 void DistributionPlot::updatePlot() {
+
+    if (firstUpdateCall) {
+        firstUpdateCall = false;
+        return;
+    }
+
     // Clear previous chart FIRST to ensure no text items remain
     clearChart();
 
@@ -497,8 +499,8 @@ void DistributionPlot::updatePlot() {
     chart()->addSeries(m_barSeries);
 
     // Find the feature index
-    int featureIndex = m_featureNames.indexOf(m_currentFeatureName);
-    if (featureIndex == -1 || m_data.isEmpty() || featureIndex >= m_data.first().size()) {
+    int featureIndex = m_dataManager->featureNames().indexOf(m_currentFeatureName);
+    if (featureIndex == -1 || m_dataManager->attributes().isEmpty() || featureIndex >= m_dataManager->attributes().first().size()) {
         setupAxes(QStringList());
         chart()->setTitle(QString("Invalid feature: %1").arg(m_currentFeatureName));
         return;
