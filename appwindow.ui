@@ -14,7 +14,7 @@
    <string>MenuWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="3,2">
+   <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="4,2">
     <property name="spacing">
      <number>2</number>
     </property>
@@ -44,7 +44,14 @@
          <number>2</number>
         </property>
         <item>
-         <widget class="MenuForm" name="menuForm" native="true"/>
+         <layout class="QVBoxLayout" name="verticalLayout_3" stretch="5,1">
+          <item>
+           <widget class="MenuForm" name="menuForm_2" native="true"/>
+          </item>
+          <item>
+           <widget class="ComparisonForm" name="comparisonForm" native="true"/>
+          </item>
+         </layout>
         </item>
         <item>
          <widget class="TsneForm" name="tsneForm" native="true"/>
@@ -67,7 +74,11 @@
      </layout>
     </item>
     <item>
-     <widget class="ExplanationForm" name="explanationForm" native="true"/>
+     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="5">
+      <item>
+       <widget class="ExplanationForm" name="explanationForm" native="true"/>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -112,6 +123,12 @@
    <class>MenuForm</class>
    <extends>QWidget</extends>
    <header>menuform.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ComparisonForm</class>
+   <extends>QWidget</extends>
+   <header>comparisonform.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

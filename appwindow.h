@@ -2,6 +2,7 @@
 #define APPWINDOW_H
 
 #include "selectionmanager.h"
+#include "arrowsmanager.h"
 
 #include <QMainWindow>
 #include <QJsonObject>
@@ -18,8 +19,6 @@ public:
     explicit AppWindow(QWidget *parent = nullptr);
     ~AppWindow();
 
-    // Helper methods (used by the builder or other classes)
-    QList<qreal> computeMeanData(const QList<QList<qreal>> &dataList);
     QList<QList<qreal>> getAxisGradient(const QList<QList<QList<qreal>>> &gradientsList, int axis);
 
     // Public getters for UI components
@@ -35,6 +34,9 @@ public:
 
     void setInitialized(bool initialized) { m_isInitialized = initialized; }
 
+public slots:
+    void returnToMenu();
+
 protected:
     // Override the resizeEvent method
     void resizeEvent(QResizeEvent *event) override;
@@ -42,7 +44,11 @@ protected:
 private:
     Ui::AppWindow *ui; // UI components
     SelectionManager *m_selectionManager;
+    ArrowsManager *m_arrowsManager;
     bool m_isInitialized = false; // Flag to track initialization
+
+    void applyStylesheet();
+    void setupUi();
 };
 
 #endif // APPWINDOW_H

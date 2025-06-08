@@ -9,7 +9,12 @@ inline size_t qHash(const QColor &color, size_t seed = 0)
 }
 
 SelectionManager::SelectionManager(QObject* parent) : QObject(parent), m_nextId(0) {
-    m_colorList = {Qt::red, Qt::blue, Qt::green, Qt::yellow, Qt::cyan, Qt::magenta, Qt::gray, Qt::darkRed};
+    m_colorList = {QColor(255, 200, 158),
+                   QColor(255, 87, 34),
+                   QColor(33, 150, 243),
+                   QColor(76, 175, 80),
+                   QColor(255, 193, 7),
+                   Qt::cyan, Qt::gray, Qt::darkRed};
 }
 
 void SelectionManager::changeSelectionStateAndEmitSignal(int id) {
@@ -25,25 +30,24 @@ void SelectionManager::changeSelectionStateAndEmitSignal(int id) {
 }
 
 void SelectionManager::createSelection(const QList<int>& indices) {
-    createSelection(indices, true, true);  // Call the main function with default value
+    createSelection(indices, true, true, "");  // Call the main function with default value
 }
 
 
-void SelectionManager::createSelection(const QList<int>& indices, const bool enableDelete, const bool state) {
+void SelectionManager::createSelection(const QList<int>& indices, const bool enableDelete, const bool state, const QString name) {
     if (m_colorList.size() == m_usedColors.size()) {
         qWarning() << "No available colors for new selection!";
         return;
     }
     int newId = generateUniqueId();
     QColor color = getAvailableColor();
-
     // Add the color to usedColors
     m_usedColors.insert(color);
 
-    Selection newSelection(newId, color, indices, state);
+    Selection newSelection(newId, color, name, indices, state);
     m_selections.insert(newId, newSelection);
 
-    emit selectionCreated(newId, color, indices, enableDelete, state);
+    emit selectionCreated(newId, color, indices, enableDelete, state, name);
 }
 
 void SelectionManager::removeSelection(int id) {
@@ -69,11 +73,27 @@ void SelectionManager::findHoveredSelectionAndEmitSignal(int id) {
     }
 }
 
+void SelectionManager::selectionClickedInBarPlot(const QString &label, int id) {
+    qDebug() << label << id; // TODO
+}
+
 int SelectionManager::generateUniqueId() {
     if (!m_availableIds.isEmpty()) {
         return m_availableIds.pop(); // Reuse an available ID
     }
     return m_nextId++; // Otherwise, generate a new ID
+}
+
+void SelectionManager::selectionFreatureArrowCheckboxChanged(int id, const QString &featureName, const bool checked) {
+    if (m_selections.contains(id)) {
+        Selection &sel = m_selections[id];
+        QList<int> indices = sel.indices;
+        if (checked) {
+            emit addArrows(id, indices, featureName);
+        } else {
+            emit removeArrows(id, featureName);
+        }
+    }
 }
 
 QColor SelectionManager::getAvailableColor() {

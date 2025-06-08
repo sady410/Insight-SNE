@@ -1,52 +1,42 @@
 #include "appwindowbuilder.h"
 #include "explanationform.h"
 #include "featuresform.h"
+#include "menuform.h"
 #include "overviewform.h"
 #include "tsneform.h"
-#include "jsonparser.h"
+#include "datamanager.h"
 #include "appwindow.h"
 
-#include <QHorizontalBarSeries>
-#include <QBarSet>
-#include <QBarSeries>
+// Constructor
+AppWindowBuilder::AppWindowBuilder(QWidget* parent)
+    : m_parent(parent), m_appWindow(nullptr)
+{
+    // Create shared data manager
+    m_dataManager = DataManagerPtr::create();
+}
+
+// Set JSON data and parse it
+AppWindowBuilder& AppWindowBuilder::setJsonData(const QJsonObject& jsonData) {
+    if (!m_dataManager->loadJsonData(jsonData)) {
+        qWarning() << "Failed to load JSON data in AppWindowBuilder";
+    }
+    return *this;
+}
 
 AppWindowBuilder& AppWindowBuilder::initializeTsnePlot() {
     if (!m_appWindow) {
         m_appWindow = new AppWindow(m_parent);
     }
+
     TsneForm* tsneForm = m_appWindow->getTsneForm();
-    QJsonArray labels = m_jsonData.value("labels").toArray();
-    QStringList labelsList;
-    std::transform(labels.begin(), labels.end(), std::back_inserter(labelsList),
-                   [](const QJsonValue &value) { return value.toString(); });
-    tsneForm->tsnePlot->setLabels(labelsList);
 
-    QJsonArray embedding = m_jsonData.value("Y").toArray();
-    QScatterSeries *tsneSeries = new QScatterSeries();
-    for (const QJsonValue &val : std::as_const(embedding)) {
-        QJsonArray point = val.toArray();
-        if (point.size() == 2) {
-            qreal x = point[0].toDouble();
-            qreal y = point[1].toDouble();
-            tsneSeries->append(x, y);
-        }
-    }
-    tsneSeries->setMarkerSize(8.0);
+    tsneForm->tsnePlot->setDataManager(m_dataManager);
 
-    tsneForm->tsnePlot->initPlot(tsneSeries);
-
-    // Create the list of lists (indices)
-    QMap<QString, QList<int>> classIndicesMap;
-    QList<int> allIndices;
-
-    for (int i = 0; i < labelsList.size(); ++i) {
-        allIndices.append(i);
-        classIndicesMap[labelsList[i]].append(i);
-    }
-
-    m_indicesList.append(allIndices);
-    for (const auto& indices : std::as_const(classIndicesMap)) {
-        m_indicesList.append(indices);
+    // Initialize plot with visualization type
+    if (m_dataManager->isLabel()) {
+        tsneForm->tsnePlot->initPlot(m_dataManager->isClass(), !m_dataManager->isClass());
+    } else {
+        tsneForm->tsnePlot->initPlot(false, false);
     }
 
     return *this;
@@ -57,18 +47,17 @@ AppWindowBuilder& AppWindowBuilder::initializeOverviewPlot() {
         m_appWindow = new AppWindow(m_parent);
     }
 
-    QJsonArray embedding = m_jsonData.value("Y").toArray();
-    QScatterSeries *overviewSeries = new QScatterSeries();
-    for (const QJsonValue &val : std::as_const(embedding)) {
-        QJsonArray point = val.toArray();
-        if (point.size() == 2) {
-            qreal x = point[0].toDouble();
-            qreal y = point[1].toDouble();
-            overviewSeries->append(x, y);
-        }
-    }
-    overviewSeries->setMarkerSize(8.0);
-    m_appWindow->getOverviewForm()->overviewPlot->setScatterSeries(overviewSeries);
+    OverviewForm* overviewForm = m_appWindow->getOverviewForm();
+
+    overviewForm->overviewPlot->setDataManager(m_dataManager);
+
+    QString infoText = QString("Dataset: %1 (%2 instances)\n"
+                               "Perplexity: %3 | Iterations: %4")
+                           .arg(m_dataManager->filename())
+                           .arg(m_dataManager->dataSize())
+                           .arg(m_dataManager->perplexity())
+                           .arg(m_dataManager->iterations());
+    overviewForm->setDatasetInfo(infoText);
 
     return *this;
 }
@@ -77,18 +66,24 @@ AppWindowBuilder& AppWindowBuilder::initializeFeaturesPlot() {
     if (!m_appWindow) {
         m_appWindow = new AppWindow(m_parent);
     }
+
     FeaturesForm* featuresForm = m_appWindow->getFeaturesForm();
 
-    QJsonArray featureNames = m_jsonData.value("featureNames").toArray();
-    QStringList featureNamesList;
-    std::transform(featureNames.begin(), featureNames.end(), std::back_inserter(featureNamesList),
-                   [](const QJsonValue &value) { return value.toString(); });
-    featuresForm->featuresPlot->setLabels(featureNamesList);
+    // Pass data manager instead of copying data
+    featuresForm->featuresPlot->setDataManager(m_dataManager);
+    featuresForm->featuresPlot->initPlot(Qt::Vertical, 3);
 
-    QJsonArray data = m_jsonData.value("data").toArray();
-    QList<QList<qreal>> dataList = JsonParser::jsonArrayToQList2D(data);
-    featuresForm->featuresPlot->setValues(dataList);
-    featuresForm->featuresPlot->initPlot(Qt::Vertical);
+    return *this;
+}
+
+AppWindowBuilder& AppWindowBuilder::initializeDistributionPlot() {
+    if (!m_appWindow) {
+        m_appWindow = new AppWindow(m_parent);
+    }
+
+    FeaturesForm* featuresForm = m_appWindow->getFeaturesForm();
+
+    featuresForm->distributionPlot->setDataManager(m_dataManager);
 
     return *this;
 }
@@ -97,32 +92,47 @@ AppWindowBuilder& AppWindowBuilder::initializeExplanationPlots() {
     if (!m_appWindow) {
         m_appWindow = new AppWindow(m_parent);
     }
+
     ExplanationForm* explanationForm = m_appWindow->getExplanationForm();
 
-    // Set labels
-    QJsonArray featureNames = m_jsonData.value("featureNames").toArray();
-    QStringList featureNamesList;
-    std::transform(featureNames.begin(), featureNames.end(), std::back_inserter(featureNamesList),
-                   [](const QJsonValue &value) { return value.toString(); });
-    explanationForm->magnitudesPlot->setLabels(featureNamesList);
-    explanationForm->gradientsPlotTop->setLabels(featureNamesList);
-    explanationForm->gradientsPlotBottom->setLabels(featureNamesList);
+    explanationForm->magnitudesPlot->setDataManager(m_dataManager);
+    explanationForm->gradientsPlotTop->setDataManager(m_dataManager);
+    explanationForm->gradientsPlotBottom->setDataManager(m_dataManager);
 
-    // Gradients plot
-    explanationForm->gradientsPlotTop->initPlot(Qt::Horizontal);
-    explanationForm->gradientsPlotBottom->initPlot(Qt::Horizontal);
+    // Initialize plots
+    explanationForm->gradientsPlotTop->initPlot(Qt::Horizontal, 1);
+    explanationForm->gradientsPlotBottom->initPlot(Qt::Horizontal, 2);
+    explanationForm->magnitudesPlot->initPlot(Qt::Horizontal, 0);
 
-    QJsonArray gradients = m_jsonData.value("gradients").toArray();
-    QList<QList<QList<qreal>>> gradientsList = JsonParser::jsonArrayToQList3D(gradients);
-    explanationForm->gradientsPlotTop->setValues(m_appWindow->getAxisGradient(gradientsList, 0));
-    explanationForm->gradientsPlotBottom->setValues(m_appWindow->getAxisGradient(gradientsList, 1));
+    return *this;
+}
 
-    // Magnitudes plot
-    explanationForm->magnitudesPlot->initPlot(Qt::Horizontal);
+AppWindowBuilder& AppWindowBuilder::initializeFeaturesForm() {
+    if (!m_appWindow) {
+        m_appWindow = new AppWindow(m_parent);
+    }
 
-    QJsonArray magnitudes = m_jsonData.value("magnitudes").toArray();
-    QList<QList<qreal>> magnitudesList = JsonParser::jsonArrayToQList2D(magnitudes);
-    explanationForm->magnitudesPlot->setValues(magnitudesList);
+    FeaturesForm* featuresForm = m_appWindow->getFeaturesForm();
+
+    featuresForm->setDataManager(m_dataManager);
+
+    return *this;
+}
+
+AppWindowBuilder& AppWindowBuilder::initializeMenuForm() {
+    if (!m_appWindow) {
+        m_appWindow = new AppWindow(m_parent);
+    }
+
+    MenuForm* menuForm = m_appWindow->getMenuForm();
+
+    menuForm->setDataManager(m_dataManager);
+
+    // Add filters to the menu using data manager
+    menuForm->addFilterToMenu(0, "Magnitudes", m_dataManager->featureNames());
+    menuForm->addFilterToMenu(1, "Attributes", m_dataManager->featureNames());
+
+    menuForm->addScopeToCombobox({"Global"});
 
     return *this;
 }
@@ -135,10 +145,21 @@ AppWindow* AppWindowBuilder::build() {
     m_appWindow->setInitialized(true);
     m_appWindow->connectSignalsAndSlots();
 
-    for (const QList<int>& indices : std::as_const(m_indicesList)) {
-        m_appWindow->getSelectionManager()->createSelection(indices, false, false);
+    // Create selections using data from data manager
+    const auto& indicesList = m_dataManager->indicesList();
+    const auto& uniqueLabels = m_dataManager->uniqueLabels();
+
+    for (int i = 0; i < indicesList.size(); ++i) {
+        if (i == 0) {
+            m_appWindow->getSelectionManager()->createSelection(indicesList[i], false, true, "All points");
+        } else {
+            if (i-1 < uniqueLabels.size() && m_dataManager->isClass()) {
+                m_appWindow->getSelectionManager()->createSelection(indicesList[i], false, false, uniqueLabels[i-1]);
+            }
+        }
     }
 
-    m_appWindow->show();
+    m_appWindow->getMenuForm()->connectModelSignals();
+    m_appWindow->showMaximized();
     return m_appWindow;
 }

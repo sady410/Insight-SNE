@@ -1,10 +1,9 @@
 #ifndef EXPLANATIONFORM_H
 #define EXPLANATIONFORM_H
 
-#include "barplot.h"
-
 #include <QWidget>
-#include <QHorizontalBarSeries>
+#include "barplot.h"
+#include <QFrame>
 
 namespace Ui {
 class ExplanationForm;
@@ -22,12 +21,12 @@ public:
     BarPlot *gradientsPlotTop;
     BarPlot *gradientsPlotBottom;
 
-public slots:
-    void showMagnitudesPlot();
-    void showGradientsPlot();
-
 private:
     Ui::ExplanationForm *ui;
+
+    void applyStyles();
+    QFrame* createStyledFrame();
+    QFrame* createSeparator();
 };
 
 #endif // EXPLANATIONFORM_H

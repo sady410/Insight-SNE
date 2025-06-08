@@ -1,11 +1,9 @@
 #ifndef TSNEFORM_H
 #define TSNEFORM_H
 
-#include "tsneplot.h"
-
 #include <QWidget>
-#include <QScatterSeries>
-#include <QVBoxLayout>
+#include "tsneplot.h"
+#include <QFrame>
 
 namespace Ui {
 class TsneForm;
@@ -18,10 +16,16 @@ class TsneForm : public QWidget
 public:
     explicit TsneForm(QWidget *parent = nullptr);
     ~TsneForm();
+
     TsnePlot *tsnePlot;
 
 private:
     Ui::TsneForm *ui;
+
+    // New styling methods
+    void applyStyles();
+    QFrame* createStyledFrame();
+    QFrame* createSeparator();
 };
 
 #endif // TSNEFORM_H

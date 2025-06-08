@@ -1,92 +1,120 @@
 #include "overviewplot.h"
+#include <QDebug>
+#include <QPainter>
 
-#include <QChart>
-#include <QValueAxis>
-
-OverviewPlot::OverviewPlot(QChart *chart, QWidget *parent)
-    : QChartView(chart, parent), m_zoomRectItem(nullptr) {
-    setRenderHint(QPainter::Antialiasing);
-
-    chart->setAnimationOptions(QChart::SeriesAnimations);
-    chart->setTheme(QChart::ChartThemeDark);
+OverviewPlot::OverviewPlot(QWidget *parent)
+    : QCustomPlot(parent), m_zoomRect(nullptr)
+{
+    setupPlotAppearance();
 }
 
-void OverviewPlot::setScatterSeries(QScatterSeries *series) {
-    if (!series || !chart()) return;
+void OverviewPlot::setupPlotAppearance()
+{
+    // Set dark theme background color
+    setBackground(QColor(45, 45, 45)); // #2d2d2d
 
-    // Remove the previous scatter series if it exists
-    if (m_scatterSeries && chart()->series().contains(m_scatterSeries)) {
-        chart()->removeSeries(m_scatterSeries);
-    }
+    // Configure plot margins
+    setContentsMargins(5, 5, 5, 5);
 
-    m_scatterSeries = series;
-    m_scatterSeries->setColor(Qt::gray);
-    m_scatterSeries->setMarkerShape(QScatterSeries::MarkerShapeCircle);
-    m_scatterSeries->setBorderColor(Qt::black);
-    chart()->addSeries(m_scatterSeries);
+    // Hide axis and grid for a clean look
+    xAxis->setVisible(false);
+    yAxis->setVisible(false);
+    layer("grid")->setVisible(false);
+    legend->setVisible(false);
 
-    // Compute min/max values dynamically
-    qreal minX = std::numeric_limits<qreal>::max();
-    qreal maxX = std::numeric_limits<qreal>::min();
-    qreal minY = std::numeric_limits<qreal>::max();
-    qreal maxY = std::numeric_limits<qreal>::min();
+    // Set the plot's border style
+    QPen borderPen(QColor(68, 68, 68), 1); // #444444
 
-    for (int i = 0; i < series->count(); ++i) {
-        QPointF point = series->at(i);
-        minX = std::min(minX, point.x());
-        maxX = std::max(maxX, point.x());
-        minY = std::min(minY, point.y());
-        maxY = std::max(maxY, point.y());
-    }
+    // Enable antialiasing for smoother drawing
+    setAntialiasedElements(QCP::aeAll);
+}
 
-    // Create and configure new axes
-    try {
-        QValueAxis *axisX = new QValueAxis();
-        QValueAxis *axisY = new QValueAxis();
-        axisX->setRange(minX - 1, maxX + 1); // Adding margins
-        axisY->setRange(minY - 1, maxY + 1);
-        axisX->setGridLineVisible(false);
-        axisY->setGridLineVisible(false);
+void OverviewPlot::setDataManager(DataManagerPtr dataManager)
+{
+    m_dataManager = dataManager;
 
-        // Remove existing axes if they exist
-        QList<QAbstractAxis *> existingAxes = chart()->axes();
-        for (QAbstractAxis *axis : std::as_const(existingAxes)) {
-            if (axis) {
-                chart()->removeAxis(axis);
-                delete axis;
-            }
-        }
-
-        chart()->addAxis(axisX, Qt::AlignBottom);
-        chart()->addAxis(axisY, Qt::AlignLeft);
-
-        // Attach the series to the new axes
-        m_scatterSeries->attachAxis(axisX);
-        m_scatterSeries->attachAxis(axisY);
-
-        chart()->legend()->hide();
-    } catch (const std::bad_alloc& e) {
-        // Handle memory allocation failure
-        qWarning() << "Memory allocation failed:" << e.what();
+    if (m_dataManager && m_dataManager->isDataLoaded()) {
+        createScatterPlot();
+    } else {
+        qWarning() << "OverviewPlot: No data manager or data not loaded";
     }
 }
 
-void OverviewPlot::updateZoomRectangle(qreal minX, qreal maxX, qreal minY, qreal maxY) {
-    if (!chart() || !chart()->scene()) return;
+void OverviewPlot::createScatterPlot()
+{
+    clearPlottables(); // Clear existing data
 
-    if (!m_zoomRectItem) {
-        m_zoomRectItem = new QGraphicsRectItem();
-        QPen pen(Qt::red);
-        pen.setWidth(2);
-        m_zoomRectItem->setPen(pen);
-        chart()->scene()->addItem(m_zoomRectItem);
+    // Get data from data manager (const references - no copying!)
+    const QList<qreal>& xData = m_dataManager->xData();
+    const QList<qreal>& yData = m_dataManager->yData();
+
+    if (xData.isEmpty() || yData.isEmpty()) {
+        qWarning() << "OverviewPlot: Empty coordinate data";
+        return;
     }
-    // Convert data coordinates to scene coordinates
-    QPointF topLeft = chart()->mapToPosition(QPointF(minX, maxY));
-    QPointF bottomRight = chart()->mapToPosition(QPointF(maxX, minY));
 
-    QRectF visibleArea(topLeft, bottomRight);
-    // qDebug() << zoomRectItem;
-    // qDebug() << visibleArea;
-    m_zoomRectItem->setRect(visibleArea);
+    if (xData.size() != yData.size()) {
+        qWarning() << "OverviewPlot: X and Y data size mismatch";
+        return;
+    }
+
+    // Convert QList<qreal> to QVector<double> for QCustomPlot
+    // Note: This is a necessary conversion for QCustomPlot API
+    QVector<double> x(xData.size());
+    QVector<double> y(yData.size());
+
+    std::copy(xData.constBegin(), xData.constEnd(), x.begin());
+    std::copy(yData.constBegin(), yData.constEnd(), y.begin());
+
+    // Create and configure scatter plot
+    QCPGraph *scatterPlot = addGraph();
+    scatterPlot->setData(x, y);
+    scatterPlot->setLineStyle(QCPGraph::lsNone);
+
+    // Style the scatter points to match the theme
+    QCPScatterStyle scatterStyle(QCPScatterStyle::ssCircle,
+                                 QColor(76, 175, 80),
+                                 QColor(170, 170, 170), 5);
+    scatterPlot->setScatterStyle(scatterStyle);
+
+    // Calculate and set axis ranges with padding
+    auto [xMin, xMax] = std::minmax_element(x.constBegin(), x.constEnd());
+    auto [yMin, yMax] = std::minmax_element(y.constBegin(), y.constEnd());
+
+    // Add padding to avoid points being cut off at edges
+    double xPadding = (*xMax - *xMin) * 0.2;
+    double yPadding = (*yMax - *yMin) * 0.2;
+
+    // If we have single points or identical values, make sure we still have a valid range
+    if (xPadding == 0) xPadding = 1;
+    if (yPadding == 0) yPadding = 1;
+
+    xAxis->setRange(*xMin - xPadding, *xMax + xPadding);
+    yAxis->setRange(*yMin - yPadding, *yMax + yPadding);
+
+    replot();
+}
+
+void OverviewPlot::updateZoomRectangle(double minX, double maxX, double minY, double maxY)
+{
+    if (!m_zoomRect) {
+        m_zoomRect = new QCPItemRect(this);
+        // Style the zoom rectangle to match the theme
+        QPen rectPen(QColor(76, 175, 80), 2); // #4CAF50 (green accent color)
+        m_zoomRect->setPen(rectPen);
+        // Semi-transparent green fill
+        QColor fillColor = QColor(76, 175, 80, 50); // ~20% opacity
+        m_zoomRect->setBrush(QBrush(fillColor));
+    }
+
+    m_zoomRect->topLeft->setCoords(minX, maxY);
+    m_zoomRect->bottomRight->setCoords(maxX, minY);
+    replot();
+}
+
+void OverviewPlot::resizeEvent(QResizeEvent *event)
+{
+    QCustomPlot::resizeEvent(event);
+    // Maintain aspect ratio if needed
+    // xAxis->setScaleRatio(yAxis, 1.0);
 }

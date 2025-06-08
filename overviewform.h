@@ -18,8 +18,17 @@ public:
     ~OverviewForm();
     OverviewPlot *overviewPlot;
 
+    void setDatasetInfo(const QString &info);
+    QPushButton *m_backButton;
+
 private:
     Ui::OverviewForm *ui;
+
+    QFrame* createSeparator();
+    QFrame* createStyledFrame();
+    void applyStyles();
+
+    QLabel *m_infoLabel;
 };
 
 #endif // OVERVIEWFORM_H

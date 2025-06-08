@@ -1,28 +1,39 @@
 #ifndef APPWINDOWBUILDER_H
 #define APPWINDOWBUILDER_H
 
-#include "appwindow.h"
+#include <QWidget>
+#include <QJsonObject>
+#include "datamanager.h"
 
-#include <QScatterSeries>
+class AppWindow;
 
-class AppWindowBuilder {
+class AppWindowBuilder
+{
 public:
-    AppWindowBuilder(QJsonObject json, QWidget *parent = nullptr)
-        : m_jsonData(json), m_parent(parent) {}
+    explicit AppWindowBuilder(QWidget* parent = nullptr);
 
-    void extracted(QList<QList<int>> &indicesList,
-                   QMap<QString, QList<int>> &classIndicesMap);
-    AppWindowBuilder &initializeTsnePlot();
+    // Method to set JSON data
+    AppWindowBuilder& setJsonData(const QJsonObject& jsonData);
+
+    // Initialization methods
+    AppWindowBuilder& initializeTsnePlot();
     AppWindowBuilder& initializeOverviewPlot();
     AppWindowBuilder& initializeFeaturesPlot();
+    AppWindowBuilder& initializeDistributionPlot();
     AppWindowBuilder& initializeExplanationPlots();
+    AppWindowBuilder& initializeFeaturesForm();
+    AppWindowBuilder& initializeMenuForm();
+
+    // Build the final app window
     AppWindow* build();
 
+    // Getter for data manager (if needed elsewhere)
+    DataManagerPtr dataManager() const { return m_dataManager; }
+
 private:
-    QList<QList<int>> m_indicesList;
-    QJsonObject m_jsonData;
     QWidget* m_parent;
-    AppWindow* m_appWindow = nullptr;
+    AppWindow* m_appWindow;
+    DataManagerPtr m_dataManager;
 };
 
 #endif // APPWINDOWBUILDER_H

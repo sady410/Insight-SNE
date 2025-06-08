@@ -5,30 +5,53 @@
 #include <QHorizontalBarSeries>
 #include <QBarSeries>
 #include <QDebug>
+#include <QPen>
+#include <QBrush>
+#include <QFont>
 
 BarPlot::BarPlot(QChart *chart, QWidget *parent)
     : QChartView(chart, parent), m_barSeries(nullptr), m_firstDataAdded(false) {
+    // Set anti-aliasing for smoother edges
     setRenderHint(QPainter::Antialiasing);
-    chart->setAnimationOptions(QChart::SeriesAnimations);
-    chart->setTheme(QChart::ChartThemeDark);
+
+    // Apply dark theme styling to the chart view
+    setStyleSheet(
+        "QChartView {"
+        "   background-color: #363636;"
+        "   border: 1px solid #555555;"
+        "   border-radius: 5px;"
+        "}"
+        );
+
+    // Apply theme styling to the chart
+    chart->setBackgroundVisible(true);
+    chart->setBackgroundBrush(QBrush(QColor("#363636")));
+    chart->setPlotAreaBackgroundVisible(true);
+    chart->setPlotAreaBackgroundBrush(QBrush(QColor("#2d2d2d")));
+
+    chart->legend()->setVisible(false);
 }
 
 BarPlot::~BarPlot() {}
 
-void BarPlot::setLabels(const QStringList &labels) {
-    this->m_labels = labels;
+void BarPlot::setDataManager(DataManagerPtr dataManager) {
+    m_dataManager = dataManager;
 }
 
-void BarPlot::setValues(const QList<QList<qreal>> &values) {
-    this->m_values = values;
-}
+void BarPlot::initPlot(Qt::Orientation orientation, int dataSource) {
+    if (!m_dataManager) {
+        qWarning() << "DataManager not set before initializing BarPlot";
+        return;
+    }
 
-void BarPlot::initPlot(Qt::Orientation orientation) {
+    m_dataSource = dataSource; // 0, 1, 2, 3 for magnitudes, attributes, gradients axis 0, gradients axis 1
+
     if (orientation == Qt::Horizontal) {
         m_barSeries = new QHorizontalBarSeries();
     } else {
-       m_barSeries = new QBarSeries();
+        m_barSeries = new QBarSeries();
     }
+
     m_plotOrientation = orientation;
 }
 
@@ -36,6 +59,12 @@ void BarPlot::addValue(int id, const QColor &color, const QList<int> &indices, c
     Q_UNUSED(enableDelete);
 
     if (!state) {
+        qDebug() << "State disabled";
+        return;
+    }
+
+    if (!m_dataManager) {
+        qWarning() << "DataManager not set";
         return;
     }
 
@@ -43,35 +72,61 @@ void BarPlot::addValue(int id, const QColor &color, const QList<int> &indices, c
         qDebug() << "No indices provided";
         return;
     }
-    if (m_values.isEmpty()) {
-        qDebug() << "Values data is empty.";
+
+    // Get data from DataManager based on the plot type
+    const QList<QList<qreal>>* dataSource = nullptr;
+    QStringList labels = m_dataManager->featureNames();
+
+    switch (m_dataSource) {
+    case 0:
+        dataSource = &m_dataManager->magnitudes();
+        break;
+    case 1:
+        dataSource = &m_dataManager->xAxisGradients();
+        break;
+    case 2:
+        dataSource = &m_dataManager->yAxisGradients();
+        break;
+    case 3:
+        dataSource = &m_dataManager->attributes();
+        break;
+    default:
+        qDebug() << "No suitable data found in DataManager";
         return;
     }
 
+    if (dataSource->isEmpty()) {
+        qDebug() << "Data source is empty";
+        return;
+    }
+
+    // Calculate mean values for the given indices
     QList<qreal> meanValues;
-    int numFeatures = m_values.first().size();
+    int numFeatures = dataSource->first().size();
 
     for (int i = 0; i < numFeatures; ++i) {
         qreal sum = 0;
         int count = 0;
         for (int index : indices) {
-            if (index >= 0 && index < m_values.size()) {
-                sum += m_values[index][i];
+            if (index >= 0 && index < dataSource->size()) {
+                sum += (*dataSource)[index][i];
                 count++;
             }
         }
         meanValues.append(count > 0 ? sum / count : 0);
     }
 
-    QBarSet *newSet = new QBarSet("New Data");
+    QBarSet *newSet = new QBarSet("Selection " + QString::number(id));
     for (qreal value : meanValues) {
         *newSet << value;
     }
+
+    // Style the bar set
     newSet->setColor(color);
+    newSet->setLabelColor(QColor("#e6e6e6"));
 
     // Store the initial color of the bar set
     m_initialBarSetColors[id] = color;
-
     m_idToBarSetMap[id] = newSet;
 
     connect(newSet, &QBarSet::clicked, this, [this, newSet](int index) {
@@ -82,7 +137,7 @@ void BarPlot::addValue(int id, const QColor &color, const QList<int> &indices, c
         m_barSeries->append(newSet);
         if (!m_firstDataAdded) {
             chart()->addSeries(m_barSeries);
-            setupAxes(m_plotOrientation);
+            setupAxes(m_plotOrientation, labels);
             m_firstDataAdded = true;
         }
         updateAxisRange();
@@ -105,7 +160,8 @@ void BarPlot::removeValue(int id) {
 
     m_barSeries->remove(barSet);
     m_idToBarSetMap.remove(id);
-    m_originalBarSetColors.remove(barSet); // Remove the original color from the map
+    m_initialBarSetColors.remove(id);
+    m_originalBarSetColors.remove(barSet);
     updateAxisRange();
 }
 
@@ -133,55 +189,75 @@ void BarPlot::updateAxisRange() {
     }
 
     QValueAxis *axis = nullptr;
-
-    axis = qobject_cast<QValueAxis *>(chart()->axes(m_plotOrientation).first());
+    const auto axes = chart()->axes(m_plotOrientation);
+    if (!axes.isEmpty()) {
+        axis = qobject_cast<QValueAxis *>(axes.first());
+    }
 
     if (axis) {
         axis->setRange(minValue, maxValue);
-        // qDebug() << "Axis range updated to:" << axis->min() << "-" << axis->max();
     } else {
         qDebug() << "Axis not found for orientation:" << m_plotOrientation;
     }
 }
 
-void BarPlot::setupAxes(Qt::Orientation orientation) {
+void BarPlot::setupAxes(Qt::Orientation orientation, const QStringList& labels) {
+    if (!m_dataManager) {
+        qWarning() << "DataManager not set when setting up axes";
+        return;
+    }
+
     qreal minValue, maxValue;
     calculateDynamicRange(minValue, maxValue);
 
     if (orientation == Qt::Horizontal) {
         QValueAxis *axisX = new QValueAxis();
-        axisX->setTitleText("Gradients"); // TODO
+        axisX->setTitleText("Values");
+        axisX->setTitleFont(QFont("Arial", 10, QFont::Bold));
+        axisX->setTitleBrush(QColor("#4CAF50"));
         axisX->setLabelFormat("%.2f");
         axisX->setTickCount(5);
         axisX->setRange(minValue, maxValue);
-        axisX->setGridLineVisible(false);
+        axisX->setGridLineVisible(true);
+        axisX->setGridLineColor(QColor("#555555"));
+        axisX->setLabelsColor(QColor("#e6e6e6"));
+        axisX->setLinePenColor(QColor("#888888"));
         chart()->addAxis(axisX, Qt::AlignBottom);
         m_barSeries->attachAxis(axisX);
 
         QCategoryAxis *axisY = new QCategoryAxis();
-        for (int i = 0; i < m_labels.size(); ++i) {
-            axisY->append(m_labels[i], i);
+        for (int i = 0; i < labels.size(); ++i) {
+            axisY->append(labels[i], i);
         }
         axisY->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
         axisY->setGridLineVisible(false);
+        axisY->setLabelsColor(QColor("#e6e6e6"));
+        axisY->setLinePenColor(QColor("#888888"));
         chart()->addAxis(axisY, Qt::AlignLeft);
         m_barSeries->attachAxis(axisY);
     } else {
         QValueAxis *axisY = new QValueAxis();
-        axisY->setTitleText("Gradients");
+        axisY->setTitleText("Values");
+        axisY->setTitleFont(QFont("Arial", 10, QFont::Bold));
+        axisY->setTitleBrush(QColor("#4CAF50"));
         axisY->setLabelFormat("%.2f");
         axisY->setTickCount(5);
         axisY->setRange(minValue, maxValue);
-        axisY->setGridLineVisible(false);
+        axisY->setGridLineVisible(true);
+        axisY->setGridLineColor(QColor("#555555"));
+        axisY->setLabelsColor(QColor("#e6e6e6"));
+        axisY->setLinePenColor(QColor("#888888"));
         chart()->addAxis(axisY, Qt::AlignLeft);
         m_barSeries->attachAxis(axisY);
 
         QCategoryAxis *axisX = new QCategoryAxis();
-        for (int i = 0; i < m_labels.size(); ++i) {
-            axisX->append(m_labels[i], i);
+        for (int i = 0; i < labels.size(); ++i) {
+            axisX->append(labels[i], i);
         }
         axisX->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
         axisX->setGridLineVisible(false);
+        axisX->setLabelsColor(QColor("#e6e6e6"));
+        axisX->setLinePenColor(QColor("#888888"));
         chart()->addAxis(axisX, Qt::AlignBottom);
         m_barSeries->attachAxis(axisX);
     }
@@ -214,17 +290,22 @@ void BarPlot::calculateDynamicRange(qreal &minValue, qreal &maxValue) const {
     if (maxValue == std::numeric_limits<qreal>::min()) {
         maxValue = 0;
     }
-
-    // qDebug() << "Dynamic range calculated: minValue =" << minValue << ", maxValue =" << maxValue;
 }
 
 void BarPlot::handleBarClicked(int index, QBarSet *barSet) {
-    if (index < 0 || index >= m_labels.size()) {
+    if (!m_dataManager) {
+        qWarning() << "DataManager not set";
+        return;
+    }
+
+    const QStringList& featureNames = m_dataManager->featureNames();
+
+    if (index < 0 || index >= featureNames.size()) {
         qDebug() << "Invalid index:" << index;
         return;
     }
 
-    QString label = m_labels[index];
+    QString label = featureNames[index];
 
     // Find the id associated with the clicked bar set
     int id = -1;
@@ -240,8 +321,6 @@ void BarPlot::handleBarClicked(int index, QBarSet *barSet) {
         return;
     }
 
-    qDebug() << label << id;
-    // Emit the custom signal with the label and id
     emit barClicked(label, id);
 }
 
@@ -258,11 +337,16 @@ void BarPlot::startHighlightSelection(const QColor &color, const QList<int>& ind
         }
 
         if (set->color() != color) {
-            QPen defaultPen(Qt::black, 1); // Example: Default black border with a width of 1
-            set->setPen(defaultPen);
+            // Style non-selected bars with a subdued appearance
+            QPen dimPen(QColor("#444444"), 1);
+            set->setPen(dimPen);
 
-            QBrush defaultBrush(set->color().darker(150)); // Example: Darker color for the brush
-            set->setBrush(defaultBrush);
+            QBrush dimBrush(set->color().darker(180));
+            set->setBrush(dimBrush);
+        } else {
+            // Make the selected bar stand out
+            QPen highlightPen(QColor("#FFFFFF"), 1.5);
+            set->setPen(highlightPen);
         }
     }
     chart()->update();
@@ -279,8 +363,8 @@ void BarPlot::stopHighlightSelection() {
             set->setBrush(originalColor); // Restore the original brush color
         }
 
-        // Reset the pen to its default values
-        QPen defaultPen(Qt::white, 1); // Default black border with a width of 1
+        // Reset to default styling
+        QPen defaultPen(QColor("#555555"), 1);
         set->setPen(defaultPen);
     }
 
@@ -288,4 +372,3 @@ void BarPlot::stopHighlightSelection() {
     m_originalBarSetColors.clear();
     chart()->update();
 }
-
