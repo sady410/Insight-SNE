@@ -491,7 +491,6 @@ void DistributionPlot::updatePlot() {
         return;
     }
 
-    // Clear previous chart FIRST to ensure no text items remain
     clearChart();
 
     // Create new bar series

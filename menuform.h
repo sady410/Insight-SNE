@@ -1,6 +1,7 @@
 #ifndef MENUFORM_H
 #define MENUFORM_H
 
+#include "datamanager.h"
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QLabel>
@@ -23,7 +24,8 @@ public:
     explicit MenuForm(QWidget *parent = nullptr);
     ~MenuForm();
 
-    void setFeatureNames(QStringList featureNames) { m_featureNames = featureNames; }
+    void setDataManager(DataManagerPtr dataManager);
+
     void addScopeToCombobox(QStringList name) { m_scopeComboBox->addItems(name); }
     void connectModelSignals();
 
@@ -63,6 +65,8 @@ private slots:
 
 private:
     Ui::MenuForm *ui;
+    DataManagerPtr m_dataManager;
+
     bool m_hasStretch = false;
     QVBoxLayout *m_top_verticalLayout; // Vertical layout to hold selections
     QVBoxLayout *m_bottom_verticalLayout;
@@ -74,8 +78,6 @@ private:
     int *m_selectedIndex;
     QVBoxLayout *m_bottomLayout;
     QVBoxLayout *m_filterLayout;
-
-    QStringList m_featureNames;
 
     QListView *m_listView;
     QStandardItemModel *m_model;

@@ -321,6 +321,10 @@ MenuForm::MenuForm(QWidget *parent) :
     mainLayout->addWidget(bottomFrame, 2);
 }
 
+void MenuForm::setDataManager(DataManagerPtr dataManager) {
+    m_dataManager = dataManager;
+}
+
 void MenuForm::onScopeToggled(bool checked)
 {
     m_scopeEnabled = checked;
@@ -830,7 +834,7 @@ void MenuForm::addSelectionToMenu(int id, const QColor &color, const QList<int> 
     // Rest of the function remains the same...
     // Add feature items and track their rows
     QList<int> featureRows;
-    for (const QString &featureName : std::as_const(m_featureNames)) {
+    for (const QString &featureName : std::as_const(m_dataManager->featureNames())) {
         QStandardItem *featureItem = new QStandardItem(featureName);
         featureItem->setSizeHint(QSize(-1, 30));
         featureItem->setCheckable(true);

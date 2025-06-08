@@ -124,15 +124,15 @@ AppWindowBuilder& AppWindowBuilder::initializeMenuForm() {
         m_appWindow = new AppWindow(m_parent);
     }
 
-    // MenuForm* menuForm = m_appWindow->getMenuForm();
+    MenuForm* menuForm = m_appWindow->getMenuForm();
 
-    // menuForm->setDataManager(m_dataManager);
+    menuForm->setDataManager(m_dataManager);
 
-    // // Add filters to the menu using data manager
-    // menuForm->addFilterToMenu(0, "Magnitudes", m_dataManager->featureNames());
-    // menuForm->addFilterToMenu(1, "Attributes", m_dataManager->featureNames());
+    // Add filters to the menu using data manager
+    menuForm->addFilterToMenu(0, "Magnitudes", m_dataManager->featureNames());
+    menuForm->addFilterToMenu(1, "Attributes", m_dataManager->featureNames());
 
-    // menuForm->addScopeToCombobox({"Global"});
+    menuForm->addScopeToCombobox({"Global"});
 
     return *this;
 }
