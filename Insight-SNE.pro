@@ -21,66 +21,76 @@ unix:!android {
     # DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 }
 
+INCLUDEPATH += \
+    headers \
+    headers/windows \
+    headers/forms \
+    headers/plots \
+    headers/libs \
+    headers/utils \
+    headers/managers \
+    headers/widgets \
+
 SOURCES += \
-    appwindow.cpp \
-    appwindowbuilder.cpp \
-    arrowsmanager.cpp \
-    barplot.cpp \
-    colorcircle.cpp \
-    comparisonform.cpp \
-    datamanager.cpp \
-    distributionplot.cpp \
-    explanationform.cpp \
-    featuresform.cpp \
-    jsonparser.cpp \
-    main.cpp \
-    menuform.cpp \
-    menuwindow.cpp \
-    overviewform.cpp \
-    overviewplot.cpp \
-    pythonexecutor.cpp \
-    scopecomputation.cpp \
-    selectionmanager.cpp \
-    selectionwidget.cpp \
-    thememanager.cpp \
-    tsneform.cpp \
-    tsneplot.cpp \
-    qcustomplot.cpp
+    sources/windows/appwindow.cpp \
+    sources/windows/appwindowbuilder.cpp \
+    sources/managers/arrowsmanager.cpp \
+    sources/plots/barplot.cpp \
+    sources/widgets/colorcircle.cpp \
+    sources/forms/comparisonform.cpp \
+    sources/managers/datamanager.cpp \
+    sources/plots/distributionplot.cpp \
+    sources/forms/explanationform.cpp \
+    sources/forms/featuresform.cpp \
+    sources/utils/jsonparser.cpp \
+    sources/main.cpp \
+    sources/forms/menuform.cpp \
+    sources/windows/menuwindow.cpp \
+    sources/forms/overviewform.cpp \
+    sources/plots/overviewplot.cpp \
+    sources/utils/pythonexecutor.cpp \
+    sources/utils/scopecomputation.cpp \
+    sources/managers/selectionmanager.cpp \
+    sources/widgets/selectionwidget.cpp \
+    sources/utils/thememanager.cpp \
+    sources/forms/tsneform.cpp \
+    sources/plots/tsneplot.cpp \
+    sources/libs/qcustomplot.cpp
 
 HEADERS += \
-    appwindow.h \
-    appwindowbuilder.h \
-    arrowsmanager.h \
-    barplot.h \
-    colorcircle.h \
-    comparisonform.h \
-    datamanager.h \
-    distributionplot.h \
-    explanationform.h \
-    featuresform.h \
-    jsonparser.h \
-    menuform.h \
-    menuwindow.h \
-    overviewform.h \
-    overviewplot.h \
-    pythonexecutor.h \
-    scopecomputation.h \
-    selectionmanager.h \
-    selectionwidget.h \
-    thememanager.h \
-    tsneform.h \
-    tsneplot.h \
-    qcustomplot.h
+    headers/windows/appwindow.h \
+    headers/windows/appwindowbuilder.h \
+    headers/managers/arrowsmanager.h \
+    headers/plots/barplot.h \
+    headers/widgets/colorcircle.h \
+    headers/forms/comparisonform.h \
+    headers/managers/datamanager.h \
+    headers/plots/distributionplot.h \
+    headers/forms/explanationform.h \
+    headers/forms/featuresform.h \
+    headers/utils/jsonparser.h \
+    headers/forms/menuform.h \
+    headers/windows/menuwindow.h \
+    headers/forms/overviewform.h \
+    headers/plots/overviewplot.h \
+    headers/utils/pythonexecutor.h \
+    headers/utils/scopecomputation.h \
+    headers/managers/selectionmanager.h \
+    headers/widgets/selectionwidget.h \
+    headers/utils/thememanager.h \
+    headers/forms/tsneform.h \
+    headers/plots/tsneplot.h \
+    headers/libs/qcustomplot.h
 
 FORMS += \
-    appwindow.ui \
-    comparisonform.ui \
-    explanationform.ui \
-    featuresform.ui \
-    menuform.ui \
-    menuwindow.ui \
-    overviewform.ui \
-    tsneform.ui
+    ui/appwindow.ui \
+    ui/comparisonform.ui \
+    ui/explanationform.ui \
+    ui/featuresform.ui \
+    ui/menuform.ui \
+    ui/menuwindow.ui \
+    ui/overviewform.ui \
+    ui/tsneform.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -88,9 +98,9 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    gradients.py \
-    main.py \
-    tsne.py
+    scripts/gradients.py \
+    scripts/main.py \
+    scripts/tsne.py
 
 RESOURCES += \
-    resources.qrc
+    ressources/resources.qrc

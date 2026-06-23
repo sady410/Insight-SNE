@@ -6,6 +6,7 @@
 #include <QColor>
 #include "barplot.h"
 #include "distributionplot.h"
+#include <QLayoutItem>
 
 class QComboBox;
 class QFrame;

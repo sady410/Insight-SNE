@@ -19,6 +19,12 @@ public:
 
     TsnePlot *tsnePlot;
 
+protected:
+    void paintEvent(QPaintEvent *event) override {
+        qDebug() << "paintEvent called at" << QTime::currentTime().toString("hh:mm:ss.zzz");
+        QWidget::paintEvent(event);  // Optional, only needed if base painting logic is relevant
+    }
+
 private:
     Ui::TsneForm *ui;
 

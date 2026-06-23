@@ -80,7 +80,6 @@ private:
     QList<qreal> m_yData;
     QList<QList<int>> m_indicesList;
 
-    // Lazy-loaded complex data structures
     mutable QList<QList<QList<qreal>>> m_gradientsList;
     mutable QList<QList<qreal>> m_magnitudesList;
     mutable QList<QList<qreal>> m_attributesList;
@@ -88,7 +87,6 @@ private:
     mutable bool m_magnitudesLoaded{false};
     mutable bool m_attributesLoaded{false};
 
-    // New members for axis-specific gradients
     mutable QList<QList<qreal>> m_xAxisGradientsList;
     mutable QList<QList<qreal>> m_yAxisGradientsList;
     mutable bool m_xAxisGradientsLoaded{false};

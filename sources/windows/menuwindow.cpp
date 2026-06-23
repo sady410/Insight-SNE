@@ -109,7 +109,7 @@ void MenuWindow::setupUi()
     // Set initial state of combobox based on checkbox
     ui->visualizationTypeComboBox->setEnabled(ui->checkBox->isChecked());
 
-    // Add tooltips for better UX
+    // Add tooltips
     ui->perplexitySlider->setToolTip("Adjust the perplexity parameter for t-SNE (affects clustering)");
     ui->iterationsSlider->setToolTip("Adjust the number of iterations for t-SNE training");
     ui->runAppButton->setToolTip("Process the data and open visualization");
@@ -344,7 +344,7 @@ void MenuWindow::onRunAppButtonClicked()
     }
 
     QStringList args = constructArgsString();
-    m_pythonExecutor->executeScript(QDir(projectRoot).filePath("main.py"), args);
+    m_pythonExecutor->executeScript(QDir(projectRoot).filePath("scripts/main.py"), args);
 }
 
 void MenuWindow::onOutputReceived(const QString &output)
