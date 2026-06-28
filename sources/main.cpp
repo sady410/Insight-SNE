@@ -15,7 +15,6 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     // Initialize and apply theme
-    // ThemeManager::instance()->applyTheme(ThemeManager::Dark);
     // loadStyleSheet("light_theme");
 
     MenuWindow w;
