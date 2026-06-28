@@ -21,6 +21,7 @@ FeaturesForm::FeaturesForm(QWidget *parent)
 
     // Main layout setup
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
+
     mainLayout->setSpacing(10);
     mainLayout->setContentsMargins(5, 5, 5, 5);
 

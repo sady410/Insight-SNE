@@ -11,6 +11,7 @@
 
 BarPlot::BarPlot(QChart *chart, QWidget *parent)
     : QChartView(chart, parent), m_barSeries(nullptr), m_firstDataAdded(false) {
+
     // Set anti-aliasing for smoother edges
     setRenderHint(QPainter::Antialiasing);
 
