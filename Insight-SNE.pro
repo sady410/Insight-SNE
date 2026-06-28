@@ -52,7 +52,6 @@ SOURCES += \
     sources/utils/scopecomputation.cpp \
     sources/managers/selectionmanager.cpp \
     sources/widgets/selectionwidget.cpp \
-    sources/utils/thememanager.cpp \
     sources/forms/tsneform.cpp \
     sources/plots/tsneplot.cpp \
     sources/libs/qcustomplot.cpp
@@ -77,7 +76,6 @@ HEADERS += \
     headers/utils/scopecomputation.h \
     headers/managers/selectionmanager.h \
     headers/widgets/selectionwidget.h \
-    headers/utils/thememanager.h \
     headers/forms/tsneform.h \
     headers/plots/tsneplot.h \
     headers/libs/qcustomplot.h

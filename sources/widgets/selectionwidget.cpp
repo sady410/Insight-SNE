@@ -41,12 +41,12 @@ void SelectionWidget::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    // 1. First draw the base background
+    // First draw the base background
     QStyleOption opt;
     opt.initFrom(this);
     style()->drawPrimitive(QStyle::PE_Widget, &opt, &painter, this);
 
-    // 2. Draw hover effect (if active)
+    // Draw hover effect (if active)
     if (m_hoverOpacity > 0.0) {
         QColor hoverColor = QColor(76, 175, 80, static_cast<int>(40 * m_hoverOpacity));
         painter.setBrush(hoverColor);
@@ -54,14 +54,14 @@ void SelectionWidget::paintEvent(QPaintEvent *event)
         painter.drawRoundedRect(rect(), 6, 6);
     }
 
-    // 3. Draw pressed effect (if active)
+    // Draw pressed effect (if active)
     if (m_pressed) {
         painter.setBrush(QColor(0, 0, 0, 40));
         painter.setPen(Qt::NoPen);
         painter.drawRoundedRect(rect(), 6, 6);
     }
 
-    // 4. Draw border if needed (optional)
+    // Draw border if needed (optional)
     if (hasFocus()) {
         painter.setPen(QPen(QColor(76, 175, 80), 2));
         painter.setBrush(Qt::NoBrush);
