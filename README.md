@@ -47,7 +47,7 @@ In the current release, scope is defined for individual point targets. Importanc
 
 ## Project development
 
-The original Qt version was developed by the author using the Python explanation implementation. Coding agents were used during the later C++ integration and application refinement, particularly for the interface and user experience. Project direction, scientific choices, review, and release decisions remain the author's choices.
+The original Qt version was developed by the author using the Python explanation implementation. Coding agents were used during the later C++ integration and application refinement, particularly for the interface and user experience. Project direction, scientific choices, review, and release decisions remain under the author’s oversight. The software is an evolving research tool, and results should be checked independently.
 
 ## License
 
